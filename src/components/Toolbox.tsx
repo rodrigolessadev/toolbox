@@ -173,7 +173,7 @@ export function Toolbox(props: ToolboxProps) {
                 <div className="icon">{icon}</div>
                 <div className="body">
                   <div className="title">
-                    {entry.name || name}{" "}
+                    {name}{" "}
                     {entry.name && (
                       <span
                         style={{
