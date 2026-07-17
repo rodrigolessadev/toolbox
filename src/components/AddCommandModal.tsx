@@ -58,15 +58,11 @@ export function AddCommandModal({
       return;
     }
     setBusy(true);
-
-    const payload: CreateCommandPayload = {
-      name: name.trim(),
-      kind: tab,
-      url: tab === "link" ? url.trim() : undefined,
-      path: tab !== "link" ? path.trim() : undefined,
-      favorite,
-      icon: icon.trim() || undefined,
-    };
+  const payload: CreateCommandPayload = {
+    name,
+    type: tab,           // antes: kind: tab
+    path, url,
+  };
 
     try {
       const entry = await api.createCommand(payload);
