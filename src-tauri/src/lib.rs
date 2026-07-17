@@ -7,6 +7,11 @@ mod models;
 mod paths;
 mod plugins;
 
+use tauri_plugin_opener::OpenerExt;
+
+use commands_store::{CommandStore, CommandsFile};
+use executor::RunResult;
+use history::{HistoryEntry, HistoryStore};
 use commands_store::CommandsStore;
 use error::AppResult;
 use executor::CommandExecutor;
@@ -18,6 +23,17 @@ use plugins::PluginManager;
 use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
+
+// helper usado por executor.rs
+#[allow(dead_code)]
+fn commands_store_now() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    format!("{}", secs)
+}
 
 #[tauri::command]
 fn get_commands(store: tauri::State<CommandsStore>) -> Vec<(String, CommandEntry)> {
