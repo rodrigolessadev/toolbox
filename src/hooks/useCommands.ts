@@ -16,10 +16,10 @@ export function useCommands() {
       const data = await api.getCommands();
       const [commands, setCommands] = useState<CommandsMap>({});
 
-const load = useCallback(async () => {
-  const data = await api.listCommands();
-  setCommands(data);
-}, []);
+      const load = useCallback(async () => {
+        const data = await api.listCommands();
+        setCommands(data);
+      }, []);
       setError(null);
     } catch (e) {
       setError(String(e));
