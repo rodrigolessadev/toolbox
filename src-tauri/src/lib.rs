@@ -9,15 +9,16 @@ mod plugins;
 
 use tauri_plugin_opener::OpenerExt;
 
-use commands_store::{CommandStore, CommandsFile};
-use executor::RunResult;
-use history::{HistoryEntry, HistoryStore};
 use commands_store::CommandsStore;
+use commands_store::{CommandStore, CommandsFile};
 use error::AppResult;
 use executor::CommandExecutor;
+use executor::RunResult;
 use history::HistoryStore;
+use history::{HistoryEntry, HistoryStore};
 use models::{
-    CommandEntry, CommandsFile, CreateCommandPayload, HistoryEntry, PluginInfo, ToggleFavoritePayload,
+    CommandEntry, CommandsFile, CreateCommandPayload, HistoryEntry, PluginInfo,
+    ToggleFavoritePayload,
 };
 use plugins::PluginManager;
 use tauri::{Emitter, Manager, WindowEvent};
@@ -111,10 +112,7 @@ fn export_commands(store: tauri::State<CommandsStore>) -> CommandsFile {
 }
 
 #[tauri::command]
-fn import_commands(
-    commands: CommandsFile,
-    store: tauri::State<CommandsStore>,
-) -> AppResult<()> {
+fn import_commands(commands: CommandsFile, store: tauri::State<CommandsStore>) -> AppResult<()> {
     log::info!("Importando {} comandos", commands.len());
     store.replace_all(commands)
 }
@@ -138,14 +136,18 @@ fn open_path(path: String, app: tauri::AppHandle) -> AppResult<()> {
 
 #[tauri::command]
 fn show_window(window: tauri::Window) -> AppResult<()> {
-    window.show().map_err(|e| error::AppError::Generic(e.to_string()))?;
+    window
+        .show()
+        .map_err(|e| error::AppError::Generic(e.to_string()))?;
     window.set_focus().ok();
     Ok(())
 }
 
 #[tauri::command]
 fn hide_window(window: tauri::Window) -> AppResult<()> {
-    window.hide().map_err(|e| error::AppError::Generic(e.to_string()))?;
+    window
+        .hide()
+        .map_err(|e| error::AppError::Generic(e.to_string()))?;
     Ok(())
 }
 
@@ -169,18 +171,17 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
+            let data_dir = paths::data_dir(&app.handle());
+            std::fs::create_dir_all(&data_dir).ok();
 
-             let data_dir = paths::data_dir(&app.handle());
-    std::fs::create_dir_all(&data_dir).ok();
+            let commands_path = data_dir.join("commands.json");
+            let history_path = data_dir.join("data").join("history.json");
+            std::fs::create_dir_all(history_path.parent().unwrap()).ok();
 
-    let commands_path = data_dir.join("commands.json");
-    let history_path = data_dir.join("data").join("history.json");
-    std::fs::create_dir_all(history_path.parent().unwrap()).ok();
+            app.manage(CommandStore::new(commands_path));
+            app.manage(HistoryStore::new(history_path));
 
-    app.manage(CommandStore::new(commands_path));
-    app.manage(HistoryStore::new(history_path));
-
-    Ok(())
+            Ok(());
 
             // Estado compartilhado.
             let store = CommandsStore::load().expect("Falha ao carregar commands.json");
@@ -235,25 +236,25 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands_store::list_commands,
-    commands_store::get_commands_file,
-    commands_store::create_command,
-    commands_store::delete_command,
-    commands_store::toggle_favorite,
-    commands_store::import_commands,
-    commands_store::export_commands,
-    executor::run_command,
-    executor::list_plugins,
-    executor::open_plugin_folder,
-    history::list_history,
-    history::clear_history,
-    paths::get_data_dir,
-    paths::get_plugins_dir,
-    paths::get_logs_dir,
-    paths::open_path,
-    paths::hide_window,
-    paths::show_window,
-    paths::get_theme,
-    paths::set_theme,
+            commands_store::get_commands_file,
+            commands_store::create_command,
+            commands_store::delete_command,
+            commands_store::toggle_favorite,
+            commands_store::import_commands,
+            commands_store::export_commands,
+            executor::run_command,
+            executor::list_plugins,
+            executor::open_plugin_folder,
+            history::list_history,
+            history::clear_history,
+            paths::get_data_dir,
+            paths::get_plugins_dir,
+            paths::get_logs_dir,
+            paths::open_path,
+            paths::hide_window,
+            paths::show_window,
+            paths::get_theme,
+            paths::set_theme,
         ])
         .run(tauri::generate_context!())
         .expect("Falha ao iniciar o aplicativo Tauri");

@@ -1,12 +1,12 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::Command;
-use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, State};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::commands_store::{CommandEntry, CommandStore, CommandType};
-use crate::history::{HistoryStore, HistoryEntry};
+use crate::history::{HistoryEntry, HistoryStore};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunResult {
@@ -24,8 +24,6 @@ pub struct PluginInfo {
     pub entry: String,
 }
 
-// ──────────────────── Execução ───────────────────────────
-
 #[tauri::command]
 pub fn run_command(
     name: String,
@@ -41,7 +39,7 @@ pub fn run_command(
     let entry = match entry {
         Some(e) => e,
         None => {
-            record_history(&history, &name, &CommandType::Plugin, false);
+            // Não grava histórico — tipo é desconhecido
             return Ok(RunResult {
                 ok: false,
                 message: Some(format!("Comando \"{}\" não encontrado.", name)),
@@ -55,7 +53,8 @@ pub fn run_command(
         CommandType::Plugin => run_plugin(&app, &name, &entry),
     };
 
-    record_history(&history, &name, &entry.kind, result.is_ok());
+    let success = result.is_ok();
+    record_history(&history, &name, &entry.kind, success);
     result
 }
 
@@ -64,7 +63,10 @@ fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> 
     app.opener()
         .open_url(url.clone(), None::<&str>)
         .map_err(|e| e.to_string())?;
-    Ok(RunResult { ok: true, message: Some(format!("Link aberto: {}", url)) })
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("Link aberto: {}", url)),
+    })
 }
 
 fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
@@ -72,7 +74,10 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     Command::new(&path)
         .spawn()
         .map_err(|e| format!("Falha ao iniciar aplicativo: {}", e))?;
-    Ok(RunResult { ok: true, message: Some(format!("Aplicativo iniciado: {}", path)) })
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("Aplicativo iniciado: {}", path)),
+    })
 }
 
 fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {
@@ -107,7 +112,10 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
 
     let entry_path = plugin_path.join(&entry_file);
     if !entry_path.exists() {
-        return Err(format!("Arquivo de entrada não encontrado: {}", entry_path.display()));
+        return Err(format!(
+            "Arquivo de entrada não encontrado: {}",
+            entry_path.display()
+        ));
     }
 
     let data_dir = crate::paths::data_dir(app);
@@ -124,27 +132,31 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
             c.arg(&entry_path);
             c
         }
-        "go" => {
-            let mut c = Command::new(&entry_path);
-            c
+        "go" | "rust" | "binary" => {
+            // binário pré-compilado
+            Command::new(&entry_path)
         }
         _ => {
-            let mut c = Command::new(&entry_path);
-            c
+            return Err(format!(
+                "Linguagem '{}' não suportada. Use: python, node, go, rust, binary.",
+                language
+            ));
         }
     };
 
     cmd.arg("--name").arg(name);
     cmd.arg("--commands-file").arg(&commands_file);
     cmd.arg("--data-dir").arg(&data_dir);
+    cmd.current_dir(&plugin_path); // ← cwd do plugin
 
     cmd.spawn()
         .map_err(|e| format!("Falha ao iniciar plugin {}: {}", name, e))?;
 
-    Ok(RunResult { ok: true, message: Some(format!("Plugin executado: {}", name)) })
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("Plugin executado: {}", name)),
+    })
 }
-
-// ──────────────────── Plugins ────────────────────────────
 
 #[tauri::command]
 pub fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, String> {
@@ -175,13 +187,21 @@ pub fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, String> {
         };
 
         plugins.push(PluginInfo {
-            name: manifest
-                .get("name")
+            name: manifest.get("name").cloned().unwrap_or_else(|| {
+                path.file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string()
+            }),
+            version: manifest
+                .get("version")
                 .cloned()
-                .unwrap_or_else(|| path.file_name().unwrap_or_default().to_string_lossy().to_string()),
-            version: manifest.get("version").cloned().unwrap_or_else(|| "0.0.0".to_string()),
+                .unwrap_or_else(|| "0.0.0".to_string()),
             path: path.to_string_lossy().to_string(),
-            language: manifest.get("language").cloned().unwrap_or_else(|| "python".to_string()),
+            language: manifest
+                .get("language")
+                .cloned()
+                .unwrap_or_else(|| "python".to_string()),
             entry: manifest.get("entry").cloned().unwrap_or_default(),
         });
     }
@@ -196,19 +216,20 @@ pub fn open_plugin_folder(path: String, app: AppHandle) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
-// ──────────────────── Histórico ──────────────────────────
-
-fn record_history(history: &State<'_, HistoryStore>, name: &str, kind: &CommandType, success: bool) {
+fn record_history(
+    history: &State<'_, HistoryStore>,
+    name: &str,
+    kind: &CommandType,
+    success: bool,
+) {
     let entry = HistoryEntry {
         command: name.to_string(),
         command_type: kind.clone(),
         timestamp: crate::commands_store_now(),
         success,
     };
-    let mut guard = match history.data.lock() {
-        Ok(g) => g,
-        Err(_) => return,
-    };
-    guard.entries.push(entry);
+    if let Ok(mut guard) = history.data.lock() {
+        guard.entries.push(entry);
+    }
     let _ = history.save();
 }
