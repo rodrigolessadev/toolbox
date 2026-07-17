@@ -6,9 +6,9 @@ export type CommandType = "plugin" | "link" | "application";
 
 export interface CommandEntry {
   type: CommandType;
-  path?: string;     // plugin / application
-  url?: string;      // link
-  favorite: boolean; // <- agora obrigatório (não opcional)
+  path?: string;
+  url?: string;
+  favorite: boolean;
   icon?: string | null;
   createdAt?: string;
 }
@@ -28,16 +28,16 @@ export interface PluginInfo {
 }
 
 export interface HistoryEntry {
-  command: string;          // nome do comando executado
-  command_type: CommandType; // <-- alias usado em Toolbox.tsx
-  timestamp: string;        // ISO 8601 (string)
+  command: string;
+  command_type: CommandType;
+  timestamp: string;        // ISO 8601
   success: boolean;
-  kind?: CommandType;       // opcional, alias retrocompat
+  kind?: CommandType;
 }
 
 export interface CreateCommandPayload {
   name: string;
-  type: CommandType;        // já era "type", não "kind"
+  type: CommandType;        // <-- "type", não "kind"
   path?: string;
   url?: string;
 }
@@ -55,13 +55,9 @@ export interface RunResult {
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
-  // Comandos
   listCommands: () => invoke<CommandsMap>("list_commands"),
   getCommandsFile: () => invoke<CommandsFile>("get_commands_file"),
-
-  // aliases (retrocompat com código que chama getCommands/executeCommand)
   getCommands: () => invoke<CommandsMap>("list_commands"),
-  executeCommand: (name: string) => invoke<RunResult>("run_command", { name }),
 
   createCommand: (payload: CreateCommandPayload) =>
     invoke<CommandsFile>("create_command", { payload }),
@@ -74,33 +70,26 @@ export const api = {
     invoke<CommandsFile>("import_commands", { json }),
   exportCommands: () => invoke<string>("export_commands"),
 
-  // Plugins
   listPlugins: () => invoke<PluginInfo[]>("list_plugins"),
   openPluginFolder: (path: string) =>
     invoke<void>("open_plugin_folder", { path }),
 
-  // Execução
   runCommand: (name: string) => invoke<RunResult>("run_command", { name }),
+  executeCommand: (name: string) => invoke<RunResult>("run_command", { name }),
 
-  // Histórico
   listHistory: () => invoke<HistoryEntry[]>("list_history"),
-
-  // alias retrocompat
   getHistory: () => invoke<HistoryEntry[]>("list_history"),
   clearHistory: () => invoke<void>("clear_history"),
 
-  // Sistema / Janela
   getTheme: () => invoke<string>("get_theme"),
   setTheme: (theme: "light" | "dark") => invoke<void>("set_theme", { theme }),
 
   getDataDir: () => invoke<string>("get_data_dir"),
   getPluginsDir: () => invoke<string>("get_plugins_dir"),
   getLogsDir: () => invoke<string>("get_logs_dir"),
-
   getWorkdir: () => invoke<string>("get_data_dir"),
   openPath: (path: string) => invoke<void>("open_path", { path }),
 
-  // Janela
   hideWindow: () => invoke<void>("hide_window"),
   showWindow: () => invoke<void>("show_window"),
 };
