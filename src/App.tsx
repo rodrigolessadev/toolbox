@@ -27,7 +27,7 @@ export default function App() {
   const { theme, toggle } = useTheme();
   const { toasts, push, dismiss } = useToasts();
   const { commands, reload } = useCommands();
-  const { items: history, refresh: refreshHistory } = useHistory();
+  const { items: history, reload: reloadHistory } = useHistory();
 
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("all");
@@ -70,7 +70,7 @@ export default function App() {
       const result = await api.runCommand(name);
       const msg = result.message ?? `Comando "${name}" executado.`;
       push(msg, result.ok ? "success" : "error");
-      refreshHistory();
+      reloadHistory();
       // Esconde a janela após executar.
       await api.hideWindow();
     } catch (e) {
@@ -92,7 +92,7 @@ export default function App() {
     try {
       await api.deleteCommand(name);
       push(`Comando "${name}" removido.`, "success");
-      await refresh();
+      await reload();
     } catch (e) {
       push(String(e), "error");
     }
@@ -101,7 +101,7 @@ export default function App() {
   async function handleToggleFavorite(name: string, current: boolean) {
     try {
       await api.toggleFavorite({ name, favorite: !current });
-      await refresh();
+      await reload();
     } catch (e) {
       push(String(e), "error");
     }
@@ -189,7 +189,7 @@ export default function App() {
             onSelect={(name) => execute(name)}
             onClear={async () => {
               await api.clearHistory();
-              await refreshHistory();
+              await reloadHistory();
               push("Histórico limpo.", "success");
             }}
           />
@@ -213,7 +213,7 @@ export default function App() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
         onCreated={async (name) => {
-          await refresh();
+          await reload();
           push(`Comando "${name}" criado.`, "success");
         }}
         onOpenPluginFolder={openPluginFolder}
@@ -225,7 +225,7 @@ export default function App() {
         open={showSettings}
         onClose={() => setShowSettings(false)}
         onImported={async () => {
-          await refresh();
+          await reload();
         }}
         onInfo={(m) => push(m, "info")}
         onError={(m) => push(m, "error")}
