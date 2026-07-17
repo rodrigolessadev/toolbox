@@ -3,9 +3,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager, State};
-
-use crate::paths;
+use tauri::State;
 
 // ───────────────────────── Tipos ─────────────────────────
 
