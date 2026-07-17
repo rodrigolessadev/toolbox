@@ -14,6 +14,7 @@ interface CommandItemProps {
 export function CommandItem({
   name,
   entry,
+  active = false,
   isSelected = false,
   isFavorite = false,
   onSelect,
