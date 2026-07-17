@@ -37,7 +37,12 @@ export function HistoryPanel({ history, onSelect, onClear }: Props) {
             <div className="command-item__body">
               <div className="command-item__title">
                 <span className="command-item__name">{h.command}</span>
-                <span className="command-item__subtitle"></span>
+                <span className="command-item__subtitle">
+                  {new Date(h.timestamp).toLocaleString("pt-BR", {
+                    day: "2-digit", month: "2-digit",
+                    hour: "2-digit", minute: "2-digit",
+                  })}
+                </span>
               </div>
             </div>
             <span className={`badge badge--${h.kind}`}>{h.kind}</span>
