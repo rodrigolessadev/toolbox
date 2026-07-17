@@ -10,6 +10,7 @@ import { useCommands } from "./hooks/useCommands";
 import { useTheme } from "./hooks/useTheme";
 import { useHistory, useToasts } from "./hooks/useToast";
 
+
 type Tab = "all" | "favorites" | "plugins" | "links" | "apps" | "history";
 
 function matches(query: string, name: string, entry: CommandEntry): boolean {
@@ -56,6 +57,7 @@ export default function App() {
       return na.localeCompare(nb);
     });
   }, [commands, tab, query]);
+
   // Mantém o índice ativo dentro dos limites.
   useEffect(() => {
     if (activeIndex >= filtered.length) {
