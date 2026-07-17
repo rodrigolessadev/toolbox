@@ -35,24 +35,27 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
 
   // Filtragem
-  const filtered = useMemo(() => {
-    let list = commands;
-    if (tab === "favorites") list = list.filter(([, e]) => e.favorite);
-    else if (tab === "plugins") list = list.filter(([, e]) => e.type === "plugin");
-    else if (tab === "links") list = list.filter(([, e]) => e.type === "link");
-    else if (tab === "apps") list = list.filter(([, e]) => e.type === "application");
+  const entries = useMemo<[string, CommandEntry][]>(() => {
+    let list: [string, CommandEntry][] = Object.entries(commands);
 
-    if (query.trim()) {
+    if (tab === "favorites") {
+      list = list.filter(([, e]) => e.favorite);
+    } else if (tab === "plugins") {
+      list = list.filter(([, e]) => e.type === "plugin");
+    } else if (tab === "links") {
+      list = list.filter(([, e]) => e.type === "link");
+    } else if (tab === "apps") {
+      list = list.filter(([, e]) => e.type === "application");
+    }
+
+    if (query) {
       list = list.filter(([n, e]) => matches(query, n, e));
     }
 
-    // Ordena: favoritos primeiro, depois alfabético.
     return list.sort(([na, ea], [nb, eb]) => {
-      if (ea.favorite !== eb.favorite) return ea.favorite ? -1 : 1;
       return na.localeCompare(nb);
     });
   }, [commands, tab, query]);
-
   // Mantém o índice ativo dentro dos limites.
   useEffect(() => {
     if (activeIndex >= filtered.length) {
