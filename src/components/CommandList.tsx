@@ -4,7 +4,6 @@ import { CommandItem } from "./CommandItem";
 interface Props {
   items: [string, CommandEntry][];
   activeIndex: number;
-  onClick: () => void;
   onSelect: (name: string) => void;
   onToggleFavorite: (name: string, current: boolean) => void;
   onDelete: (name: string) => void;
