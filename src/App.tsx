@@ -53,7 +53,7 @@ export default function App() {
       list = list.filter(([n, e]) => matches(query, n, e));
     }
 
-    return list.sort(([na, ea], [nb, eb]) => {
+    return list.sort(([na], [nb]) => {
       return na.localeCompare(nb);
     });
   }, [commands, tab, query]);
