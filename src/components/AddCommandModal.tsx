@@ -60,17 +60,15 @@ export function AddCommandModal({
     setBusy(true);
 
     const payload: CreateCommandPayload = {
-      name: name.trim(),
-      kind: tab,
-      url: tab === "link" ? url.trim() : undefined,
-      path: tab !== "link" ? path.trim() : undefined,
-      favorite,
-      icon: icon.trim() || undefined,
+      name,
+      type: tab,         // antes: kind: tab
+      path,
+      url,
     };
 
     try {
       const entry = await api.createCommand(payload);
-      onCreated(entry.name || name);
+      onCreated(name);  
 
       if (tab === "plugin") {
         // Plugin salvo: também garante que o diretório existe (commands_store já insere
