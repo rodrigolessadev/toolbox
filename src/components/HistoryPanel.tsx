@@ -33,7 +33,7 @@ export function HistoryPanel({ history, onSelect, onClear }: Props) {
             <div className="command-item__body">
               <div className="command-item__title">
                 <span className="command-item__name">{h.command}</span>
-                <span className="command-item__subtitle">{formatTime(h.timestamp)}</span>
+                <span className="command-item__subtitle"></span>
               </div>
             </div>
             <span className={`badge badge--${h.kind}`}>{h.kind}</span>

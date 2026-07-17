@@ -38,7 +38,7 @@ export function SettingsModal({
       const raw = await fetch(`file://${selected}`).then((r) => r.text()).catch(() => null);
       // Como o Tauri usa asset protocol, lemos diretamente via fetch.
       const data: CommandsFile = JSON.parse(raw ?? "{}");
-      await api.importCommands(data);
+      await api.importCommands(JSON.stringify(data));
       onImported();
       onInfo(`${Object.keys(data).length} comandos importados.`);
     } catch (e) {
