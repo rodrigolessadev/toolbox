@@ -41,8 +41,8 @@ export function CommandItem({
         <div className="command-item__title">
           <span className="command-item__name">{name}</span>
           {name && entry.favorite !== undefined && (
-  <span className="command-item__subtitle">{name}</span>
-)}
+            <span className="command-item__subtitle">{name}</span>
+          )}
         </div>
         <div className="command-item__meta">
           <span className={`badge badge--${entry.type}`}>{entry.type}</span>
