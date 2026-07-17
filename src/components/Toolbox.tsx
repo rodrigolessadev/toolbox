@@ -1,4 +1,4 @@
-import { CommandEntry, CommandsMap, HistoryEntry } from "../api";
+import { CommandEntry, CommandsMap, HistoryEntry } from "../lib/api";
 
 interface ToolboxProps {
   commands: CommandsMap;
