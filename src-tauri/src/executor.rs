@@ -225,7 +225,7 @@ fn record_history(
     let entry = HistoryEntry {
         command: name.to_string(),
         command_type: kind.clone(),
-        timestamp: crate::commands_store_now(),
+        timestamp: crate::commands_store::now(),
         success,
     };
     if let Ok(mut guard) = history.data.lock() {
