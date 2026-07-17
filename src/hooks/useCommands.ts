@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, CommandEntry } from "../lib/api";
+import { api, CommandEntry, CommandsMap } from "../lib/api";
 
 /**
  * Hook para carregar e manipular comandos.
@@ -14,7 +14,12 @@ export function useCommands() {
     try {
       setLoading(true);
       const data = await api.getCommands();
-      setCommands(data);
+      const [commands, setCommands] = useState<CommandsMap>({});
+
+const load = useCallback(async () => {
+  const data = await api.listCommands();
+  setCommands(data);
+}, []);
       setError(null);
     } catch (e) {
       setError(String(e));
