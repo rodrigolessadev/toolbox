@@ -16,7 +16,7 @@ function matches(query: string, name: string, entry: CommandEntry): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
   if (name.toLowerCase().includes(q)) return true;
-if (name.toLowerCase().includes(q)) return true;
+  if (name.toLowerCase().includes(q)) return true;
   if (entry.url?.toLowerCase().includes(q)) return true;
   if (entry.path?.toLowerCase().includes(q)) return true;
   return false;
@@ -62,7 +62,7 @@ export default function App() {
 
   async function execute(name: string) {
     try {
-      const msg = await api.executeCommand(name);
+      const msg = await api.runCommand(name);
       push(msg, "success");
       refreshHistory();
       // Esconde a janela após executar.
