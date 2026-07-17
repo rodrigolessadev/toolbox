@@ -36,7 +36,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
 
   // Filtragem
-  const entries = useMemo<[string, CommandEntry][]>(() => {
+  const filtered = useMemo<[string, CommandEntry][]>(() => {
     let list: [string, CommandEntry][] = Object.entries(commands);
 
     if (tab === "favorites") {
