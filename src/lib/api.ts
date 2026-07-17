@@ -92,4 +92,7 @@ export const api = {
 
   hideWindow: () => invoke<void>("hide_window"),
   showWindow: () => invoke<void>("show_window"),
+
+  closeWindow: () => invoke<void>("close_window"),
+  minimizeWindow: () => invoke<void>("minimize_window"),
 };

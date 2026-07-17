@@ -45,6 +45,8 @@ pub fn run() {
             paths::open_path,
             paths::hide_window,
             paths::show_window,
+            paths::close_window,
+            paths::minimize_window,
             paths::get_theme,
             paths::set_theme,
         ])

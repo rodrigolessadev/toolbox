@@ -9,7 +9,7 @@ import { api, CommandEntry } from "./lib/api";
 import { useCommands } from "./hooks/useCommands";
 import { useTheme } from "./hooks/useTheme";
 import { useHistory, useToasts } from "./hooks/useToast";
-
+import { TitleBar } from "./components/TitleBar";
 
 type Tab = "all" | "favorites" | "plugins" | "links" | "apps" | "history";
 
@@ -22,6 +22,8 @@ function matches(query: string, name: string, entry: CommandEntry): boolean {
   if (entry.path?.toLowerCase().includes(q)) return true;
   return false;
 }
+
+
 
 export default function App() {
   const { theme, toggle } = useTheme();
@@ -119,6 +121,7 @@ export default function App() {
 
   return (
     <div className="toolbox">
+      <TitleBar />
       <header className="toolbox__titlebar">
         <span className="toolbox__brand">⚡ Toolbox</span>
         <div className="toolbox__actions">

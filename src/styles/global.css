@@ -33,9 +33,13 @@
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -46,7 +50,8 @@ html, body, #root {
   overflow: hidden;
 }
 
-button, input {
+button,
+input {
   font-family: inherit;
   color: inherit;
 }
@@ -63,6 +68,12 @@ button, input {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow);
+}
+
+.toolbox__main {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px;
 }
 
 .toolbox__titlebar {
@@ -280,9 +291,20 @@ button, input {
   letter-spacing: 0.4px;
 }
 
-.badge--plugin { background: rgba(106, 163, 255, 0.18); color: var(--accent); }
-.badge--link { background: rgba(76, 195, 138, 0.18); color: var(--success); }
-.badge--application { background: rgba(245, 165, 36, 0.18); color: var(--warning); }
+.badge--plugin {
+  background: rgba(106, 163, 255, 0.18);
+  color: var(--accent);
+}
+
+.badge--link {
+  background: rgba(76, 195, 138, 0.18);
+  color: var(--success);
+}
+
+.badge--application {
+  background: rgba(245, 165, 36, 0.18);
+  color: var(--warning);
+}
 
 /* ===========================================================
    Buttons
@@ -416,7 +438,7 @@ button, input {
   font-size: 12px;
 }
 
-.field > span {
+.field>span {
   font-weight: 600;
   color: var(--fg-muted);
   text-transform: uppercase;
@@ -466,7 +488,7 @@ button, input {
   gap: 8px;
 }
 
-.field--checkbox > span {
+.field--checkbox>span {
   text-transform: none;
   letter-spacing: 0;
   color: var(--fg);
@@ -530,19 +552,43 @@ kbd {
 }
 
 @keyframes toast-in {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.toast--success { border-color: var(--success); }
-.toast--error { border-color: var(--danger); }
-.toast--warning { border-color: var(--warning); }
-.toast--info { border-color: var(--accent); }
+.toast--success {
+  border-color: var(--success);
+}
+
+.toast--error {
+  border-color: var(--danger);
+}
+
+.toast--warning {
+  border-color: var(--warning);
+}
+
+.toast--info {
+  border-color: var(--accent);
+}
 
 /* Scrollbar */
-.toolbox__content::-webkit-scrollbar { width: 8px; }
+.toolbox__content::-webkit-scrollbar {
+  width: 8px;
+}
+
 .toolbox__content::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 4px;
 }
-.toolbox__content::-webkit-scrollbar-track { background: transparent; }
+
+.toolbox__content::-webkit-scrollbar-track {
+  background: transparent;
+}
