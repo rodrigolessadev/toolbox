@@ -169,6 +169,19 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
+
+             let data_dir = paths::data_dir(&app.handle());
+    std::fs::create_dir_all(&data_dir).ok();
+
+    let commands_path = data_dir.join("commands.json");
+    let history_path = data_dir.join("data").join("history.json");
+    std::fs::create_dir_all(history_path.parent().unwrap()).ok();
+
+    app.manage(CommandStore::new(commands_path));
+    app.manage(HistoryStore::new(history_path));
+
+    Ok(())
+
             // Estado compartilhado.
             let store = CommandsStore::load().expect("Falha ao carregar commands.json");
             let history = HistoryStore::load().expect("Falha ao carregar histórico");
