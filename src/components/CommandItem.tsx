@@ -3,6 +3,7 @@ import { CommandEntry } from "../lib/api";
 interface CommandItemProps {
   name: string;
   entry: CommandEntry;
+  active?: boolean;
   isSelected?: boolean;
   isFavorite?: boolean;
   onSelect?: (name: string) => void;
