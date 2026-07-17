@@ -27,7 +27,7 @@ export default function App() {
   const { theme, toggle } = useTheme();
   const { toasts, push, dismiss } = useToasts();
   const { commands, reload } = useCommands();
-  const { items: history, reload: reloadHistory } = useHistory();
+  const { items: history, refresh: reloadHistory } = useHistory();
 
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("all");
