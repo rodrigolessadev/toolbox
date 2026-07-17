@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
 
 use crate::paths;
@@ -176,6 +176,17 @@ pub fn export_commands(store: State<'_, CommandStore>) -> Result<String, String>
 // ──────────────────── Utilitários ─────────────────────────
 
 fn chrono_now() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    format!("{}", secs)
+}
+
+// ──────────────────── Utilitários ─────────────────────────
+
+pub fn now() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
