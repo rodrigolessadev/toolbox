@@ -174,16 +174,8 @@ export function Toolbox(props: ToolboxProps) {
                 <div className="body">
                   <div className="title">
                     {name}{" "}
-                    {entry.name && (
-                      <span
-                        style={{
-                          color: "var(--text-muted)",
-                          fontSize: 12,
-                          fontWeight: 400,
-                        }}
-                      >
-                        · {name}
-                      </span>
+                    {entry.url && (
+                      <span className="command-item__subtitle">{entry.url}</span>
                     )}
                   </div>
                   <div className="subtitle">{subtitleFor(name, entry)}</div>
