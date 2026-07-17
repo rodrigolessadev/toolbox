@@ -1,10 +1,10 @@
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use serde::{Deserialize, Serialize};
 use tauri::State;
 
-use crate::commands_store::{CommandType, CommandsFile};
+use crate::commands_store::CommandType;
 
 // ───────────────────────── Tipos ─────────────────────────
 
