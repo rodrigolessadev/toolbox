@@ -67,8 +67,8 @@ export function AddCommandModal({
     };
 
     try {
-      const entry = await api.createCommand(payload);
-      onCreated(name);  
+      await api.createCommand(payload);
+      onCreated(name);
 
       if (tab === "plugin") {
         // Plugin salvo: também garante que o diretório existe (commands_store já insere
