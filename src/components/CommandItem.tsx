@@ -1,73 +1,65 @@
 import { CommandEntry } from "../lib/api";
 
-interface CommandItemProps {
+export interface CommandItemProps {
   name: string;
   entry: CommandEntry;
-  active?: boolean;
-  isSelected?: boolean;
-  isFavorite?: boolean;
-  onSelect?: (name: string) => void;
-  onExecute?: (name: string) => void;
-  onToggleFavorite?: (name: string, favorite: boolean) => void;
+  active: boolean;
+  onClick: () => void;
+  onToggleFavorite: () => void;
+  onDelete: () => void;
 }
 
-export function CommandItem({
-  name,
-  entry,
-  active = false,
-  isSelected = false,
-  isFavorite = false,
-  onSelect,
-  onExecute,
-  onToggleFavorite,
-}: CommandItemProps) {
-  // Subtitle genérico: usa URL (links) ou path (plugins/apps), o que existir
-  const subtitle = entry.url ?? entry.path;
+function kindLabel(entry: CommandEntry): string {
+  if (entry.type === "link") return entry.url ?? "";
+  if (entry.type === "plugin") return entry.path ?? "";
+  return entry.path ?? "";
+}
 
-  const typeLabel: Record<CommandEntry["type"], string> = {
-    plugin: "Plugin",
-    link: "Link",
-    application: "App",
-  };
+export function CommandItem(props: CommandItemProps) {
+  const { name, entry, active, onClick, onToggleFavorite, onDelete } = props;
+  const subtitle = kindLabel(entry);
 
   return (
-    <div
-      className={`command-item ${isSelected ? "command-item--selected" : ""}`}
-      onClick={() => onSelect?.(name)}
-      onDoubleClick={() => onExecute?.(name)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") onExecute?.(name);
-      }}
+    <li
+      className={`command-item${active ? " command-item--active" : ""}`}
+      onClick={onClick}
+      role="option"
+      aria-selected={active}
     >
       <div className="command-item__main">
         <span className="command-item__title">{name}</span>
-
         {subtitle && subtitle !== name && (
           <span className="command-item__subtitle">{subtitle}</span>
         )}
       </div>
 
-      <div className="command-item__meta">
-        <span className={`command-item__type command-item__type--${entry.type}`}>
-          {typeLabel[entry.type]}
-        </span>
-
+      <div className="command-item__actions">
         <button
-          className={`command-item__favorite ${isFavorite || entry.favorite ? "is-active" : ""}`}
+          type="button"
+          className="command-item__btn"
           onClick={(e) => {
             e.stopPropagation();
-            onToggleFavorite?.(name, !entry.favorite);
+            onToggleFavorite();
           }}
-          aria-label={entry.favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-          title={entry.favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          aria-label={entry.favorite ? "Remover dos favoritos" : "Marcar como favorito"}
+          title={entry.favorite ? "Remover dos favoritos" : "Marcar como favorito"}
         >
           {entry.favorite ? "★" : "☆"}
         </button>
+
+        <button
+          type="button"
+          className="command-item__btn command-item__btn--danger"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          aria-label="Excluir comando"
+          title="Excluir"
+        >
+          ×
+        </button>
       </div>
-    </div>
+    </li>
   );
 }
-
-export default CommandItem;
