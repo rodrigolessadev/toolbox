@@ -8,6 +8,7 @@ interface Props {
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleString("pt-BR", {
     day: "2-digit", month: "2-digit",
     hour: "2-digit", minute: "2-digit",
