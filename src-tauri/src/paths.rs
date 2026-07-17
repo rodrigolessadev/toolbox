@@ -1,64 +1,61 @@
 use std::path::PathBuf;
-use tauri::Manager;
+use tauri::{AppHandle, Manager, Window};
+use tauri_plugin_opener::OpenerExt;
 
-/// Resolve o diretório de trabalho da aplicação.
-/// Em dev: a raiz do projeto.
-/// Em produção (instalado): pasta do executável.
-pub fn workdir() -> PathBuf {
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            // Em produção, ao lado do .exe.
-            // Em dev (cargo run), o .exe fica em src-tauri/target/{debug,release},
-            // então subimos até achar commands.json.
-            let candidate = parent.to_path_buf();
-            if candidate.join("commands.json").exists() {
-                return candidate;
-            }
-            for ancestor in candidate.ancestors() {
-                if ancestor.join("commands.json").exists() {
-                    return ancestor.to_path_buf();
-                }
-            }
-            return parent.to_path_buf();
-        }
-    }
-    std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+pub fn data_dir(app: &AppHandle) -> PathBuf {
+    app.path()
+        .app_data_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
 }
 
-/// Pasta onde ficam os plugins.
-pub fn plugins_dir() -> PathBuf {
-    workdir().join("plugins")
+pub fn plugins_dir(app: &AppHandle) -> PathBuf {
+    data_dir(app).join("plugins")
 }
 
-/// Pasta de logs.
-pub fn logs_dir() -> PathBuf {
-    workdir().join("logs")
+pub fn logs_dir(app: &AppHandle) -> PathBuf {
+    data_dir(app).join("logs")
 }
 
-/// Arquivo de comandos.
-pub fn commands_file() -> PathBuf {
-    workdir().join("commands.json")
+#[tauri::command]
+pub fn get_data_dir(app: AppHandle) -> Result<String, String> {
+    Ok(data_dir(&app).to_string_lossy().to_string())
 }
 
-/// Arquivo de histórico.
-pub fn history_file() -> PathBuf {
-    workdir().join("logs").join("history.json")
+#[tauri::command]
+pub fn get_plugins_dir(app: AppHandle) -> Result<String, String> {
+    Ok(plugins_dir(&app).to_string_lossy().to_string())
 }
 
-/// Garante que as pastas essenciais existam.
-pub fn ensure_dirs() -> std::io::Result<()> {
-    std::fs::create_dir_all(plugins_dir())?;
-    std::fs::create_dir_all(logs_dir())?;
+#[tauri::command]
+pub fn get_logs_dir(app: AppHandle) -> Result<String, String> {
+    Ok(logs_dir(&app).to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn open_path(path: String, app: AppHandle) -> Result<(), String> {
+    app.opener()
+        .open_path(path, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn hide_window(window: Window) -> Result<(), String> {
+    window.hide().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn show_window(window: Window) -> Result<(), String> {
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())?;
     Ok(())
 }
 
-/// Tenta usar o diretório onde o .exe está.
-/// Se o app foi iniciado pelo tauri dev, busca o `tauri.conf.json` subindo na hierarquia.
-pub fn resolve_from_app<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Option<PathBuf> {
-    if let Ok(resource) = app.path().resource_dir() {
-        if resource.join("commands.json").exists() {
-            return Some(resource);
-        }
-    }
-    None
+#[tauri::command]
+pub fn get_theme() -> Result<String, String> {
+    Ok("dark".to_string())
+}
+
+#[tauri::command]
+pub fn set_theme(_theme: String) -> Result<(), String> {
+    Ok(())
 }
