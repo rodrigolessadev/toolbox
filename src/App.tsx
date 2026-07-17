@@ -25,7 +25,7 @@ function matches(query: string, name: string, entry: CommandEntry): boolean {
 export default function App() {
   const { theme, toggle } = useTheme();
   const { toasts, push, dismiss } = useToasts();
-  const { commands, refresh } = useCommands();
+  const { commands, reload } = useCommands();
   const { items: history, refresh: refreshHistory } = useHistory();
 
   const [query, setQuery] = useState("");
