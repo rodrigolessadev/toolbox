@@ -16,7 +16,7 @@ function matches(query: string, name: string, entry: CommandEntry): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
   if (name.toLowerCase().includes(q)) return true;
-  if (entry.name.toLowerCase().includes(q)) return true;
+  if (name.toLowerCase().includes(q)) return true;
   if (entry.url?.toLowerCase().includes(q)) return true;
   if (entry.path?.toLowerCase().includes(q)) return true;
   return false;
