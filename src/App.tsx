@@ -63,8 +63,8 @@ export default function App() {
   async function execute(name: string) {
     try {
       const result = await api.runCommand(name);
-const msg = result.message ?? `Comando "${name}" executado.`;
-push(msg, result.ok ? "success" : "error");
+      const msg = result.message ?? `Comando "${name}" executado.`;
+      push(msg, result.ok ? "success" : "error");
       refreshHistory();
       // Esconde a janela após executar.
       await api.hideWindow();
