@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, CommandEntry, CommandsMap } from "../lib/api";
+import { api, CommandsMap } from "../lib/api";
 
 export function useCommands() {
   const [commands, setCommands] = useState<CommandsMap>({});
