@@ -1,15 +1,14 @@
-import { useState } from "react";
-import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
-import { api, CommandsFile } from "../lib/api";
+import { useEffect, useState } from "react";
+import { api } from "../lib/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onImported: () => void;
-  onInfo: (m: string) => void;
-  onError: (m: string) => void;
-  onOpenWorkdir: () => void;
-  onOpenLogsDir: () => void;
+  onImported?: () => Promise<void> | void;
+  onInfo?: (message: string) => void;
+  onError?: (message: string) => void;
+  onOpenDataDir?: () => Promise<void> | void;
+  onOpenLogsDir?: () => Promise<void> | void;
 }
 
 export function SettingsModal({
@@ -18,110 +17,264 @@ export function SettingsModal({
   onImported,
   onInfo,
   onError,
-  onOpenWorkdir,
+  onOpenDataDir,
   onOpenLogsDir,
 }: Props) {
-  const [busy, setBusy] = useState(false);
+  const [theme, setTheme] = useState<string>("dark");
+  const [dataDir, setDataDir] = useState<string>("");
+  const [pluginsDir, setPluginsDir] = useState<string>("");
+  const [logsDir, setLogsDir] = useState<string>("");
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [working, setWorking] = useState(false);
+
+  // Carrega as informacoes quando o modal abre
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setWorking(true);
+        const [dd, pd, ld, t] = await Promise.all([
+          api.getDataDir(),
+          api.getPluginsDir(),
+          api.getLogsDir(),
+          api.getTheme().catch(() => "dark"),
+        ]);
+        if (cancelled) return;
+        setDataDir(dd);
+        setPluginsDir(pd);
+        setLogsDir(ld);
+        setTheme(t);
+      } catch (e) {
+        if (!cancelled) {
+          onError?.("Falha ao carregar configuracoes.");
+        }
+      } finally {
+        if (!cancelled) setWorking(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, onError]);
+
+  // Fecha com tecla ESC
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
 
   if (!open) return null;
 
-  async function handleImport() {
+  const handleThemeChange = async (next: string) => {
+    setTheme(next);
     try {
-      const selected = await openDialog({
-        multiple: false,
-        directory: false,
-        title: "Importar commands.json",
-        filters: [{ name: "JSON", extensions: ["json"] }],
-      });
-      if (typeof selected !== "string") return;
-
-      const raw = await fetch(`file://${selected}`).then((r) => r.text()).catch(() => null);
-      // Como o Tauri usa asset protocol, lemos diretamente via fetch.
-      const data: CommandsFile = JSON.parse(raw ?? "{}");
-      await api.importCommands(JSON.stringify(data));
-      onImported();
-      onInfo(`${Object.keys(data).length} comandos importados.`);
+      await api.setTheme(next);
+      onInfo?.("Tema atualizado.");
     } catch (e) {
-      onError(`Falha ao importar: ${e}`);
+      onError?.("Falha ao alterar tema.");
     }
-  }
+  };
 
-  async function handleExport() {
+  const handleOpenDataDir = async () => {
+    if (onOpenDataDir) {
+      await onOpenDataDir();
+    } else {
+      try {
+        await api.openPath(dataDir);
+      } catch (e) {
+        onError?.("Falha ao abrir pasta de dados.");
+      }
+    }
+  };
+
+  const handleOpenLogsDir = async () => {
+    if (onOpenLogsDir) {
+      await onOpenLogsDir();
+    } else {
+      try {
+        await api.openPath(logsDir);
+      } catch (e) {
+        onError?.("Falha ao abrir pasta de logs.");
+      }
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
     try {
-      setBusy(true);
-      const target = await saveDialog({
-        title: "Exportar commands.json",
-        defaultPath: "commands.json",
-        filters: [{ name: "JSON", extensions: ["json"] }],
-      });
-      if (!target) return;
-      const data = await api.exportCommands();
-      const json = JSON.stringify(data, null, 2);
-      // Usa o Tauri fs via writeTextFile seria ideal, mas simplificamos usando a API de download do browser.
+      const json = await api.exportCommands();
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = target.split(/[\\/]/).pop() ?? "commands.json";
+      a.download = "toolbox-commands.json";
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      onInfo("Comandos exportados.");
+      onInfo?.("Comandos exportados com sucesso.");
     } catch (e) {
-      onError(`Falha ao exportar: ${e}`);
+      onError?.("Falha ao exportar comandos.");
     } finally {
-      setBusy(false);
+      setExporting(false);
     }
-  }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      await api.importCommands(text);
+      await onImported?.();
+      onInfo?.("Comandos importados com sucesso.");
+      onClose();
+    } catch (e) {
+      onError?.(
+        "Falha ao importar: " +
+        (e instanceof Error ? e.message : String(e))
+      );
+    } finally {
+      setImporting(false);
+      event.target.value = "";
+    }
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal__header">
-          <h2>Configurações</h2>
-          <button className="icon-btn" onClick={onClose} title="Fechar">✕</button>
-        </header>
-        <div className="modal__body">
-          <section className="settings-group">
-            <h3>Dados</h3>
-            <button className="btn btn--ghost btn--block" onClick={handleImport}>
-              📥 Importar commands.json
-            </button>
-            <button className="btn btn--ghost btn--block" onClick={handleExport} disabled={busy}>
-              📤 Exportar commands.json
-            </button>
-          </section>
-
-          <section className="settings-group">
-            <h3>Pastas</h3>
-            <button className="btn btn--ghost btn--block" onClick={onOpenWorkdir}>
-              📁 Abrir pasta do Toolbox
-            </button>
-            <button className="btn btn--ghost btn--block" onClick={onOpenLogsDir}>
-              📋 Abrir pasta de logs
-            </button>
-          </section>
-
-          <section className="settings-group">
-            <h3>Atalhos</h3>
-            <p>
-              <kbd>Ctrl</kbd> + <kbd>Space</kbd> — abrir / fechar o Toolbox
-            </p>
-            <p>
-              <kbd>↑</kbd> / <kbd>↓</kbd> — navegar
-            </p>
-            <p>
-              <kbd>Enter</kbd> — executar
-            </p>
-            <p>
-              <kbd>Esc</kbd> — ocultar
-            </p>
-          </section>
-        </div>
-        <footer className="modal__footer">
-          <button className="btn btn--primary" onClick={onClose}>
-            Fechar
+          <h2>Configuracoes</h2>
+          <button
+            type="button"
+            className="modal__close"
+            onClick={onClose}
+            aria-label="Fechar"
+            title="Fechar (Esc)"
+          >
+            x
           </button>
-        </footer>
+        </header>
+
+        <div className="modal__form">
+          <section className="settings__section">
+            <h3 className="settings__title">Aparencia</h3>
+            <label className="modal__field">
+              <span>Tema</span>
+              <select
+                value={theme}
+                onChange={(e) => handleThemeChange(e.target.value)}
+                disabled={working}
+              >
+                <option value="dark">Escuro</option>
+                <option value="light">Claro</option>
+                <option value="system">Sistema</option>
+              </select>
+            </label>
+          </section>
+
+          <section className="settings__section">
+            <h3 className="settings__title">Pastas</h3>
+
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Dados do aplicativo</strong>
+                <code className="settings__path">{dataDir || "carregando..."}</code>
+              </div>
+              <button
+                type="button"
+                className="modal__browse"
+                onClick={handleOpenDataDir}
+                disabled={!dataDir}
+                title="Abrir pasta de dados"
+              >
+                Abrir
+              </button>
+            </div>
+
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Plugins</strong>
+                <code className="settings__path">{pluginsDir || "carregando..."}</code>
+              </div>
+              <button
+                type="button"
+                className="modal__browse"
+                onClick={async () => {
+                  try {
+                    await api.openPath(pluginsDir);
+                  } catch (e) {
+                    onError?.("Falha ao abrir pasta de plugins.");
+                  }
+                }}
+                disabled={!pluginsDir}
+                title="Abrir pasta de plugins"
+              >
+                Abrir
+              </button>
+            </div>
+
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Logs</strong>
+                <code className="settings__path">{logsDir || "carregando..."}</code>
+              </div>
+              <button
+                type="button"
+                className="modal__browse"
+                onClick={handleOpenLogsDir}
+                disabled={!logsDir}
+                title="Abrir pasta de logs"
+              >
+                Abrir
+              </button>
+            </div>
+          </section>
+
+          <section className="settings__section">
+            <h3 className="settings__title">Backup</h3>
+            <div className="settings__actions">
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                {exporting ? "Exportando..." : "Exportar comandos"}
+              </button>
+
+              <label className="settings__import">
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={handleImport}
+                  disabled={importing}
+                />
+                <span>
+                  {importing ? "Importando..." : "Importar comandos"}
+                </span>
+              </label>
+            </div>
+            <small className="modal__hint">
+              A importacao substitui todos os comandos existentes.
+            </small>
+          </section>
+
+          <footer className="modal__footer">
+            <button type="button" onClick={onClose}>
+              Fechar
+            </button>
+          </footer>
+        </div>
       </div>
     </div>
   );

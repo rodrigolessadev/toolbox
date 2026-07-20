@@ -95,4 +95,5 @@ export const api = {
 
   closeWindow: () => invoke<void>("close_window"),
   minimizeWindow: () => invoke<void>("minimize_window"),
+  fetchFavicon: (url: string) => invoke<string>("fetch_favicon", { url }),
 };

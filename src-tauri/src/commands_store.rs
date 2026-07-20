@@ -47,6 +47,7 @@ pub struct CreateCommandPayload {
     pub path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -112,8 +113,8 @@ pub fn create_command(
         kind: payload.kind,
         path: payload.path,
         url: payload.url,
+        icon: payload.icon,
         favorite: false,
-        icon: None,
         created_at: Some(chrono_now()),
     };
     guard.commands.insert(payload.name, entry);

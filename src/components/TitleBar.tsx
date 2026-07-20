@@ -1,20 +1,37 @@
+import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import "../styles/titlebar.css";
 
 export function TitleBar() {
-  const handleMinimize = () => {
-    api.minimizeWindow();
-  };
+  const [hint, setHint] = useState(false);
 
-  const handleClose = () => {
-    api.closeWindow();
-  };
+  // Detecta se está rodando no Windows para mostrar o atalho correto
+  useEffect(() => {
+    const isMac = navigator.platform.toUpperCase().includes("MAC");
+    setHint(!isMac);
+  }, []);
+
+  const handleMinimize = () => api.minimizeWindow();
+  const handleClose = () => api.closeWindow();
 
   return (
-    <header className="titlebar" data-tauri-drag-region>
-      <div className="titlebar__brand" data-tauri-drag-region>
-        <span className="titlebar__icon" data-tauri-drag-region>⚙</span>
-        <span className="titlebar__title" data-tauri-drag-region>Toolbox</span>
+    <header className="titlebar">
+      <div className="titlebar__drag" data-tauri-drag-region>
+        <div className="titlebar__brand">
+          <span className="titlebar__icon">⚙</span>
+          <span className="titlebar__title">Toolbox</span>
+        </div>
+      </div>
+
+      <div className="titlebar__hint" data-tauri-drag-region>
+        {hint && (
+          <>
+            <kbd className="titlebar__kbd">Ctrl</kbd>
+            <span className="titlebar__plus">+</span>
+            <kbd className="titlebar__kbd">Space</kbd>
+            <span className="titlebar__hint-label">abrir</span>
+          </>
+        )}
       </div>
 
       <div className="titlebar__controls">

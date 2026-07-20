@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import { api, CommandsMap } from "../lib/api";
+import { useEffect, useState, useCallback } from "react";
+import { api } from "../lib/api";
+import type { CommandEntry } from "../lib/api";
 
 export function useCommands() {
-  const [commands, setCommands] = useState<CommandsMap>({});
+  const [commands, setCommands] = useState<Record<string, CommandEntry>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -10,10 +11,12 @@ export function useCommands() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.listCommands();
-      setCommands(data);
+      const data = await api.getCommandsFile();
+      setCommands(data?.commands ?? {});
     } catch (e) {
-      setError(String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg);
+      setCommands({});
     } finally {
       setLoading(false);
     }

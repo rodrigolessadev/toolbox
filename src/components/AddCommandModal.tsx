@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { api, CommandType, CreateCommandPayload } from "../lib/api";
+import { useEffect, useState } from "react";
+import { api } from "../lib/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onCreated: (name: string) => void;
-  onOpenPluginFolder: (path: string) => void;
-  onError: (msg: string) => void;
-  onInfo: (msg: string) => void;
+  onOpenPluginFolder?: () => Promise<string | null>;
+  onError?: (message: string) => void;
+  onInfo?: (message: string) => void;
 }
+
+type Tab = "link" | "plugin" | "application";
 
 export function AddCommandModal({
   open,
@@ -19,183 +20,302 @@ export function AddCommandModal({
   onError,
   onInfo,
 }: Props) {
-  const [tab, setTab] = useState<CommandType>("plugin");
+  const [tab, setTab] = useState<Tab>("link");
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [path, setPath] = useState("");
-  const [icon, setIcon] = useState("");
-  const [favorite, setFavorite] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [icon, setIcon] = useState<string | null>(null);
+  const [iconLoading, setIconLoading] = useState(false);
+  const [iconError, setIconError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  if (!open) return null;
-
-  function reset() {
-    setTab("plugin");
-    setName("");
-    setUrl("");
-    setPath("");
-    setIcon("");
-    setFavorite(false);
-  }
-
-  async function pickExe() {
-    try {
-      const selected = await openDialog({
-        multiple: false,
-        directory: false,
-        title: "Selecione um executável",
-        filters: [{ name: "Executável", extensions: ["exe", "bat", "cmd"] }],
-      });
-      if (typeof selected === "string") setPath(selected);
-    } catch (e) {
-      onError(`Falha ao selecionar arquivo: ${e}`);
+  // Reseta o formulário quando o modal abre
+  useEffect(() => {
+    if (open) {
+      setName("");
+      setUrl("");
+      setPath("");
+      setIcon(null);
+      setIconError(false);
+      setIconLoading(false);
+      setSubmitting(false);
+      setTab("link");
     }
-  }
+  }, [open]);
 
-  async function handleSave() {
-    if (!name.trim()) {
-      onError("Informe o nome do comando.");
+  // Busca o favicon automaticamente quando a URL muda (so na aba Link)
+  useEffect(() => {
+    if (!open || tab !== "link") {
+      setIcon(null);
+      setIconError(false);
       return;
     }
-    setBusy(true);
+    if (!url || url.length < 4) {
+      setIcon(null);
+      setIconError(false);
+      return;
+    }
 
-    const payload: CreateCommandPayload = {
-      name,
-      type: tab,         // antes: kind: tab
-      path,
-      url,
+    setIconLoading(true);
+    setIconError(false);
+
+    const timer = setTimeout(async () => {
+      try {
+        const dataUrl = await api.fetchFavicon(url);
+        setIcon(dataUrl);
+        setIconError(false);
+      } catch (e) {
+        setIcon(null);
+        setIconError(true);
+      } finally {
+        setIconLoading(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [url, tab, open]);
+
+  // Fecha com tecla ESC
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
     };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, onClose]);
 
+  // Nao renderiza nada se o modal estiver fechado
+  if (!open) return null;
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    ((tab === "link" && url.trim().length > 0) ||
+      (tab === "plugin" && path.trim().length > 0) ||
+      (tab === "application" && path.trim().length > 0));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit || submitting) return;
+
+    setSubmitting(true);
     try {
-      await api.createCommand(payload);
-      onCreated(name);
-
-      if (tab === "plugin") {
-        // Plugin salvo: também garante que o diretório existe (commands_store já insere
-        // o registro, mas o desenvolvedor precisa criar manualmente os arquivos).
-        onInfo(
-          `Plugin "${name}" registrado. Crie a pasta plugins/${name} com plugin.json + main.py.`
-        );
-        onOpenPluginFolder(`plugins/${name}`);
+      const payload: any = {
+        name: name.trim(),
+        type: tab,
+      };
+      if (tab === "link") {
+        payload.url = url.trim();
+        if (icon) payload.icon = icon;
       } else {
-        onInfo(`Comando "${name}" criado com sucesso.`);
+        payload.path = path.trim();
       }
 
-      reset();
+      await api.createCommand(payload);
+      onInfo?.("Comando " + name.trim() + " criado com sucesso.");
+      onCreated(name.trim());
       onClose();
-    } catch (e) {
-      onError(String(e));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      onError?.("Falha ao criar comando: " + msg);
     } finally {
-      setBusy(false);
+      setSubmitting(false);
     }
-  }
+  };
+
+  const handleBrowseFolder = async () => {
+    try {
+      let selected: string | null = null;
+
+      if (onOpenPluginFolder) {
+        // App fornece um seletor customizado
+        selected = await onOpenPluginFolder();
+      } else {
+        // Fallback: diálogo nativo do Tauri
+        const { open } = await import("@tauri-apps/plugin-dialog");
+        const result = await open({
+          directory: true,
+          multiple: false,
+          title: "Selecione a pasta do plugin",
+        });
+        if (typeof result === "string") selected = result;
+      }
+
+      if (selected) {
+        setPath(selected);
+      }
+    } catch (e) {
+      onError?.("Nao foi possivel abrir o seletor de pastas.");
+    }
+  };
+
+  const handleBrowseExe = async () => {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({
+        multiple: false,
+        title: "Selecione o executavel",
+        filters: [
+          { name: "Executaveis", extensions: ["exe", "bat", "cmd"] },
+          { name: "Todos os arquivos", extensions: ["*"] },
+        ],
+      });
+      if (typeof selected === "string") {
+        setPath(selected);
+      }
+    } catch (e) {
+      onError?.("Nao foi possivel abrir o seletor de arquivos.");
+    }
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal__header">
           <h2>Novo comando</h2>
-          <button className="icon-btn" onClick={onClose} title="Fechar">✕</button>
+          <button
+            type="button"
+            className="modal__close"
+            onClick={onClose}
+            aria-label="Fechar"
+            title="Fechar (Esc)"
+          >
+            x
+          </button>
         </header>
 
-        <div className="tabs">
-          {(["plugin", "link", "application"] as CommandType[]).map((t) => (
-            <button
-              key={t}
-              className={`tab ${tab === t ? "tab--active" : ""}`}
-              onClick={() => setTab(t)}
-            >
-              {t === "plugin" ? "Plugin" : t === "link" ? "Link" : "Aplicativo"}
-            </button>
-          ))}
+        <div className="modal__tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "link"}
+            className={"modal__tab " + (tab === "link" ? "modal__tab--active" : "")}
+            onClick={() => setTab("link")}
+          >
+            Link
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "plugin"}
+            className={"modal__tab " + (tab === "plugin" ? "modal__tab--active" : "")}
+            onClick={() => setTab("plugin")}
+          >
+            Plugin
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "application"}
+            className={"modal__tab " + (tab === "application" ? "modal__tab--active" : "")}
+            onClick={() => setTab("application")}
+          >
+            Aplicativo
+          </button>
         </div>
 
-        <div className="modal__body">
-          <label className="field">
-            <span>Nome do comando</span>
+        <form onSubmit={handleSubmit} className="modal__form">
+          <label className="modal__field">
+            <span>Nome</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="ex: cpf, google, word"
+              placeholder="Ex: GitHub, VS Code, Terminal"
               autoFocus
+              required
             />
           </label>
 
           {tab === "link" && (
-            <label className="field">
+            <label className="modal__field">
               <span>URL</span>
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://google.com.br"
-              />
+              <div className="modal__url-row">
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://github.com"
+                  required
+                />
+                <div className="modal__icon-preview" aria-live="polite">
+                  {iconLoading && <span className="modal__icon-spinner" />}
+                  {icon && !iconLoading && (
+                    <img src={icon} alt="" className="modal__icon" />
+                  )}
+                  {iconError && !iconLoading && (
+                    <span
+                      className="modal__icon-error"
+                      title="Nao foi possivel buscar o icone"
+                    >
+                      !
+                    </span>
+                  )}
+                </div>
+              </div>
+              {iconError && !iconLoading && (
+                <small className="modal__hint">
+                  Nao foi possivel buscar o icone do site. O comando sera salvo sem icone.
+                </small>
+              )}
             </label>
           )}
 
-          {tab === "application" && (
-            <label className="field">
-              <span>Caminho do executável</span>
-              <div className="field__row">
+          {tab === "plugin" && (
+            <label className="modal__field">
+              <span>Caminho do plugin</span>
+              <div className="modal__path-row">
                 <input
                   type="text"
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
-                  placeholder="C:\Program Files\..."
+                  placeholder="C:\plugins\meu-plugin\plugin.json"
+                  required
                 />
-                <button className="btn btn--ghost" onClick={pickExe}>
-                  Procurar…
+                <button
+                  type="button"
+                  className="modal__browse"
+                  onClick={handleBrowseFolder}
+                  title="Selecionar pasta do plugin"
+                >
+                  Pasta
                 </button>
               </div>
             </label>
           )}
 
-          {tab === "plugin" && (
-            <label className="field">
-              <span>Caminho do plugin (relativo a plugins/)</span>
-              <input
-                type="text"
-                value={path}
-                onChange={(e) => setPath(e.target.value)}
-                placeholder="meu-plugin"
-              />
-              <small className="field__hint">
-                Após salvar, crie a pasta <code>plugins/{name || "meu-plugin"}</code> com
-                <code> plugin.json</code> e <code>main.py</code>.
-              </small>
+          {tab === "application" && (
+            <label className="modal__field">
+              <span>Caminho do executavel</span>
+              <div className="modal__path-row">
+                <input
+                  type="text"
+                  value={path}
+                  onChange={(e) => setPath(e.target.value)}
+                  placeholder="C:\Program Files\MeuApp\app.exe"
+                  required
+                />
+                <button
+                  type="button"
+                  className="modal__browse"
+                  onClick={handleBrowseExe}
+                  title="Selecionar executavel"
+                >
+                  Arquivo
+                </button>
+              </div>
             </label>
           )}
 
-          <label className="field">
-            <span>Ícone (emoji ou texto curto)</span>
-            <input
-              type="text"
-              maxLength={2}
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              placeholder="🔗"
-            />
-          </label>
-
-          <label className="field field--checkbox">
-            <input
-              type="checkbox"
-              checked={favorite}
-              onChange={(e) => setFavorite(e.target.checked)}
-            />
-            <span>Marcar como favorito</span>
-          </label>
-        </div>
-
-        <footer className="modal__footer">
-          <button className="btn btn--ghost" onClick={onClose} disabled={busy}>
-            Cancelar
-          </button>
-          <button className="btn btn--primary" onClick={handleSave} disabled={busy}>
-            {busy ? "Salvando…" : "Salvar"}
-          </button>
-        </footer>
+          <footer className="modal__footer">
+            <button type="button" onClick={onClose} disabled={submitting}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={!canSubmit || submitting}>
+              {submitting ? "Salvando..." : "Salvar"}
+            </button>
+          </footer>
+        </form>
       </div>
     </div>
   );

@@ -27,6 +27,16 @@ export function CommandItem(props: CommandItemProps) {
       aria-selected={active}
     >
       <div className="command-item__main">
+        {entry.icon && (
+          <img
+            src={entry.icon}
+            alt=""
+            className="command-item__icon"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        )}
         <span className="command-item__title">{name}</span>
         {subtitle && subtitle !== name && (
           <span className="command-item__subtitle">{subtitle}</span>
