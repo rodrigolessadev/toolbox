@@ -6,7 +6,7 @@ import { TitleBar } from "./components/TitleBar";
 import { CommandList } from "./components/CommandList";
 import { AddCommandModal } from "./components/AddCommandModal";
 import { SettingsModal } from "./components/SettingsModal";
-import "./styles/app.css";
+import "./styles/global.css";
 
 type ToastKind = "success" | "error" | "info";
 

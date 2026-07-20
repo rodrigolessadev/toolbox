@@ -29,10 +29,9 @@ export interface PluginInfo {
 
 export interface HistoryEntry {
   command: string;
-  command_type: CommandType;
-  timestamp: string;        // ISO 8601
+  command_type: "plugin" | "link" | "application";
+  timestamp: string;
   success: boolean;
-  kind?: CommandType;
 }
 
 export interface CreateCommandPayload {

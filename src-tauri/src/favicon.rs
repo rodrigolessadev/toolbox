@@ -73,13 +73,18 @@ async fn try_download(client: &reqwest::Client, url: &str) -> Option<String> {
         return None;
     }
 
-    // ✅ Captura o content-type ANTES de mover resp para bytes()
+    // Captura o content-type ANTES de mover resp para bytes()
     let content_type = resp
         .headers()
         .get(CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("image/x-icon")
         .to_string();
+
+    // ✅ Só aceita se for realmente uma imagem (evita HTML de erro 404)
+    if !content_type.starts_with("image/") {
+        return None;
+    }
 
     let bytes = resp.bytes().await.ok()?;
     if bytes.is_empty() || bytes.len() > 200_000 {

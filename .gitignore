@@ -1,6 +1,8 @@
 updates.patch
 node_modules
+release.bat
 commits/*
+releases/*
 dist
 dist-ssr
 *.local

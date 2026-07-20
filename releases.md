@@ -27,3 +27,34 @@
   - N/A.
 
 </details>
+## v1.5.0 - 2026-07-20
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Script de inicialização de tema em `index.html` usando `localStorage` e `prefers-color-scheme`
+  - Tokens de tema para campos de entrada (`--input-bg`, `--input-border`) e estilos específicos para SettingsModal e sistema de toasts
+  - Configuração de `build.rs` em `src-tauri/Cargo.toml` para personalização de build
+
+- Changed:
+  - Atualização das dependências para Tauri 2.x e reorganização de plugins (`opener`, `dialog`, `global-shortcut`)
+  - Capabilities padrão mais restritas, removendo acesso direto a shell e filesystem
+  - Setup do backend garantindo diretórios de dados/histórico e mantendo o app funcional mesmo quando o atalho global Ctrl+Space não puder ser registrado
+  - Contrato de histórico no frontend (`HistoryEntry`) usando strings literais para tipo de comando
+  - Estilização de inputs, modais, ícones de comando e preview de favicon para melhor consistência entre temas claro/escuro
+
+- Fixed:
+  - Download de favicon passa a validar `content-type`, evitando salvar respostas HTML (erros 404 etc.) como imagens
+  - Pequenas melhorias de robustez na inicialização e no armazenamento de comandos
+
+- Removed:
+  - Módulo de plugins nativos (`PluginManager`), incluindo descoberta dinâmica e execução de plugins externos
+  - Módulo de erros customizados (`AppError/AppResult`)
+  - Módulo central de modelos (`models.rs`) em favor de uma estrutura mais enxuta e alinhada com os comandos atuais
+  - Permissões de shell e filesystem nas capabilities default
+
+- Security:
+  - Endurecimento do fluxo de download de favicons ao aceitar apenas content-types iniciados em `image/`, reduzindo o risco de tratar conteúdo inesperado como imagem
+
+</details>

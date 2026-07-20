@@ -10,8 +10,8 @@ use tauri::State;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum CommandType {
-    Plugin,
     Link,
+    Plugin,
     Application,
 }
 
@@ -115,7 +115,7 @@ pub fn create_command(
         url: payload.url,
         icon: payload.icon,
         favorite: false,
-        created_at: Some(chrono_now()),
+        created_at: Some(now()),
     };
     guard.commands.insert(payload.name, entry);
     drop(guard);
@@ -170,17 +170,6 @@ pub fn import_commands(
 pub fn export_commands(store: State<'_, CommandStore>) -> Result<String, String> {
     let guard = store.data.lock().map_err(|e| e.to_string())?;
     serde_json::to_string_pretty(&*guard).map_err(|e| e.to_string())
-}
-
-// ──────────────────── Utilitários ─────────────────────────
-
-fn chrono_now() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    format!("{}", secs)
 }
 
 // ──────────────────── Utilitários ─────────────────────────

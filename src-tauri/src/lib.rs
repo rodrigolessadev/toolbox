@@ -15,35 +15,43 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
+            // Garante que o diretório de dados existe
             let data_dir = paths::data_dir(app.handle());
             std::fs::create_dir_all(&data_dir).ok();
 
+            // Caminhos dos arquivos de dados
             let commands_path = data_dir.join("commands.json");
-            let history_path = data_dir.join("data").join("history.json");
-            if let Some(parent) = history_path.parent() {
-                std::fs::create_dir_all(parent).ok();
-            }
+            let history_dir = data_dir.join("data");
+            std::fs::create_dir_all(&history_dir).ok();
+            let history_path = history_dir.join("history.json");
 
+            // Registra os stores como estado gerenciado
             app.manage(CommandStore::new(commands_path));
             app.manage(HistoryStore::new(history_path));
 
-            // Atalho global: Ctrl+Space → traz o app para o primeiro plano
-            let shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::Space);
+            // Atalho global: Ctrl+Space traz a janela para o primeiro plano
+            let shortcut = Shortcut::new(
+                Some(Modifiers::CONTROL),
+                Code::Space,
+            );
 
             let app_handle = app.handle().clone();
-            app.global_shortcut()
-                .on_shortcut(shortcut, move |_app, _scut, event| {
+            if let Err(e) = app.global_shortcut().on_shortcut(
+                shortcut,
+                move |_app, _scut, event| {
                     if event.state == ShortcutState::Pressed {
                         if let Some(window) = app_handle.get_webview_window("main") {
-                            // Se estiver minimizado, restaura
                             let _ = window.unminimize();
-                            // Mostra a janela (não faz nada se já estiver visível)
                             let _ = window.show();
-                            // Traz para o primeiro plano e foca
                             let _ = window.set_focus();
                         }
                     }
-                })?;
+                },
+            ) {
+                eprintln!(
+                    "Aviso: nao foi possivel registrar Ctrl+Space ({e}). O app continua funcionando."
+                );
+            }
 
             Ok(())
         })
@@ -60,6 +68,7 @@ pub fn run() {
             executor::open_plugin_folder,
             history::list_history,
             history::clear_history,
+            favicon::fetch_favicon,
             paths::get_data_dir,
             paths::get_plugins_dir,
             paths::get_logs_dir,
@@ -70,7 +79,6 @@ pub fn run() {
             paths::minimize_window,
             paths::get_theme,
             paths::set_theme,
-            favicon::fetch_favicon,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
