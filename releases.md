@@ -58,3 +58,41 @@
   - Endurecimento do fluxo de download de favicons ao aceitar apenas content-types iniciados em `image/`, reduzindo o risco de tratar conteúdo inesperado como imagem
 
 </details>
+
+## v1.6.0 - 2026-07-20
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Abas de filtro na lista de comandos (Todos, Favoritos, Plugins, Links, Apps, Histórico)
+  - Integração do painel de histórico como aba dedicada na interface
+  - Suporte a ícones de comandos:
+    - Favicon automático para links via `fetch_favicon`
+    - Extração de ícones de executáveis via novo comando `extract_exe_icon`
+    - Ícones Lucide para plugins (dependência `lucide-react` e LucideIconPicker)
+  - Possibilidade de marcar comandos como favoritos diretamente na criação
+  - ErrorBoundary no frontend para capturar e exibir erros de renderização
+  - Constante `MAX_HISTORY` para controle de tamanho do histórico
+
+- Changed:
+  - Layout principal da aplicação (header com marca, barra de busca, tabs e lista de comandos)
+  - Fluxo de teclado (ESC limpa busca/fecha modais e foca input; Enter executa comando ativo; setas navegam na lista)
+  - Inicialização do logger, que agora recebe o diretório de logs resolvido pelo `AppHandle`
+  - Estrutura do `commands.json`, agora agrupando comandos em um objeto raiz `"commands"`
+  - Apresentação dos itens da lista, com ícones de fallback por tipo e ações mais visíveis
+  - Textos e UX do SettingsModal, toasts e modais em geral
+  - Configuração de build do Vite, criando chunk separado para `lucide-react`
+
+- Fixed:
+  - Limite do histórico para evitar crescimento indefinido do arquivo (mantém apenas as últimas 100 entradas)
+  - Uso do campo `command_type` na badge do HistoryPanel em vez de `kind`
+
+- Removed:
+  - Targets de bundle `deb`, `appimage` e `dmg` (foco em Windows: MSI e NSIS)
+  - Lógica de histórico acoplada ao hook `useToast` (responsabilidades separadas)
+
+- Security:
+  - Sem alterações específicas de segurança nesta versão, além de melhorias indiretas de robustez (limite de histórico e melhor tratamento de erros de UI).
+
+</details>
