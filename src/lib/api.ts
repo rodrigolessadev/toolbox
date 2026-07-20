@@ -36,9 +36,10 @@ export interface HistoryEntry {
 
 export interface CreateCommandPayload {
   name: string;
-  type: CommandType;        // <-- "type", não "kind"
+  type: CommandType;
   path?: string;
   url?: string;
+  icon?: string | null;
 }
 
 export interface ToggleFavoritePayload {
@@ -95,4 +96,5 @@ export const api = {
   closeWindow: () => invoke<void>("close_window"),
   minimizeWindow: () => invoke<void>("minimize_window"),
   fetchFavicon: (url: string) => invoke<string>("fetch_favicon", { url }),
+  extractExeIcon: (path: string) => invoke<string>("extract_exe_icon", { path }),
 };

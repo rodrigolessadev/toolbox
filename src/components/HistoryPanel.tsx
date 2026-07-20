@@ -37,7 +37,7 @@ export function HistoryPanel({ history, onSelect, onClear }: Props) {
                 </span>
               </div>
             </div>
-            <span className={`badge badge--${h.kind}`}>{h.kind}</span>
+            <span className={`badge badge--${h.command_type}`}>{h.command_type}</span>
           </li>
         ))}
       </ul>

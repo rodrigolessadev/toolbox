@@ -1,0 +1,178 @@
+# ============================================================
+# Kiro IDE — arquivos ignorados pelo contexto da IA
+# O Kiro le este arquivo e NAO envia ao modelo os arquivos
+# listados aqui. Use para excluir artefatos de build,
+# binarios grandes, caches e tudo que nao ajuda a IA a
+# entender o codigo.
+# ============================================================
+
+# Dependencias
+node_modules/
+**/node_modules/
+.pnp/
+.pnp.js
+.npm/
+.yarn/
+.yarn-cache/
+
+# Builds Rust (src-tauri/target pode ter GBs de binarios)
+src-tauri/target/
+**/target/
+**/Cargo.lock
+
+# Build outputs do frontend
+dist/
+build/
+out/
+.vite/
+.tsbuildinfo
+**/*.tsbuildinfo
+.eslintcache
+.stylelintcache
+.parcel-cache/
+
+# Artefatos gerados pelo Tauri
+src-tauri/gen/
+src-tauri/target/
+
+# Releases (instaladores binarios)
+releases/*.msi
+releases/*.exe
+releases/*.deb
+releases/*.appimage
+releases/*.dmg
+releases/*.zip
+releases/*.tar.gz
+releases/*.tar.xz
+releases/*.nsis.zip
+
+# Logs e temporarios
+*.log
+logs/
+**/*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Historico de execucao (pode ter dados sensiveis)
+src-tauri/data/
+src-tauri/commands.json
+src-tauri/history.json
+**/commands.json
+**/history.json
+
+# Configuracao de ambiente local (NAO commitar)
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+*.pem
+*.key
+secrets.json
+
+# IDEs e editores
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pastas de workspace do agente (nao sao do projeto)
+internal/
+outputs/
+uploads/
+.claude/
+.kiro/
+.memory/
+
+# Documentacao gerada
+docs/_build/
+site/
+public/
+
+# Coverage e testes
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+*.gcda
+*.gcno
+*.profraw
+
+# Imagens binarias grandes
+*.png
+*.ico
+*.webp
+*.gif
+*.jpg
+*.jpeg
+*.bmp
+*.psd
+*.sketch
+*.fig
+*.ai
+
+# Fontes
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+
+# Midia
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+*.flac
+*.ogg
+
+# Compactados
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# Python (caso algum plugin use)
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Lock files de package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Kiro specs locais (NAO compartilhar com a IA)
+.kiro/specs/

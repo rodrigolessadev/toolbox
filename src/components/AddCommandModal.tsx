@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
+import { LucideIconPicker } from "./LucideIconPicker";
 
 interface Props {
   open: boolean;
@@ -10,308 +11,321 @@ interface Props {
   onInfo?: (message: string) => void;
 }
 
-type Tab = "link" | "plugin" | "application";
+type Tab = "plugin" | "link" | "application";
 
-export function AddCommandModal({
-  open,
-  onClose,
-  onCreated,
-  onOpenPluginFolder,
-  onError,
-  onInfo,
-}: Props) {
-  const [tab, setTab] = useState<Tab>("link");
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [path, setPath] = useState("");
-  const [icon, setIcon] = useState<string | null>(null);
+const TABS: { id: Tab; label: string }[] = [
+  { id: "plugin",      label: "Plugin"     },
+  { id: "link",        label: "Link"       },
+  { id: "application", label: "Aplicativo" },
+];
+
+export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, onError, onInfo }: Props) {
+  const [tab,        setTab]        = useState<Tab>("plugin");
+  const [name,       setName]       = useState("");
+  const [url,        setUrl]        = useState("");
+  const [path,       setPath]       = useState("");
+  const [icon,       setIcon]       = useState("");
+  const [favorite,   setFavorite]   = useState(false);
   const [iconLoading, setIconLoading] = useState(false);
-  const [iconError, setIconError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Reseta o formulário quando o modal abre
+  // Reset ao abrir
   useEffect(() => {
     if (open) {
+      setTab("plugin");
       setName("");
       setUrl("");
       setPath("");
-      setIcon(null);
-      setIconError(false);
+      setIcon("");
+      setFavorite(false);
       setIconLoading(false);
       setSubmitting(false);
-      setTab("link");
     }
   }, [open]);
 
-  // Busca o favicon automaticamente quando a URL muda (so na aba Link)
+  // Auto-busca favicon ao digitar URL
   useEffect(() => {
-    if (!open || tab !== "link") {
-      setIcon(null);
-      setIconError(false);
+    if (tab !== "link" || !open || !url || url.length < 8) {
+      setIcon("");
       return;
     }
-    if (!url || url.length < 4) {
-      setIcon(null);
-      setIconError(false);
-      return;
-    }
-
     setIconLoading(true);
-    setIconError(false);
-
     const timer = setTimeout(async () => {
       try {
         const dataUrl = await api.fetchFavicon(url);
         setIcon(dataUrl);
-        setIconError(false);
-      } catch (e) {
-        setIcon(null);
-        setIconError(true);
+      } catch {
+        setIcon("");
       } finally {
         setIconLoading(false);
       }
     }, 600);
-
     return () => clearTimeout(timer);
   }, [url, tab, open]);
 
-  // Fecha com tecla ESC
+  // Auto-extrai ícone do .exe ao digitar o caminho
+  useEffect(() => {
+    if (tab !== "application" || !open || !path || path.length < 4) {
+      if (tab === "application") setIcon("");
+      return;
+    }
+    // Só tenta se termina com extensão executável
+    const lower = path.toLowerCase();
+    if (!lower.endsWith(".exe") && !lower.endsWith(".dll")) return;
+
+    setIconLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const dataUrl = await api.extractExeIcon(path);
+        setIcon(dataUrl);
+      } catch {
+        setIcon(""); // silencia — usa fallback ⚙️
+      } finally {
+        setIconLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [path, tab, open]);
+
+  // Fecha com ESC
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [open, onClose]);
 
-  // Nao renderiza nada se o modal estiver fechado
   if (!open) return null;
 
+  const pluginPlaceholder = tab === "plugin" ? "meu-plugin" : "";
   const canSubmit =
     name.trim().length > 0 &&
-    ((tab === "link" && url.trim().length > 0) ||
-      (tab === "plugin" && path.trim().length > 0) ||
-      (tab === "application" && path.trim().length > 0));
+    (tab === "link"
+      ? url.trim().length > 0
+      : path.trim().length > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit || submitting) return;
-
     setSubmitting(true);
     try {
-      const payload: any = {
-        name: name.trim(),
-        type: tab,
-      };
-      if (tab === "link") {
-        payload.url = url.trim();
-        if (icon) payload.icon = icon;
-      } else {
-        payload.path = path.trim();
+      await api.createCommand({
+        name:  name.trim(),
+        type:  tab,
+        url:   tab === "link" ? url.trim()  : undefined,
+        path:  tab !== "link" ? path.trim() : undefined,
+        // favicon (data URL) para links, emoji/texto para outros
+        icon:  icon || undefined,
+      });
+      if (favorite) {
+        await api.toggleFavorite({ name: name.trim(), favorite: true });
       }
-
-      await api.createCommand(payload);
-      onInfo?.("Comando " + name.trim() + " criado com sucesso.");
+      onInfo?.(`Comando "${name.trim()}" criado.`);
       onCreated(name.trim());
       onClose();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      onError?.("Falha ao criar comando: " + msg);
+      onError?.("Falha ao criar: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleBrowseFolder = async () => {
+  const browseFolder = async () => {
     try {
       let selected: string | null = null;
-
       if (onOpenPluginFolder) {
-        // App fornece um seletor customizado
         selected = await onOpenPluginFolder();
       } else {
-        // Fallback: diálogo nativo do Tauri
-        const { open } = await import("@tauri-apps/plugin-dialog");
-        const result = await open({
-          directory: true,
-          multiple: false,
-          title: "Selecione a pasta do plugin",
-        });
-        if (typeof result === "string") selected = result;
+        const { open: dlg } = await import("@tauri-apps/plugin-dialog");
+        const r = await dlg({ directory: true, multiple: false, title: "Pasta do plugin" });
+        if (typeof r === "string") selected = r;
       }
-
-      if (selected) {
-        setPath(selected);
-      }
-    } catch (e) {
-      onError?.("Nao foi possivel abrir o seletor de pastas.");
-    }
+      if (selected) setPath(selected);
+    } catch { onError?.("Não foi possível abrir o seletor de pastas."); }
   };
 
-  const handleBrowseExe = async () => {
+  const browseExe = async () => {
     try {
-      const { open } = await import("@tauri-apps/plugin-dialog");
-      const selected = await open({
+      const { open: dlg } = await import("@tauri-apps/plugin-dialog");
+      const r = await dlg({
         multiple: false,
-        title: "Selecione o executavel",
-        filters: [
-          { name: "Executaveis", extensions: ["exe", "bat", "cmd"] },
-          { name: "Todos os arquivos", extensions: ["*"] },
-        ],
+        title: "Selecione o executável",
+        filters: [{ name: "Executáveis", extensions: ["exe", "bat", "cmd"] }, { name: "Todos", extensions: ["*"] }],
       });
-      if (typeof selected === "string") {
-        setPath(selected);
-      }
-    } catch (e) {
-      onError?.("Nao foi possivel abrir o seletor de arquivos.");
-    }
+      if (typeof r === "string") setPath(r);
+    } catch { onError?.("Não foi possível abrir o seletor de arquivos."); }
   };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
+
+        {/* Header */}
         <header className="modal__header">
           <h2>Novo comando</h2>
-          <button
-            type="button"
-            className="modal__close"
-            onClick={onClose}
-            aria-label="Fechar"
-            title="Fechar (Esc)"
-          >
-            x
-          </button>
+          <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">✕</button>
         </header>
 
+        {/* Tabs */}
         <div className="modal__tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "link"}
-            className={"modal__tab " + (tab === "link" ? "modal__tab--active" : "")}
-            onClick={() => setTab("link")}
-          >
-            Link
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "plugin"}
-            className={"modal__tab " + (tab === "plugin" ? "modal__tab--active" : "")}
-            onClick={() => setTab("plugin")}
-          >
-            Plugin
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "application"}
-            className={"modal__tab " + (tab === "application" ? "modal__tab--active" : "")}
-            onClick={() => setTab("application")}
-          >
-            Aplicativo
-          </button>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={`modal__tab${tab === t.id ? " modal__tab--active" : ""}`}
+              onClick={() => { setTab(t.id); setPath(""); setUrl(""); setIcon(""); }}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="modal__form">
-          <label className="modal__field">
-            <span>Nome</span>
+
+          {/* Nome */}
+          <div className="modal__field">
+            <label className="modal__label">Nome do Comando</label>
             <input
               type="text"
+              className="modal__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: GitHub, VS Code, Terminal"
+              placeholder="ex: cpf, google, word"
               autoFocus
               required
             />
-          </label>
+          </div>
 
+          {/* Plugin: caminho relativo */}
+          {tab === "plugin" && (
+            <>
+              <div className="modal__field">
+                <label className="modal__label">Caminho do Plugin (relativo a plugins/)</label>
+                <div className="modal__row">
+                  <input
+                    type="text"
+                    className="modal__input"
+                    value={path}
+                    onChange={(e) => setPath(e.target.value)}
+                    placeholder={pluginPlaceholder}
+                    required
+                  />
+                  <button type="button" className="modal__browse-btn" onClick={browseFolder} title="Selecionar pasta">
+                    📁
+                  </button>
+                </div>
+                <small className="modal__hint">
+                  Após salvar, crie a pasta{" "}
+                  <code>plugins/{path || "meu-plugin"}</code> com{" "}
+                  <code>plugin.json</code> e <code>main.py</code>.
+                </small>
+              </div>
+            </>
+          )}
+
+          {/* Link: URL */}
           {tab === "link" && (
-            <label className="modal__field">
-              <span>URL</span>
-              <div className="modal__url-row">
+            <div className="modal__field">
+              <label className="modal__label">URL</label>
+              <div className="modal__row">
                 <input
                   type="url"
+                  className="modal__input"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://github.com"
+                  placeholder="https://exemplo.com"
                   required
                 />
                 <div className="modal__icon-preview" aria-live="polite">
-                  {iconLoading && <span className="modal__icon-spinner" />}
-                  {icon && !iconLoading && (
-                    <img src={icon} alt="" className="modal__icon" />
-                  )}
-                  {iconError && !iconLoading && (
-                    <span
-                      className="modal__icon-error"
-                      title="Nao foi possivel buscar o icone"
-                    >
-                      !
-                    </span>
-                  )}
+                  {iconLoading
+                    ? <span className="modal__icon-spinner" />
+                    : icon
+                    ? <img src={icon} alt="" className="modal__icon-img" />
+                    : <span style={{ opacity: 0.3, fontSize: 18 }}>🔗</span>}
                 </div>
               </div>
-              {iconError && !iconLoading && (
-                <small className="modal__hint">
-                  Nao foi possivel buscar o icone do site. O comando sera salvo sem icone.
-                </small>
-              )}
-            </label>
+            </div>
           )}
 
-          {tab === "plugin" && (
-            <label className="modal__field">
-              <span>Caminho do plugin</span>
-              <div className="modal__path-row">
+          {/* Aplicativo: caminho .exe */}
+          {tab === "application" && (
+            <div className="modal__field">
+              <label className="modal__label">Caminho do Executável</label>
+              <div className="modal__row">
                 <input
                   type="text"
+                  className="modal__input"
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
-                  placeholder="C:\plugins\meu-plugin\plugin.json"
+                  placeholder="C:\Program Files\App\app.exe"
                   required
                 />
-                <button
-                  type="button"
-                  className="modal__browse"
-                  onClick={handleBrowseFolder}
-                  title="Selecionar pasta do plugin"
-                >
-                  Pasta
+                <div className="modal__icon-preview" aria-live="polite">
+                  {iconLoading
+                    ? <span className="modal__icon-spinner" />
+                    : icon
+                    ? <img src={icon} alt="" className="modal__icon-img" />
+                    : <span style={{ opacity: 0.3, fontSize: 18 }}>⚙️</span>}
+                </div>
+                <button type="button" className="modal__browse-btn" onClick={browseExe} title="Selecionar arquivo">
+                  📁
                 </button>
               </div>
-            </label>
+            </div>
+          )}
+
+          {/* Ícone: Lucide picker para plugin, emoji para application */}
+          {tab === "plugin" && (
+            <div className="modal__field">
+              <label className="modal__label">Ícone (Lucide)</label>
+              <LucideIconPicker
+                value={icon}
+                onSelect={(dataUrl) => setIcon(dataUrl)}
+              />
+              <small className="modal__hint">
+                Busque em{" "}
+                <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="lucide-picker__link">
+                  lucide.dev/icons
+                </a>
+                {" "}— ex: puzzle, terminal, cpu, zap
+              </small>
+            </div>
           )}
 
           {tab === "application" && (
-            <label className="modal__field">
-              <span>Caminho do executavel</span>
-              <div className="modal__path-row">
-                <input
-                  type="text"
-                  value={path}
-                  onChange={(e) => setPath(e.target.value)}
-                  placeholder="C:\Program Files\MeuApp\app.exe"
-                  required
-                />
-                <button
-                  type="button"
-                  className="modal__browse"
-                  onClick={handleBrowseExe}
-                  title="Selecionar executavel"
-                >
-                  Arquivo
-                </button>
-              </div>
-            </label>
+            <div className="modal__field">
+              <label className="modal__label">Ícone (emoji ou texto curto)</label>
+              <input
+                type="text"
+                className="modal__input"
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                placeholder="⚙️"
+                maxLength={8}
+              />
+              <small className="modal__hint">Deixe em branco para usar o ícone extraído do executável.</small>
+            </div>
           )}
 
+          {/* Favorito */}
+          <label className="modal__checkbox">
+            <input
+              type="checkbox"
+              checked={favorite}
+              onChange={(e) => setFavorite(e.target.checked)}
+            />
+            <span>Marcar como favorito</span>
+          </label>
+
+          {/* Footer */}
           <footer className="modal__footer">
-            <button type="button" onClick={onClose} disabled={submitting}>
+            <button type="button" className="modal__btn modal__btn--ghost" onClick={onClose} disabled={submitting}>
               Cancelar
             </button>
-            <button type="submit" disabled={!canSubmit || submitting}>
+            <button type="submit" className="modal__btn modal__btn--primary" disabled={!canSubmit || submitting}>
               {submitting ? "Salvando..." : "Salvar"}
             </button>
           </footer>

@@ -31,6 +31,14 @@ parking_lot = "0.12"
 url = "2.5"
 percent-encoding = "2.3"
 
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_Graphics_Gdi",
+  "Win32_Foundation",
+] }
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

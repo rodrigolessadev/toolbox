@@ -18,5 +18,12 @@ export default defineConfig(async () => ({
     target: "es2021",
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          lucide: ["lucide-react"],
+        },
+      },
+    },
   },
 }));

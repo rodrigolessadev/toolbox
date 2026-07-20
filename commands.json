@@ -1,37 +1,58 @@
 {
-  "cpf": {
-    "type": "plugin",
-    "name": "Validador de CPF",
-    "path": "plugins/cpf",
-    "favorite": true,
-    "icon": "🆔"
-  },
-  "gerador-json": {
-    "type": "plugin",
-    "name": "Gerador de JSON",
-    "path": "plugins/gerador-json",
-    "favorite": true,
-    "icon": "📦"
-  },
-  "google": {
-    "type": "link",
-    "name": "Google",
-    "url": "https://google.com.br",
-    "favorite": false,
-    "icon": "🔍"
-  },
-  "github": {
-    "type": "link",
-    "name": "GitHub",
-    "url": "https://github.com",
-    "favorite": false,
-    "icon": "🐙"
-  },
-  "notepad": {
-    "type": "application",
-    "name": "Notepad",
-    "path": "C:\\Windows\\System32\\notepad.exe",
-    "favorite": false,
-    "icon": "📝"
+  "commands": {
+    "cpf": {
+      "type": "plugin",
+      "path": "plugins/cpf",
+      "favorite": true,
+      "icon": "🆔"
+    },
+    "gerador-json": {
+      "type": "plugin",
+      "path": "plugins/gerador-json",
+      "favorite": true,
+      "icon": "📦"
+    },
+    "stract-json": {
+      "type": "plugin",
+      "path": "plugins/stract-json",
+      "favorite": true,
+      "icon": "🔍"
+    },
+    "converter-data": {
+      "type": "plugin",
+      "path": "plugins/converter-data",
+      "favorite": true,
+      "icon": "📅"
+    },
+    "gerador-marcacoes": {
+      "type": "plugin",
+      "path": "plugins/gerador-marcacoes",
+      "favorite": true,
+      "icon": "🗄️"
+    },
+    "calc-jornadas": {
+      "type": "plugin",
+      "path": "plugins/calc-jornadas",
+      "favorite": true,
+      "icon": "⏱️"
+    },
+    "google": {
+      "type": "link",
+      "url": "https://google.com.br",
+      "favorite": false,
+      "icon": "🔍"
+    },
+    "github": {
+      "type": "link",
+      "url": "https://github.com",
+      "favorite": false,
+      "icon": "🐙"
+    },
+    "notepad": {
+      "type": "application",
+      "path": "C:\\Windows\\System32\\notepad.exe",
+      "favorite": false,
+      "icon": "📝"
+    }
   }
 }

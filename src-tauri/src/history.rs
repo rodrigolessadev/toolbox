@@ -6,6 +6,9 @@ use tauri::State;
 
 use crate::commands_store::CommandType;
 
+/// Número máximo de entradas no histórico.
+pub const MAX_HISTORY: usize = 100;
+
 // ───────────────────────── Tipos ─────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
-import { api, HistoryEntry } from "../lib/api";
+import { useCallback, useState } from "react";
 
 export interface ToastItem {
   id: number;
@@ -25,25 +24,4 @@ export function useToasts() {
   }, []);
 
   return { toasts, push, dismiss };
-}
-
-export function useHistory() {
-  const [items, setItems] = useState<HistoryEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.getHistory();
-      setItems(data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { items, loading, refresh };
 }

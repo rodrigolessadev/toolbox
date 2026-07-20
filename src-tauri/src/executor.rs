@@ -230,6 +230,11 @@ fn record_history(
     };
     if let Ok(mut guard) = history.data.lock() {
         guard.entries.push(entry);
+        // Mantém apenas as últimas MAX_HISTORY entradas
+        if guard.entries.len() > crate::history::MAX_HISTORY {
+            let excess = guard.entries.len() - crate::history::MAX_HISTORY;
+            guard.entries.drain(..excess);
+        }
     }
     let _ = history.save();
 }

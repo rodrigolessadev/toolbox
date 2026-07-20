@@ -1,13 +1,14 @@
-use crate::paths::logs_dir;
 use log::{Level, LevelFilter, Metadata, Record};
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 static LOG_FILE: Mutex<Option<std::fs::File>> = Mutex::new(None);
 
 /// Inicializa o logger com sink em arquivo + console.
-pub fn init() {
+/// Recebe o diretório de logs já resolvido pelo AppHandle.
+pub fn init(logs_path: PathBuf) {
     let _ = env_logger::Builder::from_env(
         env_logger::Env::default().default_filter_or("info"),
     )
@@ -25,13 +26,13 @@ pub fn init() {
     .filter_level(LevelFilter::Info)
     .try_init();
 
-    // Abre o arquivo de log.
-    let path = logs_dir().join("toolbox.log");
-    let _ = std::fs::create_dir_all(logs_dir());
+    // Garante que o diretório existe e abre o arquivo de log.
+    let _ = std::fs::create_dir_all(&logs_path);
+    let log_file = logs_path.join("toolbox.log");
     if let Ok(file) = OpenOptions::new()
         .create(true)
         .append(true)
-        .open(&path)
+        .open(&log_file)
     {
         let mut guard = LOG_FILE.lock().unwrap();
         *guard = Some(file);

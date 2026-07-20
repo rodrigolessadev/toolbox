@@ -20,18 +20,16 @@ export function SettingsModal({
   onOpenDataDir,
   onOpenLogsDir,
 }: Props) {
-  const [theme, setTheme] = useState<string>("dark");
-  const [dataDir, setDataDir] = useState<string>("");
+  const [theme,      setTheme]      = useState<string>("dark");
+  const [dataDir,    setDataDir]    = useState<string>("");
   const [pluginsDir, setPluginsDir] = useState<string>("");
-  const [logsDir, setLogsDir] = useState<string>("");
-  const [importing, setImporting] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [working, setWorking] = useState(false);
+  const [logsDir,    setLogsDir]    = useState<string>("");
+  const [importing,  setImporting]  = useState(false);
+  const [exporting,  setExporting]  = useState(false);
+  const [working,    setWorking]    = useState(false);
 
-  // Carrega as informacoes quando o modal abre
   useEffect(() => {
     if (!open) return;
-
     let cancelled = false;
     (async () => {
       try {
@@ -47,28 +45,20 @@ export function SettingsModal({
         setPluginsDir(pd);
         setLogsDir(ld);
         setTheme(t);
-      } catch (e) {
-        if (!cancelled) {
-          onError?.("Falha ao carregar configuracoes.");
-        }
+      } catch {
+        if (!cancelled) onError?.("Falha ao carregar configurações.");
       } finally {
         if (!cancelled) setWorking(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [open, onError]);
 
-  // Fecha com tecla ESC
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [open, onClose]);
 
   if (!open) return null;
@@ -76,35 +66,21 @@ export function SettingsModal({
   const handleThemeChange = async (next: string) => {
     setTheme(next);
     try {
-      await api.setTheme(next);
+      await api.setTheme(next as "light" | "dark");
       onInfo?.("Tema atualizado.");
-    } catch (e) {
+    } catch {
       onError?.("Falha ao alterar tema.");
     }
   };
 
   const handleOpenDataDir = async () => {
-    if (onOpenDataDir) {
-      await onOpenDataDir();
-    } else {
-      try {
-        await api.openPath(dataDir);
-      } catch (e) {
-        onError?.("Falha ao abrir pasta de dados.");
-      }
-    }
+    if (onOpenDataDir) await onOpenDataDir();
+    else try { await api.openPath(dataDir); } catch { onError?.("Falha ao abrir pasta."); }
   };
 
   const handleOpenLogsDir = async () => {
-    if (onOpenLogsDir) {
-      await onOpenLogsDir();
-    } else {
-      try {
-        await api.openPath(logsDir);
-      } catch (e) {
-        onError?.("Falha ao abrir pasta de logs.");
-      }
-    }
+    if (onOpenLogsDir) await onOpenLogsDir();
+    else try { await api.openPath(logsDir); } catch { onError?.("Falha ao abrir pasta."); }
   };
 
   const handleExport = async () => {
@@ -112,38 +88,27 @@ export function SettingsModal({
     try {
       const json = await api.exportCommands();
       const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "toolbox-commands.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      onInfo?.("Comandos exportados com sucesso.");
-    } catch (e) {
-      onError?.("Falha ao exportar comandos.");
-    } finally {
-      setExporting(false);
-    }
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url; a.download = "toolbox-commands.json";
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      onInfo?.("Comandos exportados.");
+    } catch { onError?.("Falha ao exportar."); }
+    finally  { setExporting(false); }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setImporting(true);
     try {
-      const text = await file.text();
-      await api.importCommands(text);
+      await api.importCommands(await file.text());
       await onImported?.();
-      onInfo?.("Comandos importados com sucesso.");
+      onInfo?.("Comandos importados.");
       onClose();
     } catch (e) {
-      onError?.(
-        "Falha ao importar: " +
-        (e instanceof Error ? e.message : String(e))
-      );
+      onError?.("Falha ao importar: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setImporting(false);
       event.target.value = "";
@@ -153,24 +118,19 @@ export function SettingsModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
+
         <header className="modal__header">
-          <h2>Configuracoes</h2>
-          <button
-            type="button"
-            className="modal__close"
-            onClick={onClose}
-            aria-label="Fechar"
-            title="Fechar (Esc)"
-          >
-            x
-          </button>
+          <h2>Configurações</h2>
+          <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">✕</button>
         </header>
 
         <div className="modal__form">
+
+          {/* Aparência */}
           <section className="settings__section">
-            <h3 className="settings__title">Aparencia</h3>
-            <label className="modal__field">
-              <span>Tema</span>
+            <h3 className="settings__title">Aparência</h3>
+            <div className="modal__field">
+              <label className="modal__label">Tema</label>
               <select
                 value={theme}
                 onChange={(e) => handleThemeChange(e.target.value)}
@@ -180,9 +140,10 @@ export function SettingsModal({
                 <option value="light">Claro</option>
                 <option value="system">Sistema</option>
               </select>
-            </label>
+            </div>
           </section>
 
+          {/* Pastas */}
           <section className="settings__section">
             <h3 className="settings__title">Pastas</h3>
 
@@ -193,13 +154,11 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse"
+                className="modal__browse-btn"
                 onClick={handleOpenDataDir}
                 disabled={!dataDir}
                 title="Abrir pasta de dados"
-              >
-                Abrir
-              </button>
+              >Abrir</button>
             </div>
 
             <div className="settings__row">
@@ -209,19 +168,14 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse"
+                className="modal__browse-btn"
                 onClick={async () => {
-                  try {
-                    await api.openPath(pluginsDir);
-                  } catch (e) {
-                    onError?.("Falha ao abrir pasta de plugins.");
-                  }
+                  try { await api.openPath(pluginsDir); }
+                  catch { onError?.("Falha ao abrir pasta de plugins."); }
                 }}
                 disabled={!pluginsDir}
                 title="Abrir pasta de plugins"
-              >
-                Abrir
-              </button>
+              >Abrir</button>
             </div>
 
             <div className="settings__row">
@@ -231,27 +185,21 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse"
+                className="modal__browse-btn"
                 onClick={handleOpenLogsDir}
                 disabled={!logsDir}
                 title="Abrir pasta de logs"
-              >
-                Abrir
-              </button>
+              >Abrir</button>
             </div>
           </section>
 
+          {/* Backup */}
           <section className="settings__section">
             <h3 className="settings__title">Backup</h3>
             <div className="settings__actions">
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={exporting}
-              >
+              <button type="button" onClick={handleExport} disabled={exporting}>
                 {exporting ? "Exportando..." : "Exportar comandos"}
               </button>
-
               <label className="settings__import">
                 <input
                   type="file"
@@ -259,21 +207,16 @@ export function SettingsModal({
                   onChange={handleImport}
                   disabled={importing}
                 />
-                <span>
-                  {importing ? "Importando..." : "Importar comandos"}
-                </span>
+                <span>{importing ? "Importando..." : "Importar comandos"}</span>
               </label>
             </div>
-            <small className="modal__hint">
-              A importacao substitui todos os comandos existentes.
-            </small>
+            <small className="modal__hint">A importação substitui todos os comandos existentes.</small>
           </section>
 
           <footer className="modal__footer">
-            <button type="button" onClick={onClose}>
-              Fechar
-            </button>
+            <button type="button" className="modal__btn" onClick={onClose}>Fechar</button>
           </footer>
+
         </div>
       </div>
     </div>

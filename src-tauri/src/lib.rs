@@ -1,7 +1,9 @@
 mod commands_store;
+mod exe_icon;
 mod executor;
 mod favicon;
 mod history;
+mod logger;
 mod paths;
 
 use commands_store::CommandStore;
@@ -15,6 +17,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
+            // Inicializa o logger de arquivo com o diretório resolvido pelo AppHandle
+            let logs_path = paths::logs_dir(app.handle());
+            logger::init(logs_path);
+
             // Garante que o diretório de dados existe
             let data_dir = paths::data_dir(app.handle());
             std::fs::create_dir_all(&data_dir).ok();
@@ -69,6 +75,7 @@ pub fn run() {
             history::list_history,
             history::clear_history,
             favicon::fetch_favicon,
+            exe_icon::extract_exe_icon,
             paths::get_data_dir,
             paths::get_plugins_dir,
             paths::get_logs_dir,
