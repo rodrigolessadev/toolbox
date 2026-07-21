@@ -4,6 +4,7 @@ mod executor;
 mod favicon;
 mod history;
 mod logger;
+mod marketplace;
 mod paths;
 
 use commands_store::CommandStore;
@@ -95,6 +96,10 @@ pub fn run() {
             paths::minimize_window,
             paths::get_theme,
             paths::set_theme,
+            marketplace::fetch_catalog,
+            marketplace::install_plugin,
+            marketplace::remove_plugin,
+            marketplace::list_installed_plugins,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

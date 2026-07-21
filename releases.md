@@ -124,3 +124,31 @@
   - Introduz suporte a atualização assinada via chave pública (`pubkey`), fortalecendo a segurança no processo de distribuição e update do aplicativo.
 
 </details>
+
+## v1.8.0 - 2026-07-21
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Suporte a argumentos extras em comandos do tipo aplicativo, com parsing de argumentos respeitando aspas, similar ao campo "Destino" de atalhos do Windows.
+  - Integração com o Tauri Updater, incluindo geração de artefatos de atualização e configuração de endpoint GitHub para `latest.json`.
+  - Campo `pubkey` na configuração da aplicação para validação de atualizações assinadas.
+
+- Changed:
+  - Comportamento da busca: ao executar um comando via teclado, a caixa de pesquisa é limpa automaticamente.
+  - Modal de criação de comando: aba padrão alterada para "Link" e nova ordem das abas (Link, Aplicativo, Plugin).
+  - Seção de aplicativo no modal: separação entre campo de executável e campo de argumentos opcionais, com texto de ajuda.
+  - Atualização dos ícones da aplicação (PNG/ICO) e do instalador MSI.
+
+- Fixed:
+  - Refinamento de UX na execução de comandos pela busca, evitando que a mesma query permaneça após execução.
+
+- Removed:
+  - Nenhuma funcionalidade removida nesta versão.
+
+- Security:
+  - Adição de chave pública na configuração da aplicação para suportar validação de artefatos de atualização.
+  - Estrutura inicial de configuração do plugin de updater, preparando o fluxo de updates assinados.
+
+</details>

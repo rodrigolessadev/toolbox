@@ -56,6 +56,38 @@ export interface RunResult {
   message?: string;
 }
 
+// ── Marketplace ──────────────────────────────────────────
+
+export interface CatalogPlugin {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  language: string;
+  tags: string[];
+  icon: string;
+  command: string;
+  download_url: string;
+  min_toolbox_version: string;
+}
+
+export interface MarketplaceEntry extends CatalogPlugin {
+  /** "available" | "installed" | "update_available" */
+  status: "available" | "installed" | "update_available";
+  installed_version?: string;
+}
+
+export interface InstalledPlugin {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  language: string;
+  entry: string;
+  path: string;
+}
+
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
@@ -101,4 +133,12 @@ export const api = {
   minimizeWindow: () => invoke<void>("minimize_window"),
   fetchFavicon: (url: string) => invoke<string>("fetch_favicon", { url }),
   extractExeIcon: (path: string) => invoke<string>("extract_exe_icon", { path }),
+
+  // ── Marketplace ──
+  fetchCatalog: () => invoke<MarketplaceEntry[]>("fetch_catalog"),
+  installPlugin: (pluginId: string, downloadUrl: string) =>
+    invoke<string>("install_plugin", { pluginId, downloadUrl }),
+  removePlugin: (pluginId: string) =>
+    invoke<string>("remove_plugin", { pluginId }),
+  listInstalledPlugins: () => invoke<InstalledPlugin[]>("list_installed_plugins"),
 };
