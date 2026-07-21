@@ -1,9 +1,13 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - 'v*'
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   release:
@@ -40,7 +44,9 @@ jobs:
           releaseName: Toolbox ${{ github.ref_name }}
           releaseBody: |
             ## O que há de novo
-
-            Veja o [CHANGELOG](https://github.com/rodrigolessadev/toolbox/blob/main/CHANGELOG.md) para detalhes.
+ 
+            Instale o arquivo apropriado para seu sistema e o app verificará atualizações automaticamente.
+            O updater do Tauri publica também o `latest.json` para o fluxo de atualização.
           releaseDraft: false
           prerelease: false
+          includeUpdaterJson: true
