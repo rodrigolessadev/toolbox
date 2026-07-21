@@ -125,6 +125,7 @@ export const api = {
   getLogsDir: () => invoke<string>("get_logs_dir"),
   getWorkdir: () => invoke<string>("get_data_dir"),
   openPath: (path: string) => invoke<void>("open_path", { path }),
+  installUpdate: () => invoke<string>("install_update"),
 
   hideWindow: () => invoke<void>("hide_window"),
   showWindow: () => invoke<void>("show_window"),

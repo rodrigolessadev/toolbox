@@ -46,6 +46,7 @@ export default function App() {
 
   // Banner de atualização disponível
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const unlisten = listen<{ version: string; body?: string }>("update-available", (event) => {
@@ -59,6 +60,19 @@ export default function App() {
     setToasts((t) => [...t, { id, message, kind }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
   }, []);
+
+  const handleInstallUpdate = useCallback(async () => {
+    setUpdating(true);
+    try {
+      await api.installUpdate();
+      setUpdateVersion(null);
+      push("Atualização instalada. O app será reiniciado em breve.", "success");
+    } catch (e) {
+      push(`Falha ao instalar atualização: ${e instanceof Error ? e.message : String(e)}`, "error");
+    } finally {
+      setUpdating(false);
+    }
+  }, [push]);
 
   // ───── Lista filtrada + tab ─────
   const filtered = useMemo<[string, CommandEntry][]>(() => {
@@ -229,13 +243,23 @@ export default function App() {
       {/* ── Banner de atualização ── */}
       {updateVersion && (
         <div className="app__update-banner">
-          <span>🎉 Versão <strong>{updateVersion}</strong> disponível — baixando e instalando em background...</span>
-          <button
-            type="button"
-            className="app__update-dismiss"
-            onClick={() => setUpdateVersion(null)}
-            aria-label="Fechar"
-          >✕</button>
+          <span>🎉 Nova versão <strong>{updateVersion}</strong> disponível.</span>
+          <div className="app__update-actions">
+            <button
+              type="button"
+              className="app__update-btn"
+              onClick={handleInstallUpdate}
+              disabled={updating}
+            >
+              {updating ? "Atualizando..." : "Atualizar agora"}
+            </button>
+            <button
+              type="button"
+              className="app__update-dismiss"
+              onClick={() => setUpdateVersion(null)}
+              aria-label="Fechar"
+            >✕</button>
+          </div>
         </div>
       )}
 

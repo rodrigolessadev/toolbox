@@ -9,10 +9,27 @@ mod paths;
 
 use commands_store::CommandStore;
 use history::HistoryStore;
-use tauri::Manager;
 use tauri::Emitter;
+use tauri::Manager;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_updater::UpdaterExt;
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "Nenhuma atualização disponível.".to_string())?;
+
+    update
+        .download_and_install(|_chunk, _total| {}, || {})
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok("Atualização instalada com sucesso.".to_string())
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -79,6 +96,7 @@ pub fn run() {
             commands_store::toggle_favorite,
             commands_store::import_commands,
             commands_store::export_commands,
+            install_update,
             executor::run_command,
             executor::list_plugins,
             executor::open_plugin_folder,
@@ -132,12 +150,4 @@ async fn check_for_updates(app: tauri::AppHandle) {
             "body": update.body,
         }),
     );
-
-    // Baixa e instala; no Windows o app é encerrado automaticamente pelo instalador
-    if let Err(e) = update
-        .download_and_install(|_chunk, _total| {}, || {})
-        .await
-    {
-        log::warn!("Falha ao instalar atualização: {e}");
-    }
 }
