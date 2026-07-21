@@ -123,6 +123,15 @@ export default function App() {
         return;
       }
 
+      if (e.code === "Space" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setShowAdd(false);
+        setShowSettings(false);
+        setShowMarketplace(false);
+        inputRef.current?.focus();
+        return;
+      }
+
       if (isEditable) return;
 
       if (e.key === "ArrowDown") {
