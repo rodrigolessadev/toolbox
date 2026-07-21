@@ -1,6 +1,5 @@
 updates.patch
 node_modules
-release.bat
 commits/*
 releases/*
 anotacoes/*
