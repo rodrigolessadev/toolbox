@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import { api } from "../lib/api";
 import "../styles/titlebar.css";
 
 export function TitleBar() {
   const [hint, setHint] = useState(false);
+  const [version, setVersion] = useState<string | null>(null);
 
   // Detecta se está rodando no Windows para mostrar o atalho correto
   useEffect(() => {
     const isMac = navigator.platform.toUpperCase().includes("MAC");
     setHint(!isMac);
+  }, []);
+
+  useEffect(() => {
+    getVersion()
+      .then((v) => setVersion(v))
+      .catch(() => {});
   }, []);
 
   const handleMinimize = () => api.minimizeWindow();
@@ -19,7 +27,10 @@ export function TitleBar() {
       <div className="titlebar__drag" data-tauri-drag-region>
         <div className="titlebar__brand">
           <span className="titlebar__icon">⚙</span>
-          <span className="titlebar__title">Toolbox</span>
+          <div className="titlebar__brand-text">
+            <span className="titlebar__title">Toolbox</span>
+            {version && <span className="titlebar__version">v{version}</span>}
+          </div>
         </div>
       </div>
 
