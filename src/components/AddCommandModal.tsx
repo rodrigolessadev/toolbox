@@ -14,16 +14,17 @@ interface Props {
 type Tab = "plugin" | "link" | "application";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "plugin",      label: "Plugin"     },
   { id: "link",        label: "Link"       },
   { id: "application", label: "Aplicativo" },
+  { id: "plugin",      label: "Plugin"     },
 ];
 
 export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, onError, onInfo }: Props) {
-  const [tab,        setTab]        = useState<Tab>("plugin");
+  const [tab,        setTab]        = useState<Tab>("link");
   const [name,       setName]       = useState("");
   const [url,        setUrl]        = useState("");
   const [path,       setPath]       = useState("");
+  const [args,       setArgs]       = useState("");
   const [icon,       setIcon]       = useState("");
   const [favorite,   setFavorite]   = useState(false);
   const [iconLoading, setIconLoading] = useState(false);
@@ -32,10 +33,11 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
   // Reset ao abrir
   useEffect(() => {
     if (open) {
-      setTab("plugin");
+      setTab("link");
       setName("");
       setUrl("");
       setPath("");
+      setArgs("");
       setIcon("");
       setFavorite(false);
       setIconLoading(false);
@@ -114,6 +116,7 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
         type:  tab,
         url:   tab === "link" ? url.trim()  : undefined,
         path:  tab !== "link" ? path.trim() : undefined,
+        args:  tab === "application" && args.trim() ? args.trim() : undefined,
         // favicon (data URL) para links, emoji/texto para outros
         icon:  icon || undefined,
       });
@@ -175,7 +178,7 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
               role="tab"
               aria-selected={tab === t.id}
               className={`modal__tab${tab === t.id ? " modal__tab--active" : ""}`}
-              onClick={() => { setTab(t.id); setPath(""); setUrl(""); setIcon(""); }}
+              onClick={() => { setTab(t.id); setPath(""); setUrl(""); setArgs(""); setIcon(""); }}
             >
               {t.label}
             </button>
@@ -250,31 +253,47 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
             </div>
           )}
 
-          {/* Aplicativo: caminho .exe */}
+          {/* Aplicativo: executável + argumentos (estilo "Destino" do atalho Windows) */}
           {tab === "application" && (
-            <div className="modal__field">
-              <label className="modal__label">Caminho do Executável</label>
-              <div className="modal__row">
+            <>
+              <div className="modal__field">
+                <label className="modal__label">Executável</label>
+                <div className="modal__row">
+                  <input
+                    type="text"
+                    className="modal__input"
+                    value={path}
+                    onChange={(e) => setPath(e.target.value)}
+                    placeholder='C:\Program Files\App\app.exe'
+                    required
+                  />
+                  <div className="modal__icon-preview" aria-live="polite">
+                    {iconLoading
+                      ? <span className="modal__icon-spinner" />
+                      : icon
+                      ? <img src={icon} alt="" className="modal__icon-img" />
+                      : <span style={{ opacity: 0.3, fontSize: 18 }}>⚙️</span>}
+                  </div>
+                  <button type="button" className="modal__browse-btn" onClick={browseExe} title="Selecionar arquivo">
+                    📁
+                  </button>
+                </div>
+              </div>
+
+              <div className="modal__field">
+                <label className="modal__label">Argumentos <span style={{ opacity: 0.5, fontWeight: 400 }}>(opcional)</span></label>
                 <input
                   type="text"
                   className="modal__input"
-                  value={path}
-                  onChange={(e) => setPath(e.target.value)}
-                  placeholder="C:\Program Files\App\app.exe"
-                  required
+                  value={args}
+                  onChange={(e) => setArgs(e.target.value)}
+                  placeholder='--verbose --config "meu arquivo.cfg"'
                 />
-                <div className="modal__icon-preview" aria-live="polite">
-                  {iconLoading
-                    ? <span className="modal__icon-spinner" />
-                    : icon
-                    ? <img src={icon} alt="" className="modal__icon-img" />
-                    : <span style={{ opacity: 0.3, fontSize: 18 }}>⚙️</span>}
-                </div>
-                <button type="button" className="modal__browse-btn" onClick={browseExe} title="Selecionar arquivo">
-                  📁
-                </button>
+                <small className="modal__hint">
+                  Equivalente ao campo <strong>Destino</strong> do atalho Windows. Use aspas para argumentos com espaços.
+                </small>
               </div>
-            </div>
+            </>
           )}
 
           {/* Ícone: Lucide picker para plugin, emoji para application */}

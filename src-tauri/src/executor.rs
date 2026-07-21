@@ -71,13 +71,59 @@ fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> 
 
 fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     let path = entry.path.clone().ok_or("Aplicativo sem caminho")?;
-    Command::new(&path)
-        .spawn()
+
+    let mut cmd = Command::new(&path);
+
+    // Argumentos extras, se houver (igual ao campo "Destino" do atalho do Windows)
+    if let Some(raw_args) = &entry.args {
+        let trimmed = raw_args.trim();
+        if !trimmed.is_empty() {
+            // Faz o split respeitando aspas (ex: --config "meu arquivo.cfg")
+            for arg in split_args(trimmed) {
+                cmd.arg(arg);
+            }
+        }
+    }
+
+    cmd.spawn()
         .map_err(|e| format!("Falha ao iniciar aplicativo: {}", e))?;
+
     Ok(RunResult {
         ok: true,
         message: Some(format!("Aplicativo iniciado: {}", path)),
     })
+}
+
+/// Divide uma string de argumentos respeitando aspas simples e duplas,
+/// semelhante ao comportamento do campo "Destino" de um atalho Windows.
+fn split_args(s: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+    let mut quote_char = '"';
+
+    for ch in s.chars() {
+        match ch {
+            '"' | '\'' if !in_quotes => {
+                in_quotes = true;
+                quote_char = ch;
+            }
+            c if in_quotes && c == quote_char => {
+                in_quotes = false;
+            }
+            ' ' | '\t' if !in_quotes => {
+                if !current.is_empty() {
+                    args.push(current.clone());
+                    current.clear();
+                }
+            }
+            _ => current.push(ch),
+        }
+    }
+    if !current.is_empty() {
+        args.push(current);
+    }
+    args
 }
 
 fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {

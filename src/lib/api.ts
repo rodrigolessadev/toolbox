@@ -7,6 +7,8 @@ export type CommandType = "plugin" | "link" | "application";
 export interface CommandEntry {
   type: CommandType;
   path?: string;
+  /** Argumentos extras para aplicativos (ex: "--verbose --config=foo.cfg") */
+  args?: string;
   url?: string;
   favorite: boolean;
   icon?: string | null;
@@ -38,6 +40,8 @@ export interface CreateCommandPayload {
   name: string;
   type: CommandType;
   path?: string;
+  /** Argumentos extras para aplicativos */
+  args?: string;
   url?: string;
   icon?: string | null;
 }

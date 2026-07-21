@@ -128,6 +128,7 @@ export default function App() {
       if (filtered.length > 0 && activeIndex >= 0 && activeIndex < filtered.length) {
         e.preventDefault();
         execute(filtered[activeIndex][0]);
+        setQuery("");
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
