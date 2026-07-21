@@ -90,6 +90,31 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 
 .app__header-actions { display: flex; gap: 4px; }
 
+/* ── Banner de atualização ── */
+.app__update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.app__update-dismiss {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.7;
+  padding: 0 2px;
+  line-height: 1;
+}
+.app__update-dismiss:hover { opacity: 1; }
+
 .app__icon-btn {
   width: 28px;
   height: 28px;

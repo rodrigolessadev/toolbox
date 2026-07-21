@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { api, CommandEntry } from "./lib/api";
 import { useCommands } from "./hooks/useCommands";
 import { useHistory } from "./hooks/useHistory";
@@ -40,6 +41,16 @@ export default function App() {
   const [toasts, setToasts]   = useState<Toast[]>([]);
   const toastIdRef             = useRef(0);
   const inputRef               = useRef<HTMLInputElement>(null);
+
+  // Banner de atualização disponível
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unlisten = listen<{ version: string; body?: string }>("update-available", (event) => {
+      setUpdateVersion(event.payload.version);
+    });
+    return () => { unlisten.then((f) => f()); };
+  }, []);
 
   const push = useCallback((message: string, kind: ToastKind = "info") => {
     const id = ++toastIdRef.current;
@@ -205,6 +216,19 @@ export default function App() {
           >✦</button>
         </div>
       </div>
+
+      {/* ── Banner de atualização ── */}
+      {updateVersion && (
+        <div className="app__update-banner">
+          <span>🎉 Versão <strong>{updateVersion}</strong> disponível — baixando e instalando em background...</span>
+          <button
+            type="button"
+            className="app__update-dismiss"
+            onClick={() => setUpdateVersion(null)}
+            aria-label="Fechar"
+          >✕</button>
+        </div>
+      )}
 
       {/* ── Input de busca ── */}
       <div className="app__search">

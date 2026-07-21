@@ -10,6 +10,7 @@ use commands_store::CommandStore;
 use history::HistoryStore;
 use tauri::Manager;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_updater::UpdaterExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -60,6 +61,12 @@ pub fn run() {
                 );
             }
 
+            // Verifica atualizações em background (não bloqueia a inicialização)
+            let update_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                check_for_updates(update_handle).await;
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -90,4 +97,41 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Verifica se existe uma nova versão disponível e dispara a instalação.
+/// Roda em background — erros de rede são silenciados para não atrapalhar o uso.
+async fn check_for_updates(app: tauri::AppHandle) {
+    let updater = match app.updater() {
+        Ok(u) => u,
+        Err(_) => return,
+    };
+
+    let update = match updater.check().await {
+        Ok(Some(u)) => u,
+        _ => return, // sem atualização ou sem conexão
+    };
+
+    log::info!(
+        "Nova versão disponível: {} (atual: {})",
+        update.version,
+        update.current_version
+    );
+
+    // Emite evento para o frontend exibir o banner de atualização
+    let _ = app.emit(
+        "update-available",
+        serde_json::json!({
+            "version": update.version,
+            "body": update.body,
+        }),
+    );
+
+    // Baixa e instala; no Windows o app é encerrado automaticamente pelo instalador
+    if let Err(e) = update
+        .download_and_install(|_chunk, _total| {}, || {})
+        .await
+    {
+        log::warn!("Falha ao instalar atualização: {e}");
+    }
 }
