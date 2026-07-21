@@ -9,6 +9,7 @@ mod paths;
 use commands_store::CommandStore;
 use history::HistoryStore;
 use tauri::Manager;
+use tauri::Emitter;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_updater::UpdaterExt;
 
