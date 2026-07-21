@@ -120,7 +120,13 @@ REM  Atualiza a versao no tauri.conf.json via PowerShell
 REM  (Get-Content -LiteralPath evita o bug de \t e \b em caminhos)
 REM ============================================================
 echo [2/8] Atualizando versao em tauri.conf.json para !NEW_VERSION!...
-set "UPDATE_VERSION_SCRIPT=%TEMP%\update-tauri-version.ps1"
+if defined TEMP (
+    set "TMP_DIR=%TEMP%"
+) else (
+    set "TMP_DIR=%SystemRoot%\Temp"
+)
+if not exist "%TMP_DIR%" mkdir "%TMP_DIR%" >nul 2>&1
+set "UPDATE_VERSION_SCRIPT=%TMP_DIR%\update-tauri-version-%RANDOM%.ps1"
 > "%UPDATE_VERSION_SCRIPT%" echo $ErrorActionPreference = 'Stop'
 >> "%UPDATE_VERSION_SCRIPT%" echo $f = '!TAURI_CONF!'
 >> "%UPDATE_VERSION_SCRIPT%" echo $lines = Get-Content -LiteralPath $f
