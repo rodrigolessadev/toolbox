@@ -36,3 +36,5 @@ logs/*.log.*
 # Local
 .env
 .env.local
+
+release.bat

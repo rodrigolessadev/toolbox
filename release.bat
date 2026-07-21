@@ -116,35 +116,24 @@ if /i not "!CONFIRM!"=="S" (
 echo.
 
 REM ============================================================
-REM  Atualiza a versao no tauri.conf.json via PowerShell
-REM  (Get-Content -LiteralPath evita o bug de \t e \b em caminhos)
+REM  Atualiza a versao no tauri.conf.json usando Python
 REM ============================================================
 echo [2/8] Atualizando versao em tauri.conf.json para !NEW_VERSION!...
-if defined TEMP (
-    set "TMP_DIR=%TEMP%"
-) else (
-    set "TMP_DIR=%SystemRoot%\Temp"
-)
-if not exist "%TMP_DIR%" mkdir "%TMP_DIR%" >nul 2>&1
-set "UPDATE_VERSION_SCRIPT=%TMP_DIR%\update-tauri-version-%RANDOM%.ps1"
-> "%UPDATE_VERSION_SCRIPT%" echo $ErrorActionPreference = 'Stop'
->> "%UPDATE_VERSION_SCRIPT%" echo $f = '!TAURI_CONF!'
->> "%UPDATE_VERSION_SCRIPT%" echo $lines = Get-Content -LiteralPath $f
->> "%UPDATE_VERSION_SCRIPT%" echo $updated = $false
->> "%UPDATE_VERSION_SCRIPT%" echo for ($i = 0; $i -lt $lines.Count; $i++) {
->> "%UPDATE_VERSION_SCRIPT%" echo   if ($lines[$i] -match '^(?<indent>\s*)"version"\s*:') {
->> "%UPDATE_VERSION_SCRIPT%" echo     $lines[$i] = $matches.indent + '"version": "!NEW_VERSION!",'
->> "%UPDATE_VERSION_SCRIPT%" echo     $updated = $true
->> "%UPDATE_VERSION_SCRIPT%" echo     break
->> "%UPDATE_VERSION_SCRIPT%" echo   }
->> "%UPDATE_VERSION_SCRIPT%" echo }
->> "%UPDATE_VERSION_SCRIPT%" echo if (-not $updated) { throw 'Version line not found' }
->> "%UPDATE_VERSION_SCRIPT%" echo [System.IO.File]::WriteAllLines($f, $lines, [System.Text.UTF8Encoding]::new($false))
-powershell -NoProfile -ExecutionPolicy Bypass -File "%UPDATE_VERSION_SCRIPT%"
+set "UPDATE_VERSION_SCRIPT=%TEMP%\update-tauri-version-!RANDOM!.py"
+> "%UPDATE_VERSION_SCRIPT%" echo from pathlib import Path
+>> "%UPDATE_VERSION_SCRIPT%" echo import json
+>> "%UPDATE_VERSION_SCRIPT%" echo p = Path(r'!TAURI_CONF!')
+>> "%UPDATE_VERSION_SCRIPT%" echo text = p.read_text(encoding='utf-8-sig')
+>> "%UPDATE_VERSION_SCRIPT%" echo data = json.loads(text)
+>> "%UPDATE_VERSION_SCRIPT%" echo data['version'] = '!NEW_VERSION!'
+>> "%UPDATE_VERSION_SCRIPT%" echo p.write_text(json.dumps(data, indent=4, ensure_ascii=False) + '\n', encoding='utf-8')
+python "%UPDATE_VERSION_SCRIPT%"
 if errorlevel 1 (
     echo ERRO: nao foi possivel atualizar !TAURI_CONF!
+    del /f /q "%UPDATE_VERSION_SCRIPT%" >nul 2>&1
     exit /b 1
 )
+del /f /q "%UPDATE_VERSION_SCRIPT%" >nul 2>&1
 echo   Concluido.
 echo.
 
