@@ -1,8 +1,9 @@
-{
+﻿{
     "$schema":  "https://schema.tauri.app/config/2",
     "productName":  "Toolbox",
-    "version":  "1.6.0",
+    "version":  "1.7.0",
     "identifier":  "com.toolbox.desktop",
+    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQzNzVCQjI0OTM4QTkyNjEKUldSaGtvcVRKTHQxUTFmZkVrRVpITnFtZU1lWUVCQmJ0RFJjcGZrcE1ndkN2UUFaVW4xM00rU2gK",
     "build":  {
                   "beforeDevCommand":  "npm run dev",
                   "devUrl":  "http://localhost:1420",
@@ -45,6 +46,16 @@
                             ],
                    "category":  "Utility",
                    "shortDescription":  "Toolbox com Plugins",
-                   "longDescription":  "Aplicativo desktop moderno e leve para executar comandos, links e aplicativos via plugins personalizados para Windows."
-               }
+                   "longDescription":  "Aplicativo desktop moderno e leve para executar comandos, links e aplicativos via plugins personalizados para Windows.",
+                   "createUpdaterArtifacts":  true
+               },
+    "plugins":  {
+                    "updater":  {
+                                    "endpoints":  [
+                                                      "https://github.com/rodrigolessadev/toolbox/releases/latest/download/latest.json"
+                                                  ],
+                                    "dialog":  true,
+                                    "pubkey":  ""
+                                }
+                }
 }
