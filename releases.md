@@ -1,3 +1,36 @@
+# Releases
+
+## v1.9.0 - 2026-07-21
+
+## v1.9.0 - 2026-07-21
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Suporte a auto-update via `tauri-plugin-updater`, com endpoint de releases no GitHub.
+  - Campo de argumentos extras para comandos do tipo “Aplicativo”, com parsing que respeita aspas.
+  - Campo de argumentos na modal de criação de comandos, com hint sobre uso semelhante ao “Destino” de atalhos do Windows.
+
+- Changed:
+  - Ordem das abas na modal de comandos: agora a aba padrão é “Link”, seguida de “Aplicativo” e “Plugin”.
+  - Comportamento da busca: o texto é limpo após executar um comando com Enter.
+  - Ícones do aplicativo e instalador MSI atualizados para refletir a nova versão.
+
+- Fixed:
+  - Melhoria de UX ao criar comandos e executar buscas, reduzindo confusão com filtros persistentes.
+
+- Removed:
+  - N/A
+
+- Security:
+  - Configuração de chave pública de updater e geração de artefatos de atualização, garantindo integridade das atualizações baixadas.
+
+</details>
+**Instalador:** [Toolbox_1.0.0_x64_en-US.msi](./releases/Toolbox_1.0.0_x64_en-US.msi)
+
+---
+
 ## v1.3.0 - 2026-07-17
 
 <details>
@@ -150,5 +183,31 @@
 - Security:
   - Adição de chave pública na configuração da aplicação para suportar validação de artefatos de atualização.
   - Estrutura inicial de configuração do plugin de updater, preparando o fluxo de updates assinados.
+
+</details>
+
+## v1.9.0 - 2026-07-21
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Suporte a auto-update via `tauri-plugin-updater`, com endpoint de releases no GitHub.
+  - Campo de argumentos extras para comandos do tipo “Aplicativo”, com parsing que respeita aspas.
+  - Campo de argumentos na modal de criação de comandos, com hint sobre uso semelhante ao “Destino” de atalhos do Windows.
+
+- Changed:
+  - Ordem das abas na modal de comandos: agora a aba padrão é “Link”, seguida de “Aplicativo” e “Plugin”.
+  - Comportamento da busca: o texto é limpo após executar um comando com Enter.
+  - Ícones do aplicativo e instalador MSI atualizados para refletir a nova versão.
+
+- Fixed:
+  - Melhoria de UX ao criar comandos e executar buscas, reduzindo confusão com filtros persistentes.
+
+- Removed:
+  - N/A
+
+- Security:
+  - Configuração de chave pública de updater e geração de artefatos de atualização, garantindo integridade das atualizações baixadas.
 
 </details>
