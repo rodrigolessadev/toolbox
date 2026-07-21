@@ -8,6 +8,7 @@ import { CommandList } from "./components/CommandList";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { AddCommandModal } from "./components/AddCommandModal";
 import { SettingsModal } from "./components/SettingsModal";
+import { MarketplaceModal } from "./components/MarketplaceModal";
 import "./styles/global.css";
 
 type ToastKind = "success" | "error" | "info";
@@ -31,6 +32,7 @@ const TABS: { id: Tab; label: string }[] = [
 export default function App() {
   const [showAdd, setShowAdd]           = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [query, setQuery]               = useState("");
   const [activeIndex, setActiveIndex]   = useState(0);
   const [tab, setTab]                   = useState<Tab>("all");
@@ -203,6 +205,13 @@ export default function App() {
           <button
             type="button"
             className="app__icon-btn"
+            onClick={() => setShowMarketplace(true)}
+            title="Marketplace de plugins"
+            aria-label="Marketplace"
+          >🛒</button>
+          <button
+            type="button"
+            className="app__icon-btn"
             onClick={() => setShowSettings(true)}
             title="Configurações (Ctrl+,)"
             aria-label="Configurações"
@@ -319,7 +328,16 @@ export default function App() {
         onOpenDataDir={openDataDir}
         onOpenLogsDir={openLogsDir}
       />
-
+ 
+      <MarketplaceModal
+        open={showMarketplace}
+        onClose={() => setShowMarketplace(false)}
+        onPluginInstalled={async () => { await reload(); }}
+        onPluginRemoved={async () => { await reload(); }}
+        onInfo={(m) => push(m, "info")}
+        onError={(m) => push(m, "error")}
+      />
+ 
       {/* ── Toasts ── */}
       <div className="toasts" aria-live="polite">
         {toasts.map((t) => (
