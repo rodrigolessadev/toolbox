@@ -120,8 +120,21 @@ REM  Atualiza a versao no tauri.conf.json via PowerShell
 REM  (Get-Content -LiteralPath evita o bug de \t e \b em caminhos)
 REM ============================================================
 echo [2/8] Atualizando versao em tauri.conf.json para !NEW_VERSION!...
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$f = '!TAURI_CONF!'; $text = Get-Content -LiteralPath $f -Raw; $new = $text -replace '(?m)^(\s*""version""\s*:\s*)"".*?""', '$1""!NEW_VERSION!""'; if ($text -eq $new) { throw 'Version line not found'; }; $new | Set-Content -LiteralPath $f -Encoding UTF8NoBOM"
+set "UPDATE_VERSION_SCRIPT=%TEMP%\update-tauri-version.ps1"
+> "%UPDATE_VERSION_SCRIPT%" echo $ErrorActionPreference = 'Stop'
+>> "%UPDATE_VERSION_SCRIPT%" echo $f = '!TAURI_CONF!'
+>> "%UPDATE_VERSION_SCRIPT%" echo $lines = Get-Content -LiteralPath $f
+>> "%UPDATE_VERSION_SCRIPT%" echo $updated = $false
+>> "%UPDATE_VERSION_SCRIPT%" echo for ($i = 0; $i -lt $lines.Count; $i++) {
+>> "%UPDATE_VERSION_SCRIPT%" echo   if ($lines[$i] -match '^(?<indent>\s*)"version"\s*:') {
+>> "%UPDATE_VERSION_SCRIPT%" echo     $lines[$i] = $matches.indent + '"version": "!NEW_VERSION!",'
+>> "%UPDATE_VERSION_SCRIPT%" echo     $updated = $true
+>> "%UPDATE_VERSION_SCRIPT%" echo     break
+>> "%UPDATE_VERSION_SCRIPT%" echo   }
+>> "%UPDATE_VERSION_SCRIPT%" echo }
+>> "%UPDATE_VERSION_SCRIPT%" echo if (-not $updated) { throw 'Version line not found' }
+>> "%UPDATE_VERSION_SCRIPT%" echo [System.IO.File]::WriteAllLines($f, $lines, [System.Text.UTF8Encoding]::new($false))
+powershell -NoProfile -ExecutionPolicy Bypass -File "%UPDATE_VERSION_SCRIPT%"
 if errorlevel 1 (
     echo ERRO: nao foi possivel atualizar !TAURI_CONF!
     exit /b 1
