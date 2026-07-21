@@ -96,3 +96,31 @@
   - Sem alterações específicas de segurança nesta versão, além de melhorias indiretas de robustez (limite de histórico e melhor tratamento de erros de UI).
 
 </details>
+
+## v1.7.0 - 2026-07-21
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Suporte a argumentos extras em comandos de tipo "Aplicativo" (campo `args` no backend e frontend).
+  - Parser de linha de comando que respeita aspas simples e duplas ao executar aplicativos.
+  - Integração com `tauri-plugin-updater`, com artefatos de atualização e endpoint configurado para GitHub Releases.
+  - Novo conjunto de ícones para o aplicativo desktop.
+
+- Changed:
+  - Modal de novo comando abre na aba "Link" por padrão e reorganiza a ordem das abas (Link → Aplicativo → Plugin).
+  - Formulário de comando de aplicativo separado em campos de executável e argumentos, com dicas de uso.
+  - Campo de busca é limpo automaticamente após executar um comando via Enter, melhorando a experiência de uso.
+  - Configuração Tauri ajustada para gerar artefatos de atualização (`createUpdaterArtifacts`).
+
+- Fixed:
+  - Evita manter o texto de busca após execução de comando, reduzindo confusão na navegação de resultados.
+
+- Removed:
+  - Nenhuma funcionalidade foi removida nesta versão.
+
+- Security:
+  - Introduz suporte a atualização assinada via chave pública (`pubkey`), fortalecendo a segurança no processo de distribuição e update do aplicativo.
+
+</details>
