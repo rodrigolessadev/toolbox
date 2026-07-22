@@ -1,36 +1,59 @@
 # Releases
 
-## v1.9.1 - 2026-07-21
+## v1.10.0 - 2026-07-22
 
-## v1.9.0 - 2026-07-21
+## v1.10.0 - 2026-07-22
 
 <details>
 <summary>Ver detalhes da versão</summary>
 
 - Added:
-  - Suporte a auto-update via `tauri-plugin-updater`, com endpoint de releases no GitHub.
-  - Campo de argumentos extras para comandos do tipo “Aplicativo”, com parsing que respeita aspas.
-  - Campo de argumentos na modal de criação de comandos, com hint sobre uso semelhante ao “Destino” de atalhos do Windows.
+  - Comando Tauri `update_command` para atualizar e renomear comandos existentes.
+  - Payload `UpdateCommandPayload` no backend com suporte a `favorite`.
+  - Suporte a marcação de favoritos diretamente ao criar comandos no frontend.
+  - Fluxo completo de edição de comandos via modal (nome, tipo, URL/path/args, ícone, favorito).
+  - Foco automático no campo de busca ao retornar para a janela ou aba da aplicação.
 
 - Changed:
-  - Ordem das abas na modal de comandos: agora a aba padrão é “Link”, seguida de “Aplicativo” e “Plugin”.
-  - Comportamento da busca: o texto é limpo após executar um comando com Enter.
-  - Ícones do aplicativo e instalador MSI atualizados para refletir a nova versão.
+  - Criação de comandos passa a respeitar o campo `favorite` enviado pelo frontend.
+  - Modal de comando agora diferencia visualmente modo criação e modo edição (titulo e texto do botão).
+  - Estilo dos títulos de comandos atualizado para permitir quebra de linha e evitar truncamento.
 
 - Fixed:
-  - Melhoria de UX ao criar comandos e executar buscas, reduzindo confusão com filtros persistentes.
+  - Removida a limitação de não conseguir editar comandos existentes (agora podem ser atualizados em vez de recriados).
 
 - Removed:
-  - N/A
+  - Nenhum recurso removido nesta versão.
 
 - Security:
-  - Configuração de chave pública de updater e geração de artefatos de atualização, garantindo integridade das atualizações baixadas.
+  - Sem alterações relacionadas à segurança nesta versão.
 
 </details>
 **Instalador:** [Toolbox_1.0.0_x64_en-US.msi](./releases/Toolbox_1.0.0_x64_en-US.msi)
 
 ---
 
+## v1.9.1 - 2026-07-21
+## v1.9.0 - 2026-07-21
+<details>
+<summary>Ver detalhes da versão</summary>
+- Added:
+  - Suporte a auto-update via `tauri-plugin-updater`, com endpoint de releases no GitHub.
+  - Campo de argumentos extras para comandos do tipo “Aplicativo”, com parsing que respeita aspas.
+  - Campo de argumentos na modal de criação de comandos, com hint sobre uso semelhante ao “Destino” de atalhos do Windows.
+- Changed:
+  - Ordem das abas na modal de comandos: agora a aba padrão é “Link”, seguida de “Aplicativo” e “Plugin”.
+  - Comportamento da busca: o texto é limpo após executar um comando com Enter.
+  - Ícones do aplicativo e instalador MSI atualizados para refletir a nova versão.
+- Fixed:
+  - Melhoria de UX ao criar comandos e executar buscas, reduzindo confusão com filtros persistentes.
+- Removed:
+  - N/A
+- Security:
+  - Configuração de chave pública de updater e geração de artefatos de atualização, garantindo integridade das atualizações baixadas.
+</details>
+**Instalador:** [Toolbox_1.0.0_x64_en-US.msi](./releases/Toolbox_1.0.0_x64_en-US.msi)
+---
 ## v1.9.0 - 2026-07-21
 ## v1.9.0 - 2026-07-21
 <details>
