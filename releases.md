@@ -1,6 +1,6 @@
 # Releases
 
-## v1.10.0 - 2026-07-22 [Download](./builds/Toolbox_1.10.0_x64-setup.exe)
+## v1.10.0 - 2026-07-22 [Download](https://raw.githubusercontent.com/rodrigolessadev/toolbox-installer/main/builds/Toolbox_1.10.0_x64-setup.exe)
 
 <details>
 <summary>Ver detalhes da versão</summary>
