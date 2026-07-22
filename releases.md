@@ -1,6 +1,6 @@
 # Releases
 
-## v1.10.0 - 2026-07-22
+## v1.10.0 - 2026-07-22 [Download](./builds/Toolbox_1.10.0_x64-setup.exe)
 
 <details>
 <summary>Ver detalhes da versão</summary>
@@ -27,7 +27,7 @@
   - Sem alterações relacionadas à segurança nesta versão.
 
 </details>
-**Instalador:** [Toolbox_1.10.0_x64-setup.exe(./builds/Toolbox_1.10.0_x64-setup.exe)
+
 
 ## v1.9.1 - 2026-07-21
 
