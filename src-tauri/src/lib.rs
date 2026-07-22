@@ -92,6 +92,7 @@ pub fn run() {
             commands_store::list_commands,
             commands_store::get_commands_file,
             commands_store::create_command,
+            commands_store::update_command,
             commands_store::delete_command,
             commands_store::toggle_favorite,
             commands_store::import_commands,

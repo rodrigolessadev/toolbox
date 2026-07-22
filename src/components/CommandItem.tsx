@@ -6,6 +6,7 @@ export interface CommandItemProps {
   active: boolean;
   onClick: () => void;
   onToggleFavorite: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
@@ -65,7 +66,7 @@ function kindLabel(entry: CommandEntry): string {
   return "";
 }
 
-export function CommandItem({ name, entry, active, onClick, onToggleFavorite, onDelete }: CommandItemProps) {
+export function CommandItem({ name, entry, active, onClick, onToggleFavorite, onEdit, onDelete }: CommandItemProps) {
   const subtitle = kindLabel(entry);
 
   return (
@@ -94,6 +95,16 @@ export function CommandItem({ name, entry, active, onClick, onToggleFavorite, on
           title={entry.favorite ? "Remover dos favoritos" : "Favoritar"}
         >
           {entry.favorite ? "★" : "☆"}
+        </button>
+
+        <button
+          type="button"
+          className="command-item__btn"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          aria-label="Editar"
+          title="Editar"
+        >
+          ✎
         </button>
 
         <button

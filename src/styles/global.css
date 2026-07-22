@@ -296,9 +296,12 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .command-item__title {
   font-weight: 500;
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.35;
+  color: var(--fg);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
 }
 
 .command-item__subtitle {

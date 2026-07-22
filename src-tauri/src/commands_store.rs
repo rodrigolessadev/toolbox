@@ -54,6 +54,24 @@ pub struct CreateCommandPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
+    pub favorite: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateCommandPayload {
+    #[serde(rename = "old_name")]
+    pub old_name: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub kind: CommandType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub args: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    pub icon: Option<String>,
+    pub favorite: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -121,7 +139,34 @@ pub fn create_command(
         args: payload.args,
         url: payload.url,
         icon: payload.icon,
-        favorite: false,
+        favorite: payload.favorite,
+        created_at: Some(now()),
+    };
+    guard.commands.insert(payload.name, entry);
+    drop(guard);
+
+    store.save()?;
+    get_commands_file(store)
+}
+
+#[tauri::command]
+pub fn update_command(
+    payload: UpdateCommandPayload,
+    store: State<'_, CommandStore>,
+) -> Result<CommandsFile, String> {
+    let mut guard = store.data.lock().map_err(|e| e.to_string())?;
+
+    if payload.old_name != payload.name {
+        guard.commands.remove(&payload.old_name);
+    }
+
+    let entry = CommandEntry {
+        kind: payload.kind,
+        path: payload.path,
+        args: payload.args,
+        url: payload.url,
+        icon: payload.icon,
+        favorite: payload.favorite,
         created_at: Some(now()),
     };
     guard.commands.insert(payload.name, entry);

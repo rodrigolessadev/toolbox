@@ -4,8 +4,19 @@ import { LucideIconPicker } from "./LucideIconPicker";
 
 interface Props {
   open: boolean;
+  mode?: "create" | "edit";
+  initialCommand?: {
+    name: string;
+    type: "plugin" | "link" | "application";
+    url?: string;
+    path?: string;
+    args?: string;
+    icon?: string;
+    favorite?: boolean;
+  };
   onClose: () => void;
   onCreated: (name: string) => void;
+  onUpdated?: (name: string) => void;
   onOpenPluginFolder?: () => Promise<string | null>;
   onError?: (message: string) => void;
   onInfo?: (message: string) => void;
@@ -19,7 +30,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "plugin",      label: "Plugin"     },
 ];
 
-export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, onError, onInfo }: Props) {
+export function AddCommandModal({ open, mode = "create", initialCommand, onClose, onCreated, onUpdated, onOpenPluginFolder, onError, onInfo }: Props) {
   const [tab,        setTab]        = useState<Tab>("link");
   const [name,       setName]       = useState("");
   const [url,        setUrl]        = useState("");
@@ -30,20 +41,21 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
   const [iconLoading, setIconLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Reset ao abrir
+  // Reset ao abrir / carregar dados de edição
   useEffect(() => {
-    if (open) {
-      setTab("link");
-      setName("");
-      setUrl("");
-      setPath("");
-      setArgs("");
-      setIcon("");
-      setFavorite(false);
-      setIconLoading(false);
-      setSubmitting(false);
-    }
-  }, [open]);
+    if (!open) return;
+
+    const initial = initialCommand;
+    setTab(initial?.type ?? "link");
+    setName(initial?.name ?? "");
+    setUrl(initial?.url ?? "");
+    setPath(initial?.path ?? "");
+    setArgs(initial?.args ?? "");
+    setIcon(initial?.icon ?? "");
+    setFavorite(initial?.favorite ?? false);
+    setIconLoading(false);
+    setSubmitting(false);
+  }, [open, initialCommand]);
 
   // Auto-busca favicon ao digitar URL
   useEffect(() => {
@@ -111,20 +123,35 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
-      await api.createCommand({
-        name:  name.trim(),
-        type:  tab,
-        url:   tab === "link" ? url.trim()  : undefined,
-        path:  tab !== "link" ? path.trim() : undefined,
-        args:  tab === "application" && args.trim() ? args.trim() : undefined,
-        // favicon (data URL) para links, emoji/texto para outros
-        icon:  icon || undefined,
-      });
-      if (favorite) {
-        await api.toggleFavorite({ name: name.trim(), favorite: true });
+      if (mode === "edit" && initialCommand) {
+        await api.updateCommand({
+          old_name: initialCommand.name,
+          name: name.trim(),
+          type: tab,
+          url: tab === "link" ? url.trim() : undefined,
+          path: tab !== "link" ? path.trim() : undefined,
+          args: tab === "application" && args.trim() ? args.trim() : undefined,
+          icon: icon || undefined,
+          favorite,
+        });
+        onInfo?.(`Comando "${name.trim()}" atualizado.`);
+        onUpdated?.(name.trim());
+      } else {
+        await api.createCommand({
+          name: name.trim(),
+          type: tab,
+          url: tab === "link" ? url.trim() : undefined,
+          path: tab !== "link" ? path.trim() : undefined,
+          args: tab === "application" && args.trim() ? args.trim() : undefined,
+          icon: icon || undefined,
+          favorite,
+        });
+        if (favorite) {
+          await api.toggleFavorite({ name: name.trim(), favorite: true });
+        }
+        onInfo?.(`Comando "${name.trim()}" criado.`);
+        onCreated(name.trim());
       }
-      onInfo?.(`Comando "${name.trim()}" criado.`);
-      onCreated(name.trim());
       onClose();
     } catch (err) {
       onError?.("Falha ao criar: " + (err instanceof Error ? err.message : String(err)));
@@ -165,7 +192,7 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
 
         {/* Header */}
         <header className="modal__header">
-          <h2>Novo comando</h2>
+          <h2>{mode === "edit" ? "Editar comando" : "Novo comando"}</h2>
           <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">✕</button>
         </header>
 
@@ -345,7 +372,7 @@ export function AddCommandModal({ open, onClose, onCreated, onOpenPluginFolder, 
               Cancelar
             </button>
             <button type="submit" className="modal__btn modal__btn--primary" disabled={!canSubmit || submitting}>
-              {submitting ? "Salvando..." : "Salvar"}
+              {submitting ? "Salvando..." : mode === "edit" ? "Atualizar" : "Salvar"}
             </button>
           </footer>
         </form>

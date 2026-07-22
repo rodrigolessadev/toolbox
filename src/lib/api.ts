@@ -44,6 +44,11 @@ export interface CreateCommandPayload {
   args?: string;
   url?: string;
   icon?: string | null;
+  favorite?: boolean;
+}
+
+export interface UpdateCommandPayload extends CreateCommandPayload {
+  old_name: string;
 }
 
 export interface ToggleFavoritePayload {
@@ -97,6 +102,8 @@ export const api = {
 
   createCommand: (payload: CreateCommandPayload) =>
     invoke<CommandsFile>("create_command", { payload }),
+  updateCommand: (payload: UpdateCommandPayload) =>
+    invoke<CommandsFile>("update_command", { payload }),
   deleteCommand: (name: string) =>
     invoke<CommandsFile>("delete_command", { name }),
   toggleFavorite: (payload: ToggleFavoritePayload) =>

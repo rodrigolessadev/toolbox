@@ -6,6 +6,7 @@ interface Props {
   activeIndex: number;
   onSelect: (name: string) => void;
   onToggleFavorite: (name: string, current: boolean) => void;
+  onEdit: (name: string, entry: CommandEntry) => void;
   onDelete: (name: string) => void;
   emptyMessage?: string;
 }
@@ -15,6 +16,7 @@ export function CommandList({
   activeIndex,
   onSelect,
   onToggleFavorite,
+  onEdit,
   onDelete,
   emptyMessage,
 }: Props) {
@@ -37,6 +39,7 @@ export function CommandList({
           active={idx === activeIndex}
           onClick={() => onSelect(name)}
           onToggleFavorite={() => onToggleFavorite(name, entry.favorite)}
+          onEdit={() => onEdit(name, entry)}
           onDelete={() => onDelete(name)}
         />
       ))}

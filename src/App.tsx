@@ -36,6 +36,7 @@ export default function App() {
   const [query, setQuery]               = useState("");
   const [activeIndex, setActiveIndex]   = useState(0);
   const [tab, setTab]                   = useState<Tab>("all");
+  const [editingCommand, setEditingCommand] = useState<{ name: string; entry: CommandEntry } | null>(null);
 
   const { commands, reload }              = useCommands();
   const { history, reload: reloadHistory } = useHistory();
@@ -43,6 +44,10 @@ export default function App() {
   const [toasts, setToasts]   = useState<Toast[]>([]);
   const toastIdRef             = useRef(0);
   const inputRef               = useRef<HTMLInputElement>(null);
+
+  const focusInput = useCallback(() => {
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  }, []);
 
   // Banner de atualização disponível
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
@@ -54,6 +59,20 @@ export default function App() {
     });
     return () => { unlisten.then((f) => f()); };
   }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden) focusInput();
+    };
+
+    window.addEventListener("focus", focusInput);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("focus", focusInput);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [focusInput]);
 
   const push = useCallback((message: string, kind: ToastKind = "info") => {
     const id = ++toastIdRef.current;
@@ -128,7 +147,8 @@ export default function App() {
         setShowAdd(false);
         setShowSettings(false);
         setShowMarketplace(false);
-        inputRef.current?.focus();
+        setEditingCommand(null);
+        focusInput();
         return;
       }
 
@@ -331,6 +351,7 @@ export default function App() {
                 push(!current ? `"${name}" favoritado.` : `"${name}" desfavoritado.`, "success");
               } catch { push("Falha ao alterar favorito.", "error"); }
             }}
+            onEdit={(name, entry) => setEditingCommand({ name, entry })}
             onDelete={async (name) => {
               try {
                 await api.deleteCommand(name);
@@ -344,9 +365,20 @@ export default function App() {
 
       {/* ── Modais ── */}
       <AddCommandModal
-        open={showAdd}
-        onClose={() => setShowAdd(false)}
+        open={showAdd || Boolean(editingCommand)}
+        mode={editingCommand ? "edit" : "create"}
+        initialCommand={editingCommand ? {
+          name: editingCommand.name,
+          type: editingCommand.entry.type,
+          url: editingCommand.entry.url,
+          path: editingCommand.entry.path,
+          args: editingCommand.entry.args,
+          icon: editingCommand.entry.icon ?? undefined,
+          favorite: editingCommand.entry.favorite,
+        } : undefined}
+        onClose={() => { setShowAdd(false); setEditingCommand(null); }}
         onCreated={async (name) => { await reload(); push(`"${name}" criado.`, "success"); }}
+        onUpdated={async (name) => { await reload(); push(`"${name}" atualizado.`, "success"); }}
         onOpenPluginFolder={openPluginFolder}
         onError={(m) => push(m, "error")}
         onInfo={(m) => push(m, "info")}
