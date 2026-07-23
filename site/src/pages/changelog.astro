@@ -1,31 +1,29 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 
-// Conteúdo sincronizado a partir de /CHANGELOG.md do monorepo.
-// Em produção, considere migrar para @astrojs/mdx com remark-gfm.
-import changelogRaw from '../content/CHANGELOG.md?raw';
----
+const entry = await getEntry('docs', 'changelog');
+if (!entry) throw new Error('Documento "changelog" não encontrado em src/content/');
 
+const { Content } = await render(entry);
+---
 <Base
   title="Changelog — Toolbox"
   description="Histórico de versões e mudanças do Toolbox."
 >
   <article class="changelog">
-    <h1>Changelog</h1>
-    <p class="text-muted">
-      Todas as mudanças notáveis neste projeto são documentadas aqui.
-      O formato é baseado em <a href="https://keepachangelog.com/pt-BR/1.1.0/">Keep a Changelog</a>.
-    </p>
-
-    <pre class="md-source"><code>{changelogRaw}</code></pre>
+    <Content />
   </article>
 </Base>
 
 <style>
-  .changelog h1 { margin-bottom: 12px; }
-  .md-source {
-    margin-top: 24px;
-    white-space: pre-wrap;
-    word-break: break-word;
+  .changelog :global(h1) { margin-bottom: 8px; }
+  .changelog :global(h2) {
+    margin-top: 40px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
   }
+  .changelog :global(h3) { margin-top: 24px; }
+  .changelog :global(ul) { padding-left: 24px; }
+  .changelog :global(li) { margin-bottom: 4px; }
 </style>

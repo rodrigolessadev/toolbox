@@ -4,13 +4,12 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
-const site = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://toolbox.vercel.app';
-
 // https://astro.build/config
+// No Astro 5+, `output: 'static'` (padrão) já se comporta como o antigo 'hybrid':
+// páginas .astro são estáticas por padrão, e endpoints com `export const prerender = false`
+// rodam como serverless functions. Necessário para /api/latest e /api/releases.
 export default defineConfig({
-  site,
-  // 'hybrid' = páginas .astro são estáticas, endpoints com `export const prerender = false`
-  // rodam como serverless functions. Necessário para /api/latest e /api/releases.
+  site: 'https://toolbox.seudominio.com.br',
   output: 'static',
   adapter: vercel({
     edgeMiddleware: false,
@@ -21,6 +20,14 @@ export default defineConfig({
     mdx(),
     sitemap(),
   ],
+  markdown: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    shikiConfig: {
+      theme: 'github-dark-dimmed',
+      wrap: true,
+    },
+  },
   build: {
     assets: 'assets',
   },

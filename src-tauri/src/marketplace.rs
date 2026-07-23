@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::io::Cursor;
-use std::path::PathBuf;
 use tauri::AppHandle;
 
 // ─────────────────────── Tipos do catálogo ────────────────────────
@@ -61,15 +60,27 @@ pub struct MarketplaceEntry {
 /// Busca o catálogo remoto e compara com os plugins instalados localmente.
 #[tauri::command]
 pub async fn fetch_catalog(app: AppHandle) -> Result<Vec<MarketplaceEntry>, String> {
-    let body = reqwest::get(CATALOG_URL)
-        .await
-        .map_err(|e| format!("Falha ao buscar catálogo: {e}"))?
-        .text()
-        .await
-        .map_err(|e| format!("Falha ao ler resposta: {e}"))?;
+    let body = match reqwest::get(CATALOG_URL).await {
+        Ok(response) => match response.text().await {
+            Ok(text) => text,
+            Err(e) => {
+                log::error!("Falha ao ler resposta do catálogo: {e}");
+                return Err(format!("Falha ao ler resposta: {e}"));
+            }
+        },
+        Err(e) => {
+            log::error!("Falha ao buscar catálogo: {e}");
+            return Err(format!("Falha ao buscar catálogo: {e}"));
+        }
+    };
 
-    let catalog: Catalog =
-        serde_json::from_str(&body).map_err(|e| format!("Catálogo inválido: {e}"))?;
+    let catalog: Catalog = match serde_json::from_str(&body) {
+        Ok(catalog) => catalog,
+        Err(e) => {
+            log::error!("Catálogo inválido: {e}");
+            return Err(format!("Catálogo inválido: {e}"));
+        }
+    };
 
     let installed = installed_map(&app);
 
@@ -105,25 +116,74 @@ pub async fn install_plugin(
     let plugins_dir = crate::paths::plugins_dir(&app);
     let dest = plugins_dir.join(&plugin_id);
 
-    // Baixa o ZIP
-    let bytes = reqwest::get(&download_url)
-        .await
-        .map_err(|e| format!("Falha ao baixar plugin: {e}"))?
-        .bytes()
-        .await
-        .map_err(|e| format!("Falha ao ler bytes: {e}"))?;
+    let response = match reqwest::get(&download_url).await {
+        Ok(response) => response,
+        Err(e) => {
+            log::error!(
+                "Falha ao baixar plugin '{}': {e} (URL: {download_url})",
+                plugin_id
+            );
+            return Err(format!("Falha ao baixar plugin: {e}"));
+        }
+    };
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let message = format!(
+            "Falha ao baixar plugin '{}': HTTP {status} ao acessar {download_url}",
+            plugin_id
+        );
+        log::error!("{message}");
+        return Err(message);
+    }
+
+    let bytes = match response.bytes().await {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            log::error!("Falha ao ler bytes do plugin '{}': {e}", plugin_id);
+            return Err(format!("Falha ao ler bytes: {e}"));
+        }
+    };
+
+    if bytes.len() < 4 || bytes[..4] != [b'P', b'K', 0x03, 0x04] {
+        let message = format!(
+            "Falha ao instalar '{}': a URL de download não retornou um ZIP válido. URL: {download_url}",
+            plugin_id
+        );
+        log::error!("{message}");
+        return Err(message);
+    }
 
     // Garante que o diretório de destino existe (recria se necessário)
     if dest.exists() {
-        fs::remove_dir_all(&dest)
-            .map_err(|e| format!("Falha ao remover versão anterior: {e}"))?;
+        fs::remove_dir_all(&dest).map_err(|e| {
+            log::error!(
+                "Falha ao remover versão anterior do plugin '{}': {e}",
+                plugin_id
+            );
+            format!("Falha ao remover versão anterior: {e}")
+        })?;
     }
-    fs::create_dir_all(&dest).map_err(|e| format!("Falha ao criar pasta: {e}"))?;
+    fs::create_dir_all(&dest).map_err(|e| {
+        log::error!("Falha ao criar pasta do plugin '{}': {e}", plugin_id);
+        format!("Falha ao criar pasta: {e}")
+    })?;
 
     // Extrai o ZIP
     let cursor = Cursor::new(bytes);
-    let mut archive =
-        zip::ZipArchive::new(cursor).map_err(|e| format!("ZIP inválido: {e}"))?;
+    let mut archive = match zip::ZipArchive::new(cursor) {
+        Ok(archive) => archive,
+        Err(e) => {
+            log::error!(
+                "ZIP inválido para plugin '{}': {e}. URL: {download_url}",
+                plugin_id
+            );
+            return Err(format!(
+                "ZIP inválido para '{}': {e}. Verifique se o arquivo de download é um ZIP válido.",
+                plugin_id
+            ));
+        }
+    };
 
     for i in 0..archive.len() {
         let mut file = archive
@@ -136,12 +196,10 @@ pub async fn install_plugin(
         };
 
         if file.is_dir() {
-            fs::create_dir_all(&out_path)
-                .map_err(|e| format!("Falha ao criar subpasta: {e}"))?;
+            fs::create_dir_all(&out_path).map_err(|e| format!("Falha ao criar subpasta: {e}"))?;
         } else {
             if let Some(parent) = out_path.parent() {
-                fs::create_dir_all(parent)
-                    .map_err(|e| format!("Falha ao criar pasta pai: {e}"))?;
+                fs::create_dir_all(parent).map_err(|e| format!("Falha ao criar pasta pai: {e}"))?;
             }
             let mut out_file =
                 fs::File::create(&out_path).map_err(|e| format!("Falha ao criar arquivo: {e}"))?;
@@ -259,11 +317,10 @@ fn installed_map(app: &AppHandle) -> HashMap<String, String> {
                 Ok(s) => s,
                 Err(_) => continue,
             };
-            let manifest: HashMap<String, serde_json::Value> =
-                match serde_json::from_str(&raw) {
-                    Ok(m) => m,
-                    Err(_) => continue,
-                };
+            let manifest: HashMap<String, serde_json::Value> = match serde_json::from_str(&raw) {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
             let id = path
                 .file_name()
                 .unwrap_or_default()

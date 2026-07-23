@@ -1,16 +1,12 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Docs from '../../layouts/Docs.astro';
-import archRaw from '../../content/ARCHITECTURE.md?raw';
+
+const entry = await getEntry('docs', 'architecture');
+if (!entry) throw new Error('Documento "architecture" não encontrado em src/content/');
+
+const { Content } = await render(entry);
 ---
-
-<Docs title="Arquitetura — Toolbox" description="Visão geral da arquitetura do Toolbox">
-  <h1>Arquitetura</h1>
-  <pre class="md-source"><code>{archRaw}</code></pre>
+<Docs title="Como funciona — Toolbox" description="Entenda a estrutura do aplicativo e onde fica cada coisa.">
+  <Content />
 </Docs>
-
-<style>
-  .md-source {
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-</style>

@@ -1,16 +1,12 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Docs from '../../layouts/Docs.astro';
-import futureRaw from '../../content/FUTURE.md?raw';
+
+const entry = await getEntry('docs', 'roadmap');
+if (!entry) throw new Error('Documento "roadmap" não encontrado em src/content/');
+
+const { Content } = await render(entry);
 ---
-
-<Docs title="Roadmap — Toolbox" description="Próximos passos e ideias para evolução do Toolbox">
-  <h1>Roadmap</h1>
-  <pre class="md-source"><code>{futureRaw}</code></pre>
+<Docs title="O que vem por aí — Toolbox" description="Funcionalidades planejadas para versões futuras.">
+  <Content />
 </Docs>
-
-<style>
-  .md-source {
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-</style>

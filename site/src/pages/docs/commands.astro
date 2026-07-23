@@ -1,0 +1,12 @@
+---
+import { getEntry, render } from 'astro:content';
+import Docs from '../../layouts/Docs.astro';
+
+const entry = await getEntry('docs', 'commands');
+if (!entry) throw new Error('Documento "commands" não encontrado em src/content/');
+
+const { Content } = await render(entry);
+---
+<Docs title="Como cadastrar comandos — Toolbox" description="Adicione links, aplicativos e plugins ao Toolbox.">
+  <Content />
+</Docs>

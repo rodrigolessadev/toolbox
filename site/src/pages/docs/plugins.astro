@@ -1,16 +1,12 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Docs from '../../layouts/Docs.astro';
-import pluginsRaw from '../../content/PLUGIN_GUIDE.md?raw';
+
+const entry = await getEntry('docs', 'plugins');
+if (!entry) throw new Error('Documento "plugins" não encontrado em src/content/');
+
+const { Content } = await render(entry);
 ---
-
-<Docs title="Guia de Plugins — Toolbox" description="Como criar plugins para o Toolbox em qualquer linguagem">
-  <h1>Guia de Plugins</h1>
-  <pre class="md-source"><code>{pluginsRaw}</code></pre>
+<Docs title="Guia de Plugins — Toolbox" description="Como criar seus próprios plugins em qualquer linguagem.">
+  <Content />
 </Docs>
-
-<style>
-  .md-source {
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-</style>

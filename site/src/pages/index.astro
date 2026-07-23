@@ -19,7 +19,7 @@ const features = [
   {
     icon: '🎯',
     title: 'Tudo num campo só',
-    description: 'Plugins, links e apps no mesmo lugar. Autocomplete e busca fuzzy em tempo real.',
+    description: 'Plugins, links e apps no mesmo lugar. Autocomplete e busca em tempo real.',
   },
   {
     icon: '🪶',
@@ -42,13 +42,16 @@ const features = [
 <Base>
   <section class="hero">
     <div class="hero-text">
-      <span class="badge">v1.10 · Tauri 2 + Rust + React</span>
+      <span class="badge">v1.0 · Tauri 2 + Rust + React</span>
       <h1>Launcher inteligente para Windows com sistema de <span class="accent">plugins</span></h1>
       <p class="lead">
         {SITE.description}
       </p>
       <div class="cta-row">
         <DownloadButton client:load />
+        <a class="btn btn-secondary" href="/docs/commands">
+          📖 Como usar
+        </a>
         <a class="btn btn-secondary" href={SITE.github} target="_blank" rel="noopener noreferrer">
           ⭐ Ver no GitHub
         </a>
@@ -72,7 +75,8 @@ const features = [
 cd toolbox &amp;&amp; npm install &amp;&amp; npm run tauri:dev</code></pre>
     <p class="text-muted">
       Pré-requisitos: Rust 1.77+, Node 18+, Python 3.7+ e Microsoft C++ Build Tools.
-      Detalhes completos em <a href="/docs/plugins">guia de plugins</a>.
+      Veja também <a href="/docs/commands">como cadastrar comandos</a> e o
+      <a href="/docs/plugins">guia de plugins</a>.
     </p>
   </section>
 </Base>

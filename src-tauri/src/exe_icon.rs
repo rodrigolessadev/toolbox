@@ -22,8 +22,8 @@ fn extract_icon_windows(path: &str) -> Result<String, String> {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use windows::Win32::Graphics::Gdi::{
-        CreateCompatibleDC, DeleteDC, DeleteObject, GetDIBits, SelectObject,
-        BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, RGBQUAD,
+        CreateCompatibleDC, DeleteDC, DeleteObject, GetDIBits, SelectObject, BITMAPINFO,
+        BITMAPINFOHEADER, DIB_RGB_COLORS, RGBQUAD,
     };
     use windows::Win32::UI::Shell::ExtractIconExW;
     use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, GetIconInfo, HICON, ICONINFO};
@@ -54,13 +54,17 @@ fn extract_icon_windows(path: &str) -> Result<String, String> {
     let mut info = ICONINFO::default();
     let ok = unsafe { GetIconInfo(large_icon, &mut info) };
     if ok.is_err() {
-        unsafe { let _ = DestroyIcon(large_icon); }
+        unsafe {
+            let _ = DestroyIcon(large_icon);
+        }
         return Err("GetIconInfo falhou".to_string());
     }
 
     let hbm_color = info.hbmColor;
     if hbm_color.is_invalid() {
-        unsafe { let _ = DestroyIcon(large_icon); }
+        unsafe {
+            let _ = DestroyIcon(large_icon);
+        }
         return Err("Ícone sem bitmap de cor".to_string());
     }
 
@@ -68,17 +72,17 @@ fn extract_icon_windows(path: &str) -> Result<String, String> {
     const SIZE: i32 = 32;
     let mut bmi = BITMAPINFO {
         bmiHeader: BITMAPINFOHEADER {
-            biSize:          std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-            biWidth:         SIZE,
-            biHeight:        -SIZE, // negativo = top-down
-            biPlanes:        1,
-            biBitCount:      32,
-            biCompression:   0,    // BI_RGB
-            biSizeImage:     0,
+            biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+            biWidth: SIZE,
+            biHeight: -SIZE, // negativo = top-down
+            biPlanes: 1,
+            biBitCount: 32,
+            biCompression: 0, // BI_RGB
+            biSizeImage: 0,
             biXPelsPerMeter: 0,
             biYPelsPerMeter: 0,
-            biClrUsed:       0,
-            biClrImportant:  0,
+            biClrUsed: 0,
+            biClrImportant: 0,
         },
         bmiColors: [RGBQUAD::default(); 1],
     };
@@ -174,9 +178,9 @@ fn deflate_store(data: &[u8]) -> Vec<u8> {
     const BMAX: usize = 65535;
     let mut pos = 0;
     while pos < data.len() {
-        let end  = (pos + BMAX).min(data.len());
+        let end = (pos + BMAX).min(data.len());
         let last = (end == data.len()) as u8;
-        let len  = (end - pos) as u16;
+        let len = (end - pos) as u16;
         out.push(last);
         out.extend_from_slice(&len.to_le_bytes());
         out.extend_from_slice(&(!len).to_le_bytes());
@@ -185,7 +189,10 @@ fn deflate_store(data: &[u8]) -> Vec<u8> {
     }
     // Adler-32 checksum
     let (mut s1, mut s2) = (1u32, 0u32);
-    for &b in data { s1 = (s1 + b as u32) % 65521; s2 = (s2 + s1) % 65521; }
+    for &b in data {
+        s1 = (s1 + b as u32) % 65521;
+        s2 = (s2 + s1) % 65521;
+    }
     out.extend_from_slice(&((s2 << 16) | s1).to_be_bytes());
     out
 }
@@ -197,7 +204,11 @@ static CRC_TABLE: [u32; 256] = {
         let mut c = i as u32;
         let mut k = 0;
         while k < 8 {
-            if c & 1 != 0 { c = 0xEDB88320 ^ (c >> 1); } else { c >>= 1; }
+            if c & 1 != 0 {
+                c = 0xEDB88320 ^ (c >> 1);
+            } else {
+                c >>= 1;
+            }
             k += 1;
         }
         t[i] = c;
