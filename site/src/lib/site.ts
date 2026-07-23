@@ -6,9 +6,9 @@ export const SITE = {
   tagline: 'Launcher inteligente para Windows com sistema de plugins',
   description:
     'Aplicativo desktop moderno, leve e extensível para Windows — semelhante ao PowerToys Run, mas com sistema de plugins próprio. Construído com Tauri 2 + Rust + React.',
-  url: 'https://toolbox.seudominio.com.br',
-  github: 'https://github.com/seu-usuario/toolbox',
-  repo: 'seu-usuario/toolbox',
+  url: 'https://toolbox.com.br',
+  github: 'https://github.com/rodrigolessadev/toolbox',
+  repo: 'rodrigolessadev/toolbox',
   author: 'Rodrigo',
 } as const;
 
