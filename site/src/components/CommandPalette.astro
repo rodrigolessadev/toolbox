@@ -1,0 +1,98 @@
+---
+/**
+ * Ilustração SVG do campo de busca — substitui a necessidade de screenshot
+ * no estado inicial. Mostra o "Ctrl+Space" e a lista de comandos.
+ */
+---
+
+<div class="palette">
+  <div class="palette-bar">
+    <span class="palette-prompt">›</span>
+    <span class="palette-input">cpf</span>
+    <span class="palette-shortcut">Ctrl+Space</span>
+  </div>
+  <ul class="palette-list">
+    <li class="active">
+      <span class="ico">🆔</span>
+      <span class="name">cpf</span>
+      <span class="kind">plugin</span>
+    </li>
+    <li>
+      <span class="ico">📦</span>
+      <span class="name">gerador-json</span>
+      <span class="kind">plugin</span>
+    </li>
+    <li>
+      <span class="ico">📅</span>
+      <span class="name">converter-data</span>
+      <span class="kind">plugin</span>
+    </li>
+    <li>
+      <span class="ico">🔍</span>
+      <span class="name">google</span>
+      <span class="kind">link</span>
+    </li>
+    <li>
+      <span class="ico">📝</span>
+      <span class="name">notepad</span>
+      <span class="kind">app</span>
+    </li>
+  </ul>
+</div>
+
+<style>
+  .palette {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .palette-bar {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .palette-prompt { color: var(--accent); font-weight: 700; }
+  .palette-input { flex: 1; }
+  .palette-shortcut {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+  }
+  .palette-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+  }
+  .palette-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 18px;
+    border-left: 2px solid transparent;
+  }
+  .palette-list li.active {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-left-color: var(--accent);
+  }
+  .ico { width: 22px; text-align: center; }
+  .name { flex: 1; }
+  .kind {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+</style>

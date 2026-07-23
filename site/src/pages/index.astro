@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import CommandPalette from '../components/CommandPalette.astro';
+import DownloadButton from '../components/DownloadButton.tsx';
+import FeatureCard from '../components/FeatureCard.astro';
+import { SITE } from '../lib/site';
+
+const features = [
+  {
+    icon: '⚡',
+    title: 'Abertura instantânea',
+    description: 'Atalho global Ctrl+Space abre a paleta de qualquer lugar do Windows.',
+  },
+  {
+    icon: '🔌',
+    title: 'Sistema de plugins',
+    description: 'Escreva plugins em Python, Node, Rust ou qualquer binário — sem recompilar.',
+  },
+  {
+    icon: '🎯',
+    title: 'Tudo num campo só',
+    description: 'Plugins, links e apps no mesmo lugar. Autocomplete e busca fuzzy em tempo real.',
+  },
+  {
+    icon: '🪶',
+    title: 'Leve como pluma',
+    description: 'Build Tauri ~5–10 MB, janela transparente e sempre no topo.',
+  },
+  {
+    icon: '🎨',
+    title: 'Tema claro e escuro',
+    description: 'Segue o sistema ou troque manualmente. Preferência persistida.',
+  },
+  {
+    icon: '📜',
+    title: 'Histórico persistente',
+    description: 'Os últimos 100 comandos ficam salvos e podem ser revisitados com um clique.',
+  },
+];
+---
+
+<Base>
+  <section class="hero">
+    <div class="hero-text">
+      <span class="badge">v1.10 · Tauri 2 + Rust + React</span>
+      <h1>Launcher inteligente para Windows com sistema de <span class="accent">plugins</span></h1>
+      <p class="lead">
+        {SITE.description}
+      </p>
+      <div class="cta-row">
+        <DownloadButton client:load />
+        <a class="btn btn-secondary" href={SITE.github} target="_blank" rel="noopener noreferrer">
+          ⭐ Ver no GitHub
+        </a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <CommandPalette />
+    </div>
+  </section>
+
+  <section class="features">
+    <h2 class="section-title">Por que Toolbox</h2>
+    <div class="feature-grid">
+      {features.map((f) => <FeatureCard {...f} />)}
+    </div>
+  </section>
+
+  <section class="quickstart">
+    <h2 class="section-title">Começando em 2 comandos</h2>
+    <pre><code>git clone {SITE.github.replace('https://github.com/', '')}.git
+cd toolbox &amp;&amp; npm install &amp;&amp; npm run tauri:dev</code></pre>
+    <p class="text-muted">
+      Pré-requisitos: Rust 1.77+, Node 18+, Python 3.7+ e Microsoft C++ Build Tools.
+      Detalhes completos em <a href="/docs/plugins">guia de plugins</a>.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 56px;
+    align-items: center;
+    padding: 40px 0 60px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin: 0 0 18px;
+  }
+  .accent { color: var(--accent); }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    max-width: 540px;
+  }
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .hero-art {
+    display: flex;
+    justify-content: center;
+  }
+  .section-title {
+    font-size: 1.6rem;
+    margin: 0 0 24px;
+  }
+  .features {
+    padding: 48px 0;
+    border-top: 1px solid var(--border);
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  .quickstart {
+    padding: 48px 0;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 820px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+  .download-cta {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .download-meta {
+    display: inline-flex;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .tag {
+    font-family: var(--font-mono);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 1px 8px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .muted { color: var(--text-muted); }
+</style>

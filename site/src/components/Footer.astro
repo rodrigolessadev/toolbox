@@ -1,0 +1,42 @@
+---
+import { SITE } from '../lib/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <strong>{SITE.name}</strong> — {SITE.tagline}
+    </div>
+    <div class="footer-links">
+      <a href={SITE.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/docs/architecture">Documentação</a>
+    </div>
+    <div class="footer-credits">
+      © {year} {SITE.author} · MIT License
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 80px;
+    padding: 32px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-links {
+    display: flex;
+    gap: 18px;
+  }
+  .footer-credits { font-size: 13px; }
+</style>

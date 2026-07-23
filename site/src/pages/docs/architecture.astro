@@ -1,0 +1,16 @@
+---
+import Docs from '../../layouts/Docs.astro';
+import archRaw from '../../content/ARCHITECTURE.md?raw';
+---
+
+<Docs title="Arquitetura — Toolbox" description="Visão geral da arquitetura do Toolbox">
+  <h1>Arquitetura</h1>
+  <pre class="md-source"><code>{archRaw}</code></pre>
+</Docs>
+
+<style>
+  .md-source {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>

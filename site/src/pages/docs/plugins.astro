@@ -1,0 +1,16 @@
+---
+import Docs from '../../layouts/Docs.astro';
+import pluginsRaw from '../../content/PLUGIN_GUIDE.md?raw';
+---
+
+<Docs title="Guia de Plugins — Toolbox" description="Como criar plugins para o Toolbox em qualquer linguagem">
+  <h1>Guia de Plugins</h1>
+  <pre class="md-source"><code>{pluginsRaw}</code></pre>
+</Docs>
+
+<style>
+  .md-source {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>

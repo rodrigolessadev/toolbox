@@ -1,0 +1,178 @@
+---
+import Base from '../layouts/Base.astro';
+import { fetchAllReleases, formatBytes, formatDate } from '../lib/github';
+
+let releases: Awaited<ReturnType<typeof fetchAllReleases>> = [];
+let error: string | null = null;
+
+try {
+  releases = await fetchAllReleases(30);
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Falha ao buscar releases';
+}
+---
+
+<Base
+  title="Download — Toolbox"
+  description="Baixe a versão mais recente do Toolbox para Windows. Lista completa de versões com checksums e histórico."
+>
+  <section class="download-page">
+    <h1>Download</h1>
+    <p class="lead text-muted">
+      O instalador é distribuído via GitHub Releases. Cada tag gera um instalador
+      Windows assinado e versionado.
+    </p>
+
+    {error && (
+      <div class="notice error">
+        Não foi possível carregar as releases agora ({error}). Tente novamente em alguns minutos
+        ou veja diretamente no <a href="https://github.com/seu-usuario/toolbox/releases">GitHub</a>.
+      </div>
+    )}
+
+    {!error && releases.length === 0 && (
+      <div class="notice">
+        Nenhuma release publicada ainda. Volte em breve ou siga o repositório para ser notificado.
+      </div>
+    )}
+
+    {releases.length > 0 && (
+      <div class="releases">
+        {releases.map((rel) => (
+          <article class="release card">
+            <header class="release-head">
+              <div>
+                <h2>
+                  <a href={rel.html_url} target="_blank" rel="noopener noreferrer">
+                    {rel.tag_name}
+                  </a>
+                  {rel.prerelease && <span class="tag tag-prerelease">pre-release</span>}
+                </h2>
+                <p class="text-muted release-date">
+                  Publicada em {formatDate(rel.published_at)}
+                </p>
+              </div>
+            </header>
+
+            {rel.body && (
+              <details class="release-notes">
+                <summary>Notas da versão</summary>
+                <pre>{rel.body}</pre>
+              </details>
+            )}
+
+            <ul class="assets">
+              {rel.assets.length === 0 && (
+                <li class="empty-assets">Nenhum asset anexado a esta release.</li>
+              )}
+              {rel.assets.map((asset) => (
+                <li>
+                  <a
+                    href={asset.browser_download_url}
+                    rel="noopener noreferrer"
+                    class="asset-link"
+                  >
+                    <span class="asset-name">⬇ {asset.name}</span>
+                    <span class="asset-size">{formatBytes(asset.size)}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+</Base>
+
+<style>
+  .download-page h1 {
+    margin-bottom: 12px;
+  }
+  .lead {
+    font-size: 1.05rem;
+    margin-bottom: 28px;
+  }
+  .notice {
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .notice.error {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  }
+  .releases {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .release h2 {
+    font-size: 1.3rem;
+    margin: 0 0 4px;
+  }
+  .release h2 a {
+    color: var(--text);
+  }
+  .release-date {
+    margin: 0;
+    font-size: 0.88rem;
+  }
+  .tag {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 1px 8px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--warning);
+    border: 1px solid var(--border);
+    margin-left: 8px;
+  }
+  .release-notes summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    padding: 8px 0;
+  }
+  .release-notes pre {
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    max-height: 280px;
+    overflow: auto;
+  }
+  .assets {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .asset-link {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .asset-link:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+    color: var(--text);
+  }
+  .asset-size {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .empty-assets {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+</style>
