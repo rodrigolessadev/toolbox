@@ -4,12 +4,14 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
+const site = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://toolbox.vercel.app';
+
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://toolbox.seudominio.com.br',
+  site,
   // 'hybrid' = páginas .astro são estáticas, endpoints com `export const prerender = false`
   // rodam como serverless functions. Necessário para /api/latest e /api/releases.
-  output: 'hybrid',
+  output: 'static',
   adapter: vercel({
     edgeMiddleware: false,
     webAnalytics: { enabled: false },
