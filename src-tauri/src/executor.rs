@@ -128,12 +128,17 @@ fn split_args(s: &str) -> Vec<String> {
 
 fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {
     let plugins_dir = crate::paths::plugins_dir(app);
-    let plugin_path = entry
-        .path
-        .clone()
-        .unwrap_or_else(|| plugins_dir.join(name).to_string_lossy().to_string());
+    let plugin_path = if let Some(ref p) = entry.path {
+        let pb = PathBuf::from(p);
+        if pb.is_absolute() {
+            pb
+        } else {
+            plugins_dir.join(pb)
+        }
+    } else {
+        plugins_dir.join(name)
+    };
 
-    let plugin_path = PathBuf::from(&plugin_path);
     let plugin_json = plugin_path.join("plugin.json");
 
     if !plugin_json.exists() {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, MarketplaceEntry } from "../lib/api";
+import { InstallPluginModal } from "./InstallPluginModal";
 
 interface Props {
   open: boolean;
@@ -39,17 +40,19 @@ export function MarketplaceModal({
   onInfo,
   onError,
 }: Props) {
-  const [entries,    setEntries]    = useState<MarketplaceEntry[]>([]);
-  const [loading,    setLoading]    = useState(false);
-  const [filter,     setFilter]     = useState<Filter>("all");
-  const [search,     setSearch]     = useState("");
-  const [busy,       setBusy]       = useState<Record<string, boolean>>({});
+  const [entries,        setEntries]        = useState<MarketplaceEntry[]>([]);
+  const [loading,        setLoading]        = useState(false);
+  const [filter,         setFilter]         = useState<Filter>("all");
+  const [search,         setSearch]         = useState("");
+  const [busy,           setBusy]           = useState<Record<string, boolean>>({});
+  const [pendingInstall, setPendingInstall] = useState<MarketplaceEntry | null>(null);
 
   // Carrega catálogo ao abrir
   useEffect(() => {
     if (!open) return;
     setFilter("all");
     setSearch("");
+    setPendingInstall(null);
     loadCatalog();
   }, [open]);
 
@@ -69,9 +72,6 @@ export function MarketplaceModal({
     setBusy((b) => ({ ...b, [entry.id]: true }));
     try {
       await api.installPlugin(entry.id, entry.download_url);
-      onInfo?.(`"${entry.name}" instalado com sucesso.`);
-      onPluginInstalled?.(entry.id);
-      // Atualiza status localmente
       setEntries((prev) =>
         prev.map((e) =>
           e.id === entry.id
@@ -79,6 +79,7 @@ export function MarketplaceModal({
             : e
         )
       );
+      setPendingInstall(entry);
     } catch (e) {
       onError?.(`Falha ao instalar "${entry.name}": ` + (e instanceof Error ? e.message : String(e)));
     } finally {
@@ -86,10 +87,39 @@ export function MarketplaceModal({
     }
   }
 
+  async function handleConfirmInstall({ commandName, favorite }: { commandName: string; favorite: boolean }) {
+    if (!pendingInstall) return;
+    const entry = pendingInstall;
+    setPendingInstall(null);
+    try {
+      await api.createCommand({
+        name: commandName,
+        type: "plugin",
+        path: entry.id,
+        icon: entry.icon || undefined,
+        favorite,
+      });
+      onInfo?.(`Comando "${commandName}" criado para o plugin "${entry.name}".`);
+      onPluginInstalled?.(entry.id);
+    } catch (e) {
+      onError?.(`Falha ao criar comando para "${entry.name}": ` + (e instanceof Error ? e.message : String(e)));
+    }
+  }
+
   async function handleRemove(entry: MarketplaceEntry) {
     setBusy((b) => ({ ...b, [entry.id]: true }));
     try {
       await api.removePlugin(entry.id);
+      try {
+        const cmds = await api.getCommands();
+        for (const [cmdName, cmdEntry] of Object.entries(cmds)) {
+          if (cmdEntry.type === "plugin" && (cmdEntry.path === entry.id || cmdName === entry.id)) {
+            await api.deleteCommand(cmdName);
+          }
+        }
+      } catch (e) {
+        console.warn("Falha ao desvincular comandos do plugin:", e);
+      }
       onInfo?.(`"${entry.name}" removido.`);
       onPluginRemoved?.(entry.id);
       setEntries((prev) =>
@@ -109,10 +139,18 @@ export function MarketplaceModal({
   // Fecha com ESC
   useEffect(() => {
     if (!open) return;
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (pendingInstall) {
+          setPendingInstall(null);
+          return;
+        }
+        onClose();
+      }
+    };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [open, onClose]);
+  }, [open, onClose, pendingInstall]);
 
   if (!open) return null;
 
@@ -272,6 +310,19 @@ export function MarketplaceModal({
             Fechar
           </button>
         </footer>
+
+        {pendingInstall && (
+          <InstallPluginModal
+            open={Boolean(pendingInstall)}
+            plugin={{
+              name: pendingInstall.name,
+              suggestedCommand: pendingInstall.command || pendingInstall.id,
+              icon: pendingInstall.icon,
+            }}
+            onConfirm={handleConfirmInstall}
+            onCancel={() => setPendingInstall(null)}
+          />
+        )}
       </div>
     </div>
   );

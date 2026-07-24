@@ -1,3 +1,49 @@
+# Releases
+
+## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
+
+<details>
+<summary>Ver detalhes da versao</summary>
+
+Teste
+
+</details>
+
+## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
+
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## v1.12.0 - 2026-07-24
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Fluxo guiado de instalação de plugins com criação imediata de comando via modal dedicado.
+  - Suporte a ícones do Lucide por nome nos comandos (ex.: `shield-check`, `puzzle`, `calculator`).
+  - Geração automática de `plugin.json` padrão quando o pacote do plugin não inclui manifesto.
+  - Detecção e remoção de pasta raiz extra em arquivos ZIP de plugins durante a instalação.
+
+- Changed:
+  - Resolução do caminho de plugins no executor para aceitar caminhos absolutos e relativos à pasta de plugins.
+  - Exclusão de comandos do tipo plugin passou a tentar remover também a pasta física do plugin.
+  - Layout dos ícones e truncamento dos títulos na lista de comandos para melhor legibilidade e alinhamento.
+
+- Fixed:
+  - Extração de plugins empacotados com uma única pasta raiz, evitando estruturas duplicadas de diretórios.
+  - Remoção de plugins agora tenta desvincular e apagar comandos associados, evitando comandos órfãos.
+
+- Removed:
+  - (sem alterações nesta categoria)
+
+- Security:
+  - (sem alterações nesta categoria)
+
+</details>
+
+</details>
+
 ﻿# Releases
 
 ## v1.11.1 - 2026-07-23 https://github.com/rodrigolessadev/toolbox/releases

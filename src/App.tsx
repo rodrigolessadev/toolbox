@@ -354,6 +354,15 @@ export default function App() {
             onEdit={(name, entry) => setEditingCommand({ name, entry })}
             onDelete={async (name) => {
               try {
+                const entry = commands[name];
+                if (entry && entry.type === "plugin") {
+                  const pluginId = entry.path || name;
+                  try {
+                    await api.removePlugin(pluginId);
+                  } catch (err) {
+                    console.warn("Falha ao apagar pasta do plugin:", err);
+                  }
+                }
                 await api.deleteCommand(name);
                 await reload();
                 push(`"${name}" removido.`, "success");

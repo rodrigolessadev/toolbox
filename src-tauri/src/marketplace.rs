@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::io::Cursor;
+use std::path::PathBuf;
 use tauri::AppHandle;
 
 // ─────────────────────── Tipos do catálogo ────────────────────────
@@ -185,15 +186,31 @@ pub async fn install_plugin(
         }
     };
 
+    let root_prefix = find_common_root_dir(&mut archive);
+
     for i in 0..archive.len() {
         let mut file = archive
             .by_index(i)
             .map_err(|e| format!("Erro ao ler entrada do ZIP: {e}"))?;
 
-        let out_path = match file.enclosed_name() {
-            Some(p) => dest.join(p),
+        let enclosed = match file.enclosed_name() {
+            Some(p) => p.to_path_buf(),
             None => continue,
         };
+
+        let rel_path = match &root_prefix {
+            Some(prefix) => match enclosed.strip_prefix(prefix) {
+                Ok(p) => p.to_path_buf(),
+                Err(_) => enclosed,
+            },
+            None => enclosed,
+        };
+
+        if rel_path.as_os_str().is_empty() {
+            continue;
+        }
+
+        let out_path = dest.join(&rel_path);
 
         if file.is_dir() {
             fs::create_dir_all(&out_path).map_err(|e| format!("Falha ao criar subpasta: {e}"))?;
@@ -205,6 +222,22 @@ pub async fn install_plugin(
                 fs::File::create(&out_path).map_err(|e| format!("Falha ao criar arquivo: {e}"))?;
             std::io::copy(&mut file, &mut out_file)
                 .map_err(|e| format!("Falha ao extrair arquivo: {e}"))?;
+        }
+    }
+
+    // Garante que plugin.json exista na pasta do plugin
+    let plugin_json_path = dest.join("plugin.json");
+    if !plugin_json_path.exists() {
+        let fallback_manifest = serde_json::json!({
+            "id": plugin_id,
+            "name": plugin_id,
+            "version": "1.0.0",
+            "description": "",
+            "language": "python",
+            "entry": "main.py"
+        });
+        if let Ok(content) = serde_json::to_string_pretty(&fallback_manifest) {
+            let _ = fs::write(&plugin_json_path, content);
         }
     }
 
@@ -336,4 +369,49 @@ fn installed_map(app: &AppHandle) -> HashMap<String, String> {
     }
 
     map
+}
+
+/// Detecta se todas as entradas do ZIP compartilham uma única pasta raiz (ex: "calc-jornadas/").
+/// Se sim, retorna essa pasta para remover o aninhamento desnecessário na extração.
+fn find_common_root_dir<R: std::io::Read + std::io::Seek>(
+    archive: &mut zip::ZipArchive<R>,
+) -> Option<PathBuf> {
+    let mut root_dir: Option<PathBuf> = None;
+    let mut has_files_inside = false;
+
+    for i in 0..archive.len() {
+        let file = match archive.by_index(i) {
+            Ok(f) => f,
+            Err(_) => return None,
+        };
+
+        let enclosed = match file.enclosed_name() {
+            Some(p) => p.to_path_buf(),
+            None => continue,
+        };
+
+        let mut components = enclosed.components();
+        let first = match components.next() {
+            Some(std::path::Component::Normal(c)) => PathBuf::from(c),
+            _ => return None,
+        };
+
+        if let Some(ref current_root) = root_dir {
+            if &first != current_root {
+                return None;
+            }
+        } else {
+            root_dir = Some(first);
+        }
+
+        if components.next().is_some() {
+            has_files_inside = true;
+        }
+    }
+
+    if has_files_inside {
+        root_dir
+    } else {
+        None
+    }
 }

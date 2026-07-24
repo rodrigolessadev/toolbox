@@ -281,16 +281,19 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   flex: 1;
 }
 
-/* icon: emoji (span) ou imagem */
+/* icon: emoji, lucide (svg) ou imagem */
 .command-item__icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
   font-size: 16px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 20px;
   object-fit: contain;
   border-radius: 3px;
+  overflow: hidden;
 }
 
 .command-item__title {
@@ -298,10 +301,11 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   font-size: 13px;
   line-height: 1.35;
   color: var(--fg);
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  max-width: 50%;
 }
 
 .command-item__subtitle {
@@ -311,6 +315,8 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   overflow: hidden;
   text-overflow: ellipsis;
   margin-left: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 /* Action buttons — hidden until hover/active */

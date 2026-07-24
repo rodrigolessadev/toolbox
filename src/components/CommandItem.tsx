@@ -1,4 +1,6 @@
 import { CommandEntry } from "../lib/api";
+import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface CommandItemProps {
   name: string;
@@ -19,6 +21,26 @@ const TYPE_FALLBACK: Record<string, string> = {
 /** Retorna true se o ícone é uma imagem (data URL ou URL http) */
 function isImageIcon(icon: string): boolean {
   return icon.startsWith("data:") || icon.startsWith("http");
+}
+
+/** Converte "meu-nome" ou "MeuNome" para o nome do export Lucide (PascalCase) */
+function toPascalCase(name: string): string {
+  return name
+    .replace(/-+/g, " ")
+    .replace(/_+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join("");
+}
+
+/** Resolve o componente Lucide pelo nome do ícone (ex: "puzzle" → Puzzle component) */
+function resolveLucideIcon(name: string): LucideIcon | null {
+  if (!name) return null;
+  const key = toPascalCase(name) as keyof typeof LucideIcons;
+  const Icon = LucideIcons[key];
+  if (typeof Icon === "function") return Icon as LucideIcon;
+  return null;
 }
 
 function IconCell({ entry }: { entry: CommandEntry }) {
@@ -51,10 +73,29 @@ function IconCell({ entry }: { entry: CommandEntry }) {
     );
   }
 
-  // Emoji ou texto curto
+  // Tenta resolver nome de ícone do Lucide (ex: "shield-check", "calculator", "puzzle")
+  const LucideComp = resolveLucideIcon(icon);
+  if (LucideComp) {
+    return (
+      <span className="command-item__icon" aria-hidden="true">
+        <LucideComp size={16} color="var(--accent)" strokeWidth={2} />
+      </span>
+    );
+  }
+
+  // Emoji ou texto curto (ex: ≤ 4 caracteres)
+  if (icon.length <= 4) {
+    return (
+      <span className="command-item__icon" aria-hidden="true">
+        {icon}
+      </span>
+    );
+  }
+
+  // Fallback se for string longa desconhecida
   return (
     <span className="command-item__icon" aria-hidden="true">
-      {icon}
+      {TYPE_FALLBACK[entry.type] ?? "▸"}
     </span>
   );
 }
