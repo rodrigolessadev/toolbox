@@ -5,6 +5,15 @@
 <details>
 <summary>Ver detalhes da versao</summary>
 
+.
+
+</details>
+
+## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
+
+<details>
+<summary>Ver detalhes da versao</summary>
+
 Teste
 
 </details>
