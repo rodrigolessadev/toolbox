@@ -11,7 +11,6 @@ use crate::history::{HistoryEntry, HistoryStore};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunResult {
     pub ok: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
 }
 

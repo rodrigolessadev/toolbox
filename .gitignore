@@ -36,6 +36,14 @@ logs/*.log.*
 # Local
 .env
 .env.local
+.venv/*
+.agents/*
 
 release.bat
 SETUP.md
+
+# grapify
+.kiro/*
+.release_plugin_state/*
+graphify-out/*
+.agents/*

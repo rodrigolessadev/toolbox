@@ -33,6 +33,41 @@
 
 </details>
 
+## v1.13.0 - 2026-08-03 https://github.com/rodrigolessadev/toolbox/releases
+
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## v1.13.0 - 2026-08-03
+
+<details>
+<summary>Ver detalhes da versão</summary>
+
+- Added:
+  - Suporte a campos opcionais dinâmicos no plugin Gerador de Marcações, com seletor tipo combobox e remoção individual de campos.
+  - Geração de INSERTs com múltiplos horários (HORACC) e intervalo de datas, incluindo filtro por dias da semana.
+  - Máscara automática de horário (HH:MM) nos campos Entrada/Saída e parâmetros noturnos da Calculadora de Jornadas, preservando o cursor.
+
+- Changed:
+  - Plugin Calculadora de Jornadas: aplicação de tema escuro completo ao TreeView, entradas e totais, com destaque visual para colunas editáveis.
+  - Comportamento de edição na tabela de jornadas: um clique abre o editor inline, conteúdo atual é selecionado e navegação por TAB entre Entrada/Saída e nova linha.
+  - Plugin Gerador de Marcações: UI reorganizada em layout com scroll, seções de campos fixos, principais e opcionais, e melhoria na geração de SQL para SQL Server e Oracle.
+  - Backend executor (RunResult): campo `message` deixa de ser omitido quando `None` e passa a ser sempre serializado para o frontend.
+
+- Fixed:
+  - Correção do comportamento do cursor durante a digitação de horários na Calculadora de Jornadas (não volta para posições anteriores ao aplicar a máscara).
+  - Limitação consistente de 4 dígitos para entrada de hora (HHMM) nos campos de jornada, evitando valores inválidos na máscara.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - (sem alterações relacionadas à segurança nesta versão)
+
+</details>
+
+</details>
+
 ## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
 
 <details>
