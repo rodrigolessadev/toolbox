@@ -47,3 +47,21 @@ SETUP.md
 .release_plugin_state/*
 graphify-out/*
 .agents/*
+.geminiignore
+.claude/*
+.codebuddy/*
+.cursorrules
+.gemini/*
+.github/code-review-graph.instruction.md
+.mcp.json
+.qoder/*
+.windsurfrules
+AGENTS.md
+CLAUDE.md
+CODEBUDDY.md
+GEMINI.md
+QODER.md
+opencode.jsonc
+
+# Added by code-review-graph
+.code-review-graph/

@@ -2,6 +2,7 @@
   "name": "Converter Data",
   "version": "1.0.0",
   "description": "Converte data e hora para número serial Excel/Lotus.",
+  "author": "Toolbox Team",
   "language": "python",
   "entry": "main.py"
 }

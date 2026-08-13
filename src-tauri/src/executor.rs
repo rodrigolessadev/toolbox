@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use tauri::{AppHandle, State};
 use tauri_plugin_opener::OpenerExt;
 
@@ -199,8 +200,40 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
     cmd.arg("--data-dir").arg(&data_dir);
     cmd.current_dir(&plugin_path); // ← cwd do plugin
 
-    cmd.spawn()
+    // Captura stdout e stderr em vez de herdar o console do processo pai
+    cmd.stdout(Stdio::piped());
+    cmd.stderr(Stdio::piped());
+
+    // No Windows, impede a abertura de uma janela de terminal separada
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let plugin_name = name.to_string();
+    let mut child = cmd
+        .spawn()
         .map_err(|e| format!("Falha ao iniciar plugin {}: {}", name, e))?;
+
+    // Drena stdout e stderr em threads separadas, gravando no log do toolbox
+    if let Some(stdout) = child.stdout.take() {
+        let tag = format!("plugin::{}", plugin_name);
+        std::thread::spawn(move || {
+            for line in BufReader::new(stdout).lines().flatten() {
+                crate::logger::write_line(log::Level::Info, &tag, &line);
+            }
+        });
+    }
+    if let Some(stderr) = child.stderr.take() {
+        let tag = format!("plugin::{}", plugin_name);
+        std::thread::spawn(move || {
+            for line in BufReader::new(stderr).lines().flatten() {
+                crate::logger::write_line(log::Level::Warn, &tag, &line);
+            }
+        });
+    }
 
     Ok(RunResult {
         ok: true,

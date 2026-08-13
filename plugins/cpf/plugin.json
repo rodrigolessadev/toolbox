@@ -1,0 +1,9 @@
+{
+  "name": "Validação CPF",
+  "version": "1.0.0",
+  "description": "Valida e gera números de CPF",
+  "author": "Toolbox Team",
+  "language": "python",
+  "entry": "main.py",
+  "min_toolbox_version": "1.0.0"
+}

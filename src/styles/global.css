@@ -1,40 +1,281 @@
+@import './components.css';
+
 /* ===========================================================
-   Design Tokens
+   Design Tokens — Escala Expandida (Etapa 3)
    =========================================================== */
 :root {
+  /* Light Mode — Superfícies (5 níveis) */
   --bg:           #f4f5f8;
+  --bg-elev-1:    #ffffff;
+  --bg-elev-2:    #f8f9fb;
+  --bg-elev-3:    #f0f1f5;
+  --bg-elev-4:    #e8eaed;
+  --bg-elev-5:    #e0e3e8;
+  /* Legacy aliases */
   --bg-elev:      #ffffff;
-  --bg-elev-2:    #f0f1f5;
-  --fg:           #0e1116;
-  --fg-muted:     #5a6270;
-  --border:       #e3e6ec;
   --input-bg:     #ffffff;
   --input-border: #d4d8e0;
+
+  /* Texto */
+  --fg:           #0e1116;
+  --fg-muted:     #5a6270;
+  --fg-disabled:  #a0a4aa;
+
+  /* Bordas */
+  --border:       #e3e6ec;
+  --border-muted: #d4d8e0;
+
+  /* Interação — Azul */
   --accent:       #3a7bff;
   --accent-soft:  rgba(58, 123, 255, 0.12);
-  --danger:       #e5484d;
-  --warning:      #f5a524;
+  --accent-hover: #1e54f0;
+  --accent-active: #1a46cc;
+
+  /* Feedback */
   --success:      #30a46c;
+  --success-light: rgba(48, 164, 108, 0.12);
+  --warning:      #f5a524;
+  --warning-light: rgba(245, 165, 36, 0.12);
+  --danger:       #e5484d;
+  --danger-light: rgba(229, 72, 77, 0.12);
+  --info:         #3a7bff;
+  --info-light:   rgba(58, 123, 255, 0.12);
+
+  /* Focus & Sombras */
+  --focus-ring:   #3a7bff;
+  --focus-width:  2px;
+  --focus-offset: 2px;
   --shadow:       0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg:    0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* Espaçamento & Animação */
   --radius:       10px;
+  --radius-sm:    6px;
+  --radius-lg:    14px;
+  --radius-full:  999px;
   --tr:           120ms ease;
+  --tr-fast:      60ms ease;
+  --tr-slow:      200ms ease;
 }
 
 [data-theme="dark"] {
+  /* Dark Mode — Superfícies (5 níveis) */
   --bg:           #0e1014;
+  --bg-elev-1:    #161a21;
+  --bg-elev-2:    #1f242d;
+  --bg-elev-3:    #262c36;
+  --bg-elev-4:    #2d3440;
+  --bg-elev-5:    #34394a;
+  /* Legacy aliases */
   --bg-elev:      #161a21;
   --bg-elev-2:    #1f242d;
-  --fg:           #f0f2f5;
-  --fg-muted:     #8b94a3;
-  --border:       #262c36;
   --input-bg:     #0e1014;
   --input-border: #262c36;
+
+  /* Texto */
+  --fg:           #e8eaed;
+  --fg-muted:     #8b94a3;
+  --fg-disabled:  #5a6270;
+
+  /* Bordas */
+  --border:       #262c36;
+  --border-muted: #1f242d;
+
+  /* Interação — Azul Claro */
   --accent:       #6aa3ff;
   --accent-soft:  rgba(106, 163, 255, 0.16);
-  --danger:       #ff6369;
-  --warning:      #f5a524;
+  --accent-hover: #7bb3ff;
+  --accent-active: #5a93ef;
+
+  /* Feedback */
   --success:      #4cc38a;
+  --success-light: rgba(76, 195, 138, 0.18);
+  --warning:      #f5a524;
+  --warning-light: rgba(245, 165, 36, 0.12);
+  --danger:       #ff6369;
+  --danger-light: rgba(255, 99, 105, 0.18);
+  --info:         #6aa3ff;
+  --info-light:   rgba(106, 163, 255, 0.16);
+
+  /* Focus & Sombras */
+  --focus-ring:   #6aa3ff;
+  --focus-width:  2px;
+  --focus-offset: 2px;
   --shadow:       0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sm:    0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-lg:    0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* Espaçamento & Animação */
+  --radius:       10px;
+  --radius-sm:    6px;
+  --radius-lg:    14px;
+  --radius-full:  999px;
+  --tr:           120ms ease;
+  --tr-fast:      60ms ease;
+  --tr-slow:      200ms ease;
+}
+
+[data-theme="high-contrast"] {
+  /* Alto Contraste — Cores Vibrantes e Máximo Contraste */
+  --bg:           #000000;
+  --bg-elev-1:    #1a1a1a;
+  --bg-elev-2:    #333333;
+  --bg-elev-3:    #4d4d4d;
+  --bg-elev-4:    #666666;
+  --bg-elev-5:    #808080;
+  --bg-elev:      #1a1a1a;
+  --input-bg:     #000000;
+  --input-border: #ffffff;
+
+  --fg:           #ffffff;
+  --fg-muted:     #cccccc;
+  --fg-disabled:  #666666;
+
+  --border:       #ffffff;
+  --border-muted: #cccccc;
+
+  --accent:       #0066ff;
+  --accent-soft:  rgba(0, 102, 255, 0.25);
+  --accent-hover: #0052cc;
+  --accent-active: #003d99;
+
+  --success:      #009900;
+  --success-light: rgba(0, 153, 0, 0.25);
+  --warning:      #ff9900;
+  --warning-light: rgba(255, 153, 0, 0.25);
+  --danger:       #ff0000;
+  --danger-light: rgba(255, 0, 0, 0.25);
+  --info:         #0066ff;
+  --info-light:   rgba(0, 102, 255, 0.25);
+
+  --focus-ring:   #ffff00;
+  --focus-width:  3px;
+  --focus-offset: 3px;
+  --shadow:       0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-lg:    0 4px 8px rgba(0, 0, 0, 0.5);
+
+  --radius:       10px;
+  --radius-sm:    6px;
+  --radius-lg:    14px;
+  --radius-full:  999px;
+  --tr:           120ms ease;
+  --tr-fast:      60ms ease;
+  --tr-slow:      200ms ease;
+}
+
+/* ===========================================================
+   Estados Visuais — Focus, Hover, Active, Disabled
+   =========================================================== */
+
+/**
+ * Focus Ring — Visível em todos controles interativos
+ * Aplicado via :focus-visible para melhor UX (não mostra em click de mouse)
+ */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  transition: outline var(--tr-fast);
+}
+
+/**
+ * Botões — Estados
+ */
+button:not(:disabled) {
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr), border-color var(--tr);
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+button:active:not(:disabled) {
+  opacity: 0.75;
+}
+
+button:disabled {
+  opacity: var(--opacity-disabled, 0.5);
+  cursor: not-allowed;
+  color: var(--fg-disabled);
+}
+
+/**
+ * Inputs — Estados
+ */
+input:not(:disabled),
+textarea:not(:disabled) {
+  transition: border-color var(--tr), box-shadow var(--tr);
+}
+
+input:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+input:active:not(:disabled),
+textarea:active:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+input:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-elev-3);
+  border-color: var(--border-muted);
+  color: var(--fg-disabled);
+}
+
+/**
+ * Links — Estados
+ */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--tr);
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--accent-active);
+}
+
+a:visited {
+  opacity: 0.8;
+}
+
+a:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--fg-disabled);
+}
+
+/**
+ * Controles de Formulário — Checkbox, Radio
+ */
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  accent-color: var(--accent);
 }
 
 /* ===========================================================

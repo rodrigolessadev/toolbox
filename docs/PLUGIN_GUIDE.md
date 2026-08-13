@@ -1,5 +1,7 @@
 # Guia de Plugins
 
+> 📖 Para detalhes técnicos completos, veja [plugin-contract.md](plugin-contract.md)
+
 ## O que é um plugin?
 
 Um plugin é um diretório dentro de `plugins/` contendo um arquivo `plugin.json` e um entrypoint executável. O Toolbox descobre plugins dinamicamente ao iniciar — não é necessário recompilar o app.
@@ -15,25 +17,42 @@ plugins/
 
 ## plugin.json
 
+**Exemplo mínimo:**
+
+```json
+{
+  "name": "meu-plugin",
+  "version": "1.0.0",
+  "language": "python",
+  "entry": "main.py"
+}
+```
+
+**Exemplo completo:**
+
 ```json
 {
   "name": "meu-plugin",
   "version": "1.0.0",
   "description": "Faz algo útil",
   "author": "Seu Nome",
-  "entrypoint": "main.py",
-  "language": "python"
+  "language": "python",
+  "entry": "main.py",
+  "min_toolbox_version": "1.0.0"
 }
 ```
 
-| Campo         | Obrigatório | Descrição |
-|---------------|-------------|-----------|
-| `name`        | sim         | Identificador único |
-| `version`     | sim         | Semver |
-| `description` | não         | Descrição curta |
-| `author`      | não         | Seu nome |
-| `entrypoint`  | sim         | Arquivo a executar (relativo à pasta) |
-| `language`    | sim         | `python` \| `node` \| `rust` \| `exe` |
+| Campo                 | Obrigatório | Descrição | Exemplo |
+|----------------------|-------------|-----------|---------|
+| `name`               | ✅ sim      | Identificador único | `"meu-plugin"` |
+| `version`            | ✅ sim      | Semver (1.0.0, 1.0.0-beta) | `"1.0.0"` |
+| `language`           | ✅ sim      | Tipo de plugin | `"python"` |
+| `entry`              | ✅ sim      | Arquivo entrypoint | `"main.py"` |
+| `description`        | ❌ não      | Descrição breve | `"Valida CPF"` |
+| `author`             | ❌ não      | Seu nome ou organização | `"Acme Corp"` |
+| `min_toolbox_version`| ❌ não      | Versão mínima do Toolbox | `"1.5.0"` |
+
+⚠️ **Nota:** Use `entry` (não `entrypoint`). Campo `id` é derivado automaticamente do nome do diretório.
 
 ## Cadastrando o plugin
 
@@ -83,7 +102,7 @@ console.log("Plugin Node ativo!", process.argv.slice(2));
 ```json
 {
   "name": "node-plugin",
-  "entrypoint": "main.js",
+  "entry": "main.js",
   "language": "node",
   "version": "1.0.0"
 }
@@ -95,7 +114,7 @@ console.log("Plugin Node ativo!", process.argv.slice(2));
 ```json
 {
   "name": "fast-plugin",
-  "entrypoint": "target/release/fast-plugin.exe",
+  "entry": "target/release/fast-plugin.exe",
   "language": "rust",
   "version": "1.0.0"
 }
@@ -107,7 +126,7 @@ console.log("Plugin Node ativo!", process.argv.slice(2));
 ```json
 {
   "name": "custom-tool",
-  "entrypoint": "tool.exe",
+  "entry": "tool.exe",
   "language": "exe",
   "version": "1.0.0"
 }

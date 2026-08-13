@@ -1,0 +1,9 @@
+{
+  "name": "Gerador JSON",
+  "version": "0.1.0",
+  "description": "Gera mock data em JSON (em desenvolvimento)",
+  "author": "Toolbox Team",
+  "language": "python",
+  "entry": "main.py",
+  "min_toolbox_version": "1.0.0"
+}

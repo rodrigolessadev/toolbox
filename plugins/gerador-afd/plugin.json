@@ -2,6 +2,7 @@
   "name": "Gerador de AFD",
   "version": "1.0.0",
   "description": "Gera arquivo AFD (Arquivo de Fonte de Dados) no padrão REP-C com CRC16.",
+  "author": "Toolbox Team",
   "language": "python",
   "entry": "main.py"
 }
