@@ -149,6 +149,14 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
     }
 
     let manifest_raw = std::fs::read_to_string(&plugin_json).map_err(|e| e.to_string())?;
+
+    // Se o manifesto especifica protocol_version, executa via protocolo v1.0
+    if let Ok(v) = serde_json::from_str::<serde_json::Value>(&manifest_raw) {
+        if v.get("protocol_version").is_some() {
+            return crate::protocol::run_protocol_plugin(app, name, entry);
+        }
+    }
+
     let manifest: HashMap<String, String> =
         serde_json::from_str(&manifest_raw).map_err(|e| e.to_string())?;
 

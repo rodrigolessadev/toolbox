@@ -1,3 +1,33 @@
+## v1.15.0 - 2026-08-13
+
+## v1.15.0 - 2026-08-13 https://github.com/rodrigolessadev/toolbox/releases
+
+<details>
+<summary>Ver detalhes da versao</summary>
+
+- Added:
+  - Design System completo em React (`tokens.ts`, `global.css`) com 80+ variáveis CSS, 3 temas visuais (light, dark, high-contrast) e conformidade WCAG 2.1 AA.
+  - Biblioteca de 15 novos componentes visuais reutilizáveis em `src/components/` (`Button`, `Input`, `Select`, `Textarea`, `Checkbox`, `Radio`, `FormGroup`, `ResultArea`, `PluginCard`, `PluginHeader`, `CopyButton`, etc.).
+  - Especificação e executor do Protocolo IPC v1.0 assíncrono via STDIN/STDOUT JSON (NDJSON) em Rust (`src-tauri/src/protocol.rs`) e SDK Python (`plugins/shared/python/toolbox_protocol.py`).
+  - Modais nativas integradas em React (`StractJsonModal`, `ConverterDataModal`, `GeradorMarcacoesModal`, `GeradorAfdModal`) com comunicação via protocolo IPC v1.0 e fallback gracioso para Tkinter.
+  - Recursos de segurança avançados no Marketplace (`src-tauri/src/marketplace.rs`): checksum SHA-256 e proteção Zip Slip contra extrações maliciosas.
+
+- Changed:
+  - Modelo de manifesto evoluído para PluginManifest v2 (`src-tauri/src/plugin.rs`), incorporando validação estrita dos campos `protocol_version`, `capabilities` e `min_toolbox_version`.
+  - Desacoplamento da camada de domínio dos plugins em módulos Python puros e testáveis (`test_domain.py`).
+
+- Fixed:
+  - Validação pós-instalação de pacotes baixados do Marketplace garantindo consistência do arquivo de entrada e integridade do `plugin.json`.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - Proteção estrita Zip Slip durante a extração de plugins para prevenir substituição de arquivos fora do diretório de destino.
+  - Suporte à verificação de integridade dos pacotes do catálogo por SHA-256.
+
+</details>
+
 ## v1.14.0 - 2026-08-03
 
 ## v1.13.0 - 2026-08-03

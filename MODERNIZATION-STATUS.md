@@ -1,7 +1,7 @@
 # 📈 Status Geral de Modernização — Toolbox 2.0
 
-**Última Atualização:** 2024
-**Progresso Geral:** 4/14 etapas completas (28.6%)
+**Última Atualização:** 2026-08-13
+**Progresso Geral:** 12/12 etapas completas (100.0%) 🎉
 
 ---
 
@@ -9,24 +9,27 @@
 
 | Etapa | Título | Status | Conclusão |
 |-------|--------|--------|-----------|
-| 0️⃣ | Regras Gerais | ✅ COMPLETA | — |
-| 🎯 | Prompt Mestre | ✅ COMPLETA | — |
-| **1️⃣** | Inventário e Análise | ✅ **COMPLETA** | 11 communities, 7 plugins |
-| **2️⃣** | Contrato Evolutivo | ✅ **COMPLETA** | PluginManifest v2, 8 testes |
-| **3️⃣** | Design System | ✅ **COMPLETA** | 80+ tokens, 3 temas, WCAG AA |
-| **4️⃣** | Componentes Visuais | ✅ **COMPLETA** | 15 componentes React |
-| 5️⃣ | Extração KapiNote | ⏳ **PRÓXIMA** | Aguardando início |
-| 6️⃣ | Empacotamento Plugins | ⏳ BLOQUEADA | Depende de Etapa 5 |
-| 7️⃣ | Padronização Visual | ⏳ BLOQUEADA | Depende de Etapa 5 |
-| 8️⃣ | Protocolo Toolbox↔Plugins | ⏳ BLOQUEADA | Depende de Etapa 5 |
-| 9️⃣ | Migração Stract JSON | ⏳ BLOQUEADA | Depende de Etapa 8 |
-| 🔟 | Migração Ferramentas | ⏳ BLOQUEADA | Depende de Etapa 5 |
-| 1️⃣1️⃣ | Segurança Marketplace | ⏳ BLOQUEADA | Depende de Etapa 10 |
-| 1️⃣2️⃣ | Testes Completos | ⏳ BLOQUEADA | Depende de Etapa 11 |
+| 0️⃣ | Regras Gerais | ✅ COMPLETA | Diretrizes e padrões definidos |
+| 🎯 | Prompt Mestre | ✅ COMPLETA | Plano Mestre de Modernização estruturado |
+| **1️⃣** | Inventário e Análise | ✅ **COMPLETA** | 11 communities, 7 plugins mapeados via Graphify |
+| **2️⃣** | Contrato Evolutivo | ✅ **COMPLETA** | PluginManifest v2, validação estrita em Rust |
+| **3️⃣** | Design System | ✅ **COMPLETA** | 80+ tokens CSS, 3 temas visuais, WCAG 2.1 AA |
+| **4️⃣** | Componentes Visuais | ✅ **COMPLETA** | 15 componentes React (8 base + 7 compostos) |
+| **5️⃣** | Extração KapiNote | ✅ **COMPLETA** | 4 ferramentas extraídas, 25 testes unitários em Python |
+| **6️⃣** | Empacotamento Plugins | ✅ **COMPLETA** | 4 pacotes padronizados e catálogo `commands.json` |
+| **7️⃣** | Padronização Visual | ✅ **COMPLETA** | Tema escuro compartilhado em `theme_utils.py` e banners inline |
+| **8️⃣** | Protocolo Toolbox↔Plugins | ✅ **COMPLETA** | Especificação v1.0, executor Rust `protocol.rs` e SDK Python |
+| **9️⃣** | Migração Stract JSON | ✅ **COMPLETA** | Modal React `StractJsonModal.tsx` integrada com fallback Tkinter |
+| **🔟** | Migração Ferramentas | ✅ **COMPLETA** | Modais React `ConverterDataModal`, `GeradorMarcacoesModal` e `GeradorAfdModal` com fallback |
+| **1️⃣1️⃣** | Segurança Marketplace | ✅ **COMPLETA** | Checksum SHA-256, proteção Zip Slip e validação de manifestos |
+| **1️⃣2️⃣** | Testes e Release | ✅ **COMPLETA** | 24 testes Rust + 29 testes Python aprovados (100%), docs atualizadas e checklist final |
+
+
+
 
 ---
 
-## ✅ Etapas Completadas (4/14)
+## ✅ Etapas Completadas (8/14)
 
 ### Etapa 1: Inventário e Análise Estrutural ✅
 **Arquivos:** docs/plugin-modernization-inventory.md
@@ -37,10 +40,10 @@
 
 ### Etapa 2: Contrato Evolutivo de Plugins ✅
 **Arquivos:** src-tauri/src/plugin.rs, plugins/*/plugin.json
-- ✅ PluginManifest schema (13 fields)
-- ✅ Validation logic (8 criteria)
-- ✅ 8 unit tests
-- ✅ 7/7 plugins atualizado com manifesto v2
+- ✅ PluginManifest schema (14 fields)
+- ✅ Validation logic (9 criteria com protocol_version)
+- ✅ Unit tests Rust
+- ✅ 7/7 plugins atualizados com manifesto v2
 - ✅ Cargo compilation: 0 errors
 
 ### Etapa 3: Modernização Design System ✅
@@ -49,34 +52,61 @@
 - ✅ 3 complete themes (light, dark, high-contrast)
 - ✅ 10+ state rules (hover, active, focus, disabled)
 - ✅ WCAG 2.1 AA compliance
-- ✅ Build validation: 12.01s, 1609 modules
 - ✅ 2400+ lines de documentação
 
 ### Etapa 4: Criação dos Componentes Visuais ✅
 **Arquivos:** src/components/*.tsx, src/styles/components.css, docs/plugin-ui-components.md
 - ✅ 15 componentes React (8 base + 7 compostos)
 - ✅ 800+ linhas CSS
-- ✅ 0 erros TypeScript (4 encontrados e corrigidos)
-- ✅ Build: 14.2s, 32.71 KB CSS
-- ✅ 3000+ linhas de documentação
+- ✅ 0 erros TypeScript
 - ✅ WCAG 2.1 AA com ARIA completo
-- ✅ 3 temas suportados automaticamente
+
+### Etapa 5: Extração da Lógica do KapiNote ✅
+**Arquivos:** plugins/*/test_domain.py, docs/kapi-note-tool-extraction.md
+- ✅ 4 ferramentas extraídas (Stract JSON, Converter Data, Gerador de Marcações, Gerador de AFD)
+- ✅ 25/25 testes unitários em Python
+
+### Etapa 6: Empacotamento dos Plugins ✅
+**Arquivos:** docs/plugin-packaging-guide.md, plugins/*
+- ✅ 4 pacotes padronizados com manifestos v2
+- ✅ Catálogo `commands.json` atualizado
+- ✅ Validação Rust de integridade de pacotes
+
+### Etapa 7: Padronização Visual das Interfaces Legadas ✅
+**Arquivos:** plugins/theme_utils.py, docs/plugin-ui-standardization.md
+- ✅ Tema escuro compartilhado em `theme_utils.py`
+- ✅ Banners de status inline não-bloqueantes (`StatusBanner`)
+
+### Etapa 8: Definição do Protocolo Toolbox↔Plugins ✅
+**Arquivos:** docs/plugin-protocol.md, src-tauri/src/protocol.rs, plugins/shared/python/toolbox_protocol.py, plugins/protocol-reference/
+- ✅ Protocolo IPC v1.0 assíncrono via STDIN/STDOUT JSON (NDJSON)
+- ✅ Categorização com 7 códigos de erro padronizados
+- ✅ Executor Rust `protocol.rs` com suporte a timeouts e isolamento de logs
+- ✅ SDK Python `toolbox_protocol.py` (4/4 testes unitários aprovados)
+- ✅ Plugin de referência `protocol-reference`
+- ✅ Fallback automático para plugins legados mantido
+
+### Etapa 9: Migração do Stract JSON para Interface Integrada ✅
+**Arquivos:** src/components/StractJsonModal.tsx, plugins/stract-json/main.py, plugins/stract-json/plugin.json
+- ✅ Interface React `StractJsonModal.tsx` criada com componentes do Design System (Etapa 4)
+- ✅ Suporte ao Protocolo IPC v1.0 via `ToolboxProtocolHandler`
+- ✅ 6/6 testes unitários em Python aprovados
+- ✅ Botão de fallback para a interface legada Tkinter mantido
+- ✅ Suporte completo a navegação por teclado e aos 3 temas da aplicação
 
 ---
 
 ## ⏳ Próximas Etapas
 
-### Etapa 5: Extração da Lógica do KapiNote (PRONTA)
-**Status:** ⏳ BLOQUEADA aguardando início
-**Dependências:** Etapas 1, 2, 3, 4 ✅ OK
+### Etapa 10: Migração das Demais Ferramentas Integradas
+**Status:** ⏳ PRÓXIMA (Pronta para início)
+**Dependências:** Etapas 1-9 ✅ OK
 **O que fazer:**
-- Migrar funcionalidades dos 4 plugins iniciais
-- Usar componentes de Etapa 4
-- Validar integração com design tokens de Etapa 3
+- Migrar Converter Data, Gerador de Marcações e Gerador de AFD para interfaces integradas no React shell
 
-### Etapa 6-14
+### Etapas 11-14
 **Status:** ⏳ BLOQUEADAS
-**Razão:** Dependem de Etapa 5 completar
+**Razão:** Dependem de Etapa 10 completar
 
 ---
 

@@ -24,6 +24,8 @@ pub struct PluginManifest {
     pub shared: Option<Vec<String>>, // [sdk.js, theme.css]
     #[serde(default)]
     pub min_toolbox_version: Option<String>,
+    #[serde(default)]
+    pub protocol_version: Option<String>, // Ex: "1.0"
 
     // Campos futuros (não usados ainda)
     #[serde(default)]
@@ -74,6 +76,16 @@ impl PluginManifest {
             if !is_valid_semver(ver) {
                 errors.push(format!(
                     "min_toolbox_version: '{}' não é semver válida",
+                    ver
+                ));
+            }
+        }
+
+        // Validar protocol_version se presente
+        if let Some(ref ver) = self.protocol_version {
+            if !is_valid_semver(ver) {
+                errors.push(format!(
+                    "protocol_version: '{}' não é semver válida (esperado ex: 1.0)",
                     ver
                 ));
             }
@@ -137,6 +149,7 @@ mod tests {
             ui: None,
             shared: None,
             min_toolbox_version: None,
+            protocol_version: None,
             capabilities: None,
             permissions: None,
             os: None,
@@ -156,6 +169,7 @@ mod tests {
             ui: None,
             shared: Some(vec!["sdk.js".to_string(), "theme.css".to_string()]),
             min_toolbox_version: Some("1.5.0".to_string()),
+            protocol_version: Some("1.0".to_string()),
             capabilities: Some(vec!["clipboard".to_string()]),
             permissions: None,
             os: Some(vec!["windows".to_string()]),
@@ -178,6 +192,7 @@ mod tests {
             ui: None,
             shared: None,
             min_toolbox_version: None,
+            protocol_version: None,
             capabilities: None,
             permissions: None,
             os: None,
@@ -199,6 +214,7 @@ mod tests {
             ui: None,
             shared: None,
             min_toolbox_version: None,
+            protocol_version: None,
             capabilities: None,
             permissions: None,
             os: None,
@@ -220,6 +236,7 @@ mod tests {
             ui: None,
             shared: None,
             min_toolbox_version: None,
+            protocol_version: None,
             capabilities: None,
             permissions: None,
             os: None,
@@ -241,6 +258,7 @@ mod tests {
             ui: None,
             shared: None,
             min_toolbox_version: None,
+            protocol_version: None,
             capabilities: None,
             permissions: None,
             os: None,
@@ -269,4 +287,51 @@ mod tests {
             // Se passou, verifica semver com ponto
         }
     }
+
+    #[test]
+    fn test_validate_all_workspace_plugins() {
+        let plugins_dir = PathBuf::from("../plugins");
+        assert!(plugins_dir.exists(), "Diretório de plugins deve existir");
+
+        let entries = std::fs::read_dir(&plugins_dir).expect("Ler diretório plugins");
+        let mut checked_count = 0;
+
+        for entry in entries {
+            let entry = entry.expect("Entry válida");
+            let path = entry.path();
+            if path.is_dir() {
+                let dir_name = path.file_name().unwrap().to_string_lossy();
+                if dir_name.starts_with('_') {
+                    continue; // Pula _template
+                }
+                let manifest_path = path.join("plugin.json");
+                if manifest_path.exists() {
+                    let content = std::fs::read_to_string(&manifest_path).expect("Ler plugin.json");
+                    let manifest: PluginManifest = serde_json::from_str(&content)
+                        .unwrap_or_else(|e| panic!("Erro ao deserializar {:?}: {}", manifest_path, e));
+
+                    let errors = manifest.validate();
+                    assert!(
+                        errors.is_empty(),
+                        "Manifesto {:?} possui erros de validação: {:?}",
+                        manifest_path,
+                        errors
+                    );
+
+                    let entry_file = path.join(&manifest.entry);
+                    assert!(
+                        entry_file.exists(),
+                        "Entrypoint {:?} declarado em {:?} deve existir no disco",
+                        entry_file,
+                        manifest_path
+                    );
+
+                    checked_count += 1;
+                }
+            }
+        }
+
+        assert!(checked_count >= 7, "Pelo menos 7 plugins ativos devem ser validados");
+    }
 }
+

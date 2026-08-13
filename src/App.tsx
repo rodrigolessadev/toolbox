@@ -9,6 +9,10 @@ import { HistoryPanel } from "./components/HistoryPanel";
 import { AddCommandModal } from "./components/AddCommandModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { MarketplaceModal } from "./components/MarketplaceModal";
+import { StractJsonModal } from "./components/StractJsonModal";
+import { ConverterDataModal } from "./components/ConverterDataModal";
+import { GeradorMarcacoesModal } from "./components/GeradorMarcacoesModal";
+import { GeradorAfdModal } from "./components/GeradorAfdModal";
 import "./styles/global.css";
 
 type ToastKind = "success" | "error" | "info";
@@ -30,9 +34,13 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function App() {
-  const [showAdd, setShowAdd]           = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showMarketplace, setShowMarketplace] = useState(false);
+  const [showAdd, setShowAdd]                   = useState(false);
+  const [showSettings, setShowSettings]         = useState(false);
+  const [showMarketplace, setShowMarketplace]   = useState(false);
+  const [showStractJson, setShowStractJson]     = useState(false);
+  const [showConverterData, setShowConverterData] = useState(false);
+  const [showGeradorMarcacoes, setShowGeradorMarcacoes] = useState(false);
+  const [showGeradorAfd, setShowGeradorAfd]     = useState(false);
   const [query, setQuery]               = useState("");
   const [activeIndex, setActiveIndex]   = useState(0);
   const [tab, setTab]                   = useState<Tab>("all");
@@ -115,6 +123,24 @@ export default function App() {
 
   // ───── execute ─────
   const execute = useCallback(async (name: string) => {
+    const norm = name.toLowerCase().trim();
+    if (norm === "stract-json" || norm === "stract json") {
+      setShowStractJson(true);
+      return;
+    }
+    if (norm === "converter-data" || norm === "converter data") {
+      setShowConverterData(true);
+      return;
+    }
+    if (norm === "gerador-marcacoes" || norm === "gerador de marcações" || norm === "gerador marcacoes") {
+      setShowGeradorMarcacoes(true);
+      return;
+    }
+    if (norm === "gerador-afd" || norm === "gerador de afd" || norm === "gerador afd") {
+      setShowGeradorAfd(true);
+      return;
+    }
+
     try {
       const result = await api.runCommand(name);
       push(result.message ?? `Comando "${name}" executado.`, result.ok ? "success" : "error");
@@ -135,8 +161,12 @@ export default function App() {
       );
 
       if (e.key === "Escape") {
-        if (showAdd)      { setShowAdd(false);      return; }
-        if (showSettings) { setShowSettings(false); return; }
+        if (showAdd)              { setShowAdd(false);              return; }
+        if (showSettings)         { setShowSettings(false);         return; }
+        if (showStractJson)       { setShowStractJson(false);       return; }
+        if (showConverterData)    { setShowConverterData(false);    return; }
+        if (showGeradorMarcacoes) { setShowGeradorMarcacoes(false); return; }
+        if (showGeradorAfd)       { setShowGeradorAfd(false);       return; }
         setQuery("");
         inputRef.current?.focus();
         return;
@@ -409,6 +439,34 @@ export default function App() {
         onPluginInstalled={async () => { await reload(); }}
         onPluginRemoved={async () => { await reload(); }}
         onInfo={(m) => push(m, "info")}
+        onError={(m) => push(m, "error")}
+      />
+
+      <StractJsonModal
+        open={showStractJson}
+        onClose={() => setShowStractJson(false)}
+        onInfo={(m) => push(m, "success")}
+        onError={(m) => push(m, "error")}
+      />
+
+      <ConverterDataModal
+        open={showConverterData}
+        onClose={() => setShowConverterData(false)}
+        onInfo={(m) => push(m, "success")}
+        onError={(m) => push(m, "error")}
+      />
+
+      <GeradorMarcacoesModal
+        open={showGeradorMarcacoes}
+        onClose={() => setShowGeradorMarcacoes(false)}
+        onInfo={(m) => push(m, "success")}
+        onError={(m) => push(m, "error")}
+      />
+
+      <GeradorAfdModal
+        open={showGeradorAfd}
+        onClose={() => setShowGeradorAfd(false)}
+        onInfo={(m) => push(m, "success")}
         onError={(m) => push(m, "error")}
       />
  

@@ -48,3 +48,7 @@ export { CommandList } from './CommandList';
 export { Toast } from './Toast';
 export { TitleBar } from './TitleBar';
 export { Toolbox } from './Toolbox';
+export { StractJsonModal } from './StractJsonModal';
+export { ConverterDataModal } from './ConverterDataModal';
+export { GeradorMarcacoesModal } from './GeradorMarcacoesModal';
+export { GeradorAfdModal } from './GeradorAfdModal';

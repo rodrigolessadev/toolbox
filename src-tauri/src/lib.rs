@@ -6,6 +6,9 @@ mod history;
 mod logger;
 mod marketplace;
 mod paths;
+pub mod plugin;
+pub mod protocol;
+
 
 use commands_store::CommandStore;
 use history::HistoryStore;

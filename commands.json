@@ -36,6 +36,13 @@
       "favorite": true,
       "icon": "⏱️"
     },
+    "gerador-afd": {
+      "type": "plugin",
+      "path": "plugins/gerador-afd",
+      "favorite": true,
+      "icon": "📄"
+    },
+
     "google": {
       "type": "link",
       "url": "https://google.com.br",

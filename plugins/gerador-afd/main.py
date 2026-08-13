@@ -188,30 +188,80 @@ def nome_arquivo(rep_number: str, cnpj: str) -> str:
     return f"AFD{limpar_numero(rep_number)}{limpar_numero(cnpj)}REP_C.TXT"
 
 
-# ─── UI ──────────────────────────────────────────────────────────────────
+def process_gerar_afd(
+    rep_number: str,
+    cnpj: str,
+    razao_social: str,
+    data_inicial: str,
+    data_final: str,
+    colaboradores: list[dict],
+) -> dict:
+    """
+    Função pura de domínio que valida entradas e gera o conteúdo do arquivo AFD REP-C.
 
-DARK = {
-    "bg":       "#161a21",
-    "bg2":      "#1f242d",
-    "fg":       "#f0f2f5",
-    "muted":    "#8b94a3",
-    "border":   "#262c36",
-    "accent":   "#6aa3ff",
-    "success":  "#4cc38a",
-    "danger":   "#ff6369",
-    "input_bg": "#0e1014",
-}
+    Returns:
+        dict com chaves: success (bool), content (str), total_records (int), error (str|None)
+    """
+    rep_clean = rep_number.strip() if rep_number else ""
+    cnpj_clean = cnpj.strip() if cnpj else ""
+    razao_clean = razao_social.strip() if razao_social else ""
+
+    if not rep_clean:
+        return {"success": False, "content": "", "total_records": 0, "error": "Número do REP é obrigatório."}
+    if not cnpj_clean:
+        return {"success": False, "content": "", "total_records": 0, "error": "CNPJ é obrigatório."}
+    if not razao_clean:
+        return {"success": False, "content": "", "total_records": 0, "error": "Razão Social é obrigatória."}
+    if not colaboradores:
+        return {"success": False, "content": "", "total_records": 0, "error": "Ao menos um colaborador deve ser informado."}
+
+    try:
+        content = gerar_afd(
+            rep_number=rep_clean,
+            cnpj=cnpj_clean,
+            razao_social=razao_clean,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            colaboradores=colaboradores,
+        )
+        lines = [l for l in content.split("\r\n") if l]
+        return {"success": True, "content": content, "total_records": len(lines), "error": None}
+    except Exception as e:
+        return {"success": False, "content": "", "total_records": 0, "error": f"Erro na geração do AFD: {e}"}
+
+
+# ─── UI ───────────────────────────────────────────────────────────────────
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+try:
+    from theme_utils import (
+        DARK_TOKENS, setup_theme, create_primary_button,
+        create_secondary_button, create_styled_text, StatusBanner
+    )
+except ImportError:
+    DARK_TOKENS = {"bg_elev1": "#161a21", "bg_elev2": "#1f242d", "fg": "#e8eaed", "fg_muted": "#8b94a3", "border": "#262c36", "accent": "#6aa3ff", "input_bg": "#0e1014", "success": "#4cc38a", "danger": "#ff6369"}
+    def setup_theme(r): pass
+    def create_primary_button(p, text, command=None, **kw): return tk.Button(p, text=text, command=command, bg="#6aa3ff", fg="#fff", relief="flat")
+    def create_secondary_button(p, text, command=None, **kw): return tk.Button(p, text=text, command=command, bg="#1f242d", fg="#eee", relief="flat")
+    def create_styled_text(p, height=10, **kw): return tk.Text(p, height=height, bg="#0e1014", fg="#eee", relief="flat")
+    class StatusBanner(ttk.Frame):
+        def show_success(self, msg, **kw): pass
+        def show_error(self, msg, **kw): pass
+        def clear(self): pass
 
 
 class GeradorAFDApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        root.title("Gerador de AFD")
+        root.title("Gerador de AFD REP-C — Toolbox")
         root.geometry("860x780")
-        root.configure(bg=DARK["bg"])
         root.resizable(True, True)
-        self._apply_style()
+        setup_theme(root)
         self._build_ui()
+
 
     def _apply_style(self):
         style = ttk.Style()
@@ -499,5 +549,43 @@ def build_ui():
     root.mainloop()
 
 
+def run_protocol():
+    """Modo Headless via Protocolo Toolbox IPC v1.0."""
+    try:
+        from toolbox_protocol import ToolboxProtocolHandler
+    except ImportError:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared" / "python"))
+        from toolbox_protocol import ToolboxProtocolHandler
+
+    handler = ToolboxProtocolHandler()
+    req = handler.read_request()
+    if not req:
+        return
+
+    payload = req.get("payload", {})
+    rep_number = payload.get("rep_number", "00000000000000001")
+    cnpj = payload.get("cnpj", "00000000000000")
+    razao_social = payload.get("razao_social", "EMPRESA DE TESTE S/A")
+    data_inicial = payload.get("data_inicial", "01/01/2025")
+    data_final = payload.get("data_final", "31/01/2025")
+    colaboradores = payload.get("colaboradores", [])
+
+    try:
+        afd_content = gerar_afd(rep_number, cnpj, razao_social, data_inicial, data_final, colaboradores)
+        handler.send_success(
+            result={
+                "afd_content": afd_content,
+                "output": afd_content
+            },
+            output_message="Arquivo AFD gerado com sucesso."
+        )
+    except Exception as e:
+        handler.send_error("INVALID_INPUT", f"Falha na geração do AFD: {e}")
+
+
 if __name__ == "__main__":
-    build_ui()
+    if not sys.stdin.isatty():
+        run_protocol()
+    else:
+        build_ui()
+

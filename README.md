@@ -1,20 +1,19 @@
-# 🧰 Toolbox
+# 🧰 Toolbox 2.0
 
-Coleção de utilitários desktop construídos com [Tauri 2](https://tauri.app/) + **React** + **TypeScript**, organizados como plugins independentes. Cada plugin é um pequeno app autocontido que resolve um problema específico do dia a dia.
+Coleção de utilitários desktop construídos com [Tauri 2](https://tauri.app/) + **React** + **TypeScript**, organizados como plugins independentes e ferramentas integradas. Cada utilitário é um app autocontido de alta performance.
 
 > 🌐 **Site oficial:** [toolbox-nine-phi.vercel.app](https://toolbox-nine-phi.vercel.app)
 
 ---
 
-## ✨ Recursos
+## ✨ Recursos (Toolbox 2.0)
 
-- **Arquitetura baseada em plugins** — cada utilitário é um plugin isolado, fácil de adicionar, remover ou versionar
-- **Stack moderna** — Tauri 2 (Rust) no backend, React + TypeScript no frontend
-- **Multiplataforma** — builds para Windows, macOS e Linux
-- **Temas personalizáveis** — claro, escuro e alto contraste
-- **Cadastro de plugins** — habilite/desabilite plugins dinamicamente
-- **Logs estruturados** — tudo em `logs/toolbox.log` para auditoria
-- **Atalhos globais** — produtividade direto do teclado
+- **Arquitetura baseada em plugins & protocolo v1.0** — Comunicação assíncrona IPC (STDIN/STDOUT JSON/NDJSON) entre o container Tauri e plugins em Python/Node/binários
+- **Interfaces React Integradas** — Modais integradas no shell para *Stract JSON*, *Converter Data*, *Gerador de Marcações* e *Gerador de AFD*
+- **Marketplace Seguro** — Download e atualização de plugins com verificação SHA-256, proteção Zip Slip e validação estrita de manifestos
+- **Design System Acessível** — Modos Claro, Escuro e Alto Contraste (WCAG 2.1 AA)
+- **Fallback Garantido** — Execução em janela legada Tkinter preservada para todos os plugins
+- **Logs Estruturados** — Roteamento automático de logs para `logs/toolbox.log`
 
 ---
 
@@ -25,6 +24,7 @@ Coleção de utilitários desktop construídos com [Tauri 2](https://tauri.app/)
 | Runtime      | [Tauri 2](https://tauri.app/)    |
 | Backend      | Rust                             |
 | Frontend     | React 18 + TypeScript            |
+| Protocolo IPC| Protocol v1.0 (JSON/NDJSON)     |
 | Build        | Vite                             |
 | Empacotamento| Tauri Bundler                    |
 | CI/CD        | GitHub Actions                   |
@@ -69,23 +69,25 @@ pnpm install
 | ---------------- | ----------------------------------- |
 | `Ctrl/Cmd + K`   | Abre a busca de plugins             |
 | `Ctrl/Cmd + ,`   | Abre as configurações               |
+| `Ctrl + Enter`   | Executa a ação da modal aberta     |
 | `Esc`            | Fecha diálogos/modais               |
 
 ---
 
-## 🧩 Plugins inclusos
+## 🧩 Ferramentas e Plugins
 
-| Plugin                 | Descrição                                              | Testes |
-| ---------------------- | ------------------------------------------------------ | :----: |
-| `cpf`                  | Geração e validação de CPF                             |   ✅   |
-| `calc-jornadas`        | Cálculo de jornadas de trabalho                        |   ✅   |
-| `converter-data`       | Conversão entre formatos de data                        |   ✅   |
-| `gerador-marcacoes`    | Geração de marcações em texto (Markdown, HTML, etc.)   |   ✅   |
-| `gerador-json`         | Geração de JSON a partir de schemas                    |   ✅   |
-| `stract-json`          | Extração e transformação de JSON                       |   ✅   |
-| `_template`            | Template base para criar novos plugins                 |   —    |
+| Plugin / Ferramenta    | Modo Integrado | Protocolo v1.0 | Fallback Tkinter | Testes |
+| ---------------------- | :------------: | :------------: | :--------------: | :----: |
+| `stract-json`          |       ✅       |       ✅       |        ✅        |   ✅   |
+| `converter-data`       |       ✅       |       ✅       |        ✅        |   ✅   |
+| `gerador-marcacoes`    |       ✅       |       ✅       |        ✅        |   ✅   |
+| `gerador-afd`          |       ✅       |       ✅       |        ✅        |   ✅   |
+| `cpf`                  |       —        |       —        |        ✅        |   ✅   |
+| `calc-jornadas`        |       —        |       —        |        ✅        |   ✅   |
+| `gerador-json`         |       —        |       —        |        ✅        |   ✅   |
+| `_template`            |       —        |       —        |        —         |   —    |
 
-> Para criar um novo plugin, copie `plugins/_template/` e siga o `PLUGIN_GUIDE.md`.
+> Para criar um novo plugin, consulte [`docs/plugin-protocol.md`](./docs/plugin-protocol.md) e [`PLUGIN_GUIDE.md`](./PLUGIN_GUIDE.md).
 
 ---
 

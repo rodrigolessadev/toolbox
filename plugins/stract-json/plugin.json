@@ -4,5 +4,10 @@
   "description": "Extrai valores de um campo específico a partir de um JSON colado.",
   "author": "Toolbox Team",
   "language": "python",
-  "entry": "main.py"
+  "entry": "main.py",
+  "protocol_version": "1.0",
+  "capabilities": [
+    "clipboard"
+  ],
+  "min_toolbox_version": "1.0.0"
 }

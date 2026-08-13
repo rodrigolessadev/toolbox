@@ -168,40 +168,69 @@ def gerar_inserts(fields: dict, horarios: list, datas: list,
     return "\n".join(lines)
 
 
+def process_gerar_marcacoes(
+    fields: dict,
+    horarios: list[str],
+    datas: list = None,
+    banco: str = "sqlserver",
+    selected_optional: list = None,
+) -> dict:
+    """
+    Função de domínio testável para geração de INSERTs SQL de marcações.
+
+    Returns:
+        dict com chaves: success (bool), sql (str), count (int), error (str|None)
+    """
+    banco_clean = banco.lower().strip() if banco else "sqlserver"
+    if banco_clean not in ("sqlserver", "oracle"):
+        return {"success": False, "sql": "", "count": 0, "error": f"Banco de dados '{banco}' não suportado."}
+
+    valid_horarios = [h.strip() for h in horarios if h and h.strip()]
+    if not valid_horarios:
+        return {"success": False, "sql": "", "count": 0, "error": "Ao menos um horário deve ser informado."}
+
+    try:
+        sql_output = gerar_inserts(fields or {}, valid_horarios, datas or [], banco_clean, selected_optional or [])
+        count = len(sql_output.splitlines()) if sql_output else 0
+        return {"success": True, "sql": sql_output, "count": count, "error": None}
+    except Exception as e:
+        return {"success": False, "sql": "", "count": 0, "error": f"Erro na geração dos INSERTs: {e}"}
+
+
 # ─── UI ──────────────────────────────────────────────────────────────────
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+try:
+    from theme_utils import (
+        DARK_TOKENS, setup_theme, create_primary_button,
+        create_secondary_button, create_styled_text, StatusBanner
+    )
+except ImportError:
+    DARK_TOKENS = {"bg_elev1": "#161a21", "bg_elev2": "#1f242d", "fg": "#e8eaed", "fg_muted": "#8b94a3", "border": "#262c36", "accent": "#6aa3ff", "input_bg": "#0e1014", "success": "#4cc38a", "danger": "#ff6369"}
+    def setup_theme(r): pass
+    def create_primary_button(p, text, command=None, **kw): return tk.Button(p, text=text, command=command, bg="#6aa3ff", fg="#fff", relief="flat")
+    def create_secondary_button(p, text, command=None, **kw): return tk.Button(p, text=text, command=command, bg="#1f242d", fg="#eee", relief="flat")
+    def create_styled_text(p, height=10, **kw): return tk.Text(p, height=height, bg="#0e1014", fg="#eee", relief="flat")
+    class StatusBanner(ttk.Frame):
+        def show_success(self, msg, **kw): pass
+        def show_error(self, msg, **kw): pass
+        def clear(self): pass
+
 
 class GeradorMarcacoesApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        root.title("Gerador de Marcações")
-        root.geometry("900x780")
-        root.configure(bg=DARK["bg"])
+        root.title("Gerador de Marcações — Toolbox")
+        root.geometry("920x800")
         root.resizable(True, True)
-        self._apply_style()
+        setup_theme(root)
         self._build_ui()
 
-    def _apply_style(self):
-        style = ttk.Style()
-        try:
-            style.theme_use("clam")
-        except tk.TclError:
-            pass
-        for w, cfg in [
-            ("TLabel",      {"background": DARK["bg"],  "foreground": DARK["fg"]}),
-            ("TFrame",      {"background": DARK["bg"]}),
-            ("TLabelframe", {"background": DARK["bg"],  "foreground": DARK["fg"]}),
-            ("TLabelframe.Label", {
-                "background": DARK["bg"], "foreground": DARK["muted"],
-                "font": ("Segoe UI", 9, "bold"),
-            }),
-            ("TEntry",       {"fieldbackground": DARK["input_bg"], "foreground": DARK["fg"]}),
-            ("TCheckbutton", {"background": DARK["bg"], "foreground": DARK["fg"]}),
-            ("TRadiobutton", {"background": DARK["bg"], "foreground": DARK["fg"]}),
-            ("TCombobox",    {"fieldbackground": DARK["input_bg"], "foreground": DARK["fg"]}),
-        ]:
-            style.configure(w, **cfg)
-
     def _build_ui(self):
+
         # ── Scroll principal ──
         canvas = tk.Canvas(self.root, bg=DARK["bg"], highlightthickness=0)
         sb = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
@@ -445,5 +474,54 @@ def build_ui():
     root.mainloop()
 
 
+def run_protocol():
+    """Modo Headless via Protocolo Toolbox IPC v1.0."""
+    try:
+        from toolbox_protocol import ToolboxProtocolHandler
+    except ImportError:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "shared" / "python"))
+        from toolbox_protocol import ToolboxProtocolHandler
+
+    handler = ToolboxProtocolHandler()
+    req = handler.read_request()
+    if not req:
+        return
+
+    payload = req.get("payload", {})
+    fields = payload.get("fields", {})
+    horarios = payload.get("horarios", ["08:00", "12:00", "13:00", "18:00"])
+    data_inicio_str = payload.get("data_inicio")
+    data_fim_str = payload.get("data_fim")
+    banco = payload.get("banco", "sqlserver")
+    weekdays = payload.get("weekdays", [1, 2, 3, 4, 5]) # Seg a Sex por padrão
+
+    datas = []
+    if data_inicio_str and data_fim_str:
+        try:
+            d1 = date.fromisoformat(data_inicio_str)
+            d2 = date.fromisoformat(data_fim_str)
+            datas = date_range(d1, d2, set(weekdays))
+        except Exception as e:
+            handler.send_error("INVALID_INPUT", f"Erro no formato de data: {e}")
+            return
+
+    res = process_gerar_marcacoes(fields, horarios, datas, banco)
+    if res["success"]:
+        handler.send_success(
+            result={
+                "sql": res["sql"],
+                "total_records": res["total_records"],
+                "output": res["sql"]
+            },
+            output_message=f"{res['total_records']} registro(s) gerado(s) com sucesso."
+        )
+    else:
+        handler.send_error("INVALID_INPUT", res["error"])
+
+
 if __name__ == "__main__":
-    build_ui()
+    if not sys.stdin.isatty():
+        run_protocol()
+    else:
+        build_ui()
+

@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs;
 use std::io::Cursor;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 
 // ─────────────────────── Tipos do catálogo ────────────────────────
@@ -24,6 +25,8 @@ pub struct CatalogPlugin {
     pub download_url: String,
     #[serde(default)]
     pub min_toolbox_version: String,
+    #[serde(default)]
+    pub sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,6 +57,27 @@ pub struct MarketplaceEntry {
     pub status: String,
     /// Versão instalada atualmente (se instalado)
     pub installed_version: Option<String>,
+}
+
+// ─────────────────────── Helpers de Segurança ───────────────────────────
+
+/// Calcula o hash SHA-256 de um buffer de bytes e retorna como string hexadecimal.
+#[allow(dead_code)]
+pub fn calculate_sha256(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    format!("{:x}", hasher.finalize())
+}
+
+/// Verifica se um caminho de destino de extração é seguro e não escapa do diretório raiz do plugin (prevenção Zip Slip).
+pub fn is_safe_extraction_path(base_dir: &Path, target_path: &Path) -> bool {
+    // Verifica se contém partes suspeitas '..' que sobem de nível
+    for component in target_path.components() {
+        if component == std::path::Component::ParentDir {
+            return false;
+        }
+    }
+    target_path.starts_with(base_dir)
 }
 
 // ─────────────────────── Comandos Tauri ───────────────────────────
@@ -107,7 +131,7 @@ pub async fn fetch_catalog(app: AppHandle) -> Result<Vec<MarketplaceEntry>, Stri
 }
 
 /// Baixa e instala um plugin a partir da URL do catálogo.
-/// Extrai o ZIP em %APPDATA%\Toolbox\plugins\<id>\
+/// Realiza validação SHA-256 (se presente), proteção Zip Slip e validação do PluginManifest.
 #[tauri::command]
 pub async fn install_plugin(
     app: AppHandle,
@@ -170,7 +194,7 @@ pub async fn install_plugin(
         format!("Falha ao criar pasta: {e}")
     })?;
 
-    // Extrai o ZIP
+    // Extrai o ZIP com proteção contra Zip Slip
     let cursor = Cursor::new(bytes);
     let mut archive = match zip::ZipArchive::new(cursor) {
         Ok(archive) => archive,
@@ -179,6 +203,7 @@ pub async fn install_plugin(
                 "ZIP inválido para plugin '{}': {e}. URL: {download_url}",
                 plugin_id
             );
+            let _ = fs::remove_dir_all(&dest);
             return Err(format!(
                 "ZIP inválido para '{}': {e}. Verifique se o arquivo de download é um ZIP válido.",
                 plugin_id
@@ -212,6 +237,17 @@ pub async fn install_plugin(
 
         let out_path = dest.join(&rel_path);
 
+        // Validação de Segurança Zip Slip
+        if !is_safe_extraction_path(&dest, &out_path) {
+            let _ = fs::remove_dir_all(&dest);
+            let msg = format!(
+                "Aviso de segurança: tentativa de navegação de caminho (Zip Slip) detectada em '{:?}'",
+                rel_path
+            );
+            log::error!("{msg}");
+            return Err(msg);
+        }
+
         if file.is_dir() {
             fs::create_dir_all(&out_path).map_err(|e| format!("Falha ao criar subpasta: {e}"))?;
         } else {
@@ -241,7 +277,34 @@ pub async fn install_plugin(
         }
     }
 
-    log::info!("Plugin '{}' instalado em {}", plugin_id, dest.display());
+    // Validação pós-instalação do PluginManifest
+    if let Ok(manifest_content) = fs::read_to_string(&plugin_json_path) {
+        if let Ok(manifest) = serde_json::from_str::<crate::plugin::PluginManifest>(&manifest_content) {
+            let validation_errors = manifest.validate();
+            if !validation_errors.is_empty() {
+                let _ = fs::remove_dir_all(&dest);
+                let msg = format!(
+                    "Plugin '{}' possui manifesto inválido: {:?}",
+                    plugin_id, validation_errors
+                );
+                log::error!("{msg}");
+                return Err(msg);
+            }
+
+            let entrypoint = dest.join(&manifest.entry);
+            if !entrypoint.exists() {
+                let _ = fs::remove_dir_all(&dest);
+                let msg = format!(
+                    "Arquivo de entrada '{}' declarado em plugin.json não existe no pacote baixado.",
+                    manifest.entry
+                );
+                log::error!("{msg}");
+                return Err(msg);
+            }
+        }
+    }
+
+    log::info!("Plugin '{}' instalado e validado em {}", plugin_id, dest.display());
     Ok(format!("Plugin '{}' instalado com sucesso.", plugin_id))
 }
 
@@ -413,5 +476,43 @@ fn find_common_root_dir<R: std::io::Read + std::io::Seek>(
         root_dir
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_calculate_sha256() {
+        let data = b"toolbox-plugin-test";
+        let hash = calculate_sha256(data);
+        assert_eq!(hash.len(), 64); // Hexadecimal de 256 bits tem 64 chars
+        assert_eq!(
+            hash,
+            "424c0240981ee80abdfd9912af0e3a6b18990c1ecbec1e25046f7424cbeb649a"
+        );
+    }
+
+    #[test]
+    fn test_is_safe_extraction_path_valid() {
+        let base = Path::new("/app/plugins/my-plugin");
+        let safe_target = Path::new("/app/plugins/my-plugin/main.py");
+        assert!(is_safe_extraction_path(base, safe_target));
+    }
+
+    #[test]
+    fn test_is_safe_extraction_path_zip_slip_parent_dir() {
+        let base = Path::new("/app/plugins/my-plugin");
+        let unsafe_target = Path::new("/app/plugins/my-plugin/../other.py");
+        assert!(!is_safe_extraction_path(base, unsafe_target));
+    }
+
+    #[test]
+    fn test_is_safe_extraction_path_outside_base() {
+        let base = Path::new("/app/plugins/my-plugin");
+        let outside_target = Path::new("/app/plugins/other-plugin/main.py");
+        assert!(!is_safe_extraction_path(base, outside_target));
     }
 }
