@@ -308,11 +308,29 @@ pub async fn install_plugin(
     Ok(format!("Plugin '{}' instalado com sucesso.", plugin_id))
 }
 
+/// Verifica se o caminho pertence a um diretório de desenvolvimento protegido
+/// (ex: C:\tools\toolbox-plugins\plugins\...) que NUNCA deve ter arquivos apagados do disco.
+pub fn is_protected_plugin_path(path: &Path) -> bool {
+    let path_str = path.to_string_lossy().to_lowercase();
+    path_str.contains("toolbox-plugins\\plugins") || path_str.contains("toolbox-plugins/plugins")
+}
+
 /// Remove um plugin instalado (apaga a pasta em plugins/<id>).
+/// Plugins localizados em diretórios de desenvolvimento protegidos (ex: toolbox-plugins/plugins)
+/// nunca têm seus arquivos apagados do disco.
 #[tauri::command]
 pub fn remove_plugin(app: AppHandle, plugin_id: String) -> Result<String, String> {
     let plugins_dir = crate::paths::plugins_dir(&app);
-    let dest = plugins_dir.join(&plugin_id);
+    let dest = if Path::new(&plugin_id).is_absolute() {
+        PathBuf::from(&plugin_id)
+    } else {
+        plugins_dir.join(&plugin_id)
+    };
+
+    if is_protected_plugin_path(&dest) {
+        log::warn!("Remoção física bloqueada: O caminho '{:?}' é um diretório de desenvolvimento protegido.", dest);
+        return Ok(format!("Plugin '{}' protegido em diretório de desenvolvimento. Diretório em disco preservado.", plugin_id));
+    }
 
     if !dest.exists() {
         return Err(format!("Plugin '{}' não está instalado.", plugin_id));
@@ -514,5 +532,16 @@ mod tests {
         let base = Path::new("/app/plugins/my-plugin");
         let outside_target = Path::new("/app/plugins/other-plugin/main.py");
         assert!(!is_safe_extraction_path(base, outside_target));
+    }
+    #[test]
+    fn test_is_protected_plugin_path() {
+        let win_path = Path::new(r"C:\tools\toolbox-plugins\plugins\calc-jornadas");
+        assert!(is_protected_plugin_path(win_path));
+
+        let unix_path = Path::new("/tools/toolbox-plugins/plugins/meu-plugin");
+        assert!(is_protected_plugin_path(unix_path));
+
+        let appdata_path = Path::new(r"C:\Users\user\AppData\Roaming\senior.toolbox\plugins\calc-jornadas");
+        assert!(!is_protected_plugin_path(appdata_path));
     }
 }
