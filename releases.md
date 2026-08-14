@@ -1,10 +1,27 @@
-## v1.15.0 - 2026-08-13 https://github.com/rodrigolessadev/toolbox/releases
-
+## v1.16.0 - 2026-08-14 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.0/Toolbox_1.16.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
 
-## v1.15.0 - 2026-08-13 https://github.com/rodrigolessadev/toolbox/releases
+- Added:
+  - Destaque visual no ícone do Marketplace (carrinho 🛒) com token de destaque `var(--accent)`, tooltip informativa e badge com contagem exata quando houver plugins com atualização disponível.
+  - Destaque visual no ícone de Configurações (⚙️) com token de destaque `var(--accent)`, tooltip indicando a nova versão e badge de aviso `!` quando houver update do Toolbox.
+  - Seção dedicada "Atualizações do Sistema" na modal de Configurações, exibindo a versão atual instalada e o botão "Atualizar agora" exclusivamente quando houver nova versão disponível.
 
+- Changed:
+  - Fluxo de atualização de plugins no Marketplace: atualizações de plugins já instalados agora ocorrem de forma direta e isolada via backend IPC, preservando 100% dos comandos cadastrados em `commands.json` sem solicitar nova parametrização.
+
+- Fixed:
+  - Eliminação da chamada indevida do modal de criação de comando (`InstallPluginModal`) ao clicar em "Atualizar" em plugins existentes.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - Preservação da integridade de comandos e configurações locais durante o ciclo de vida de atualização de plugins.
+
+</details>
+
+## v1.15.0 - 2026-08-13 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.15.0/Toolbox_1.15.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
 
@@ -31,17 +48,9 @@
 
 </details>
 
-</details>
-
-## v1.14.0 - 2026-08-03 https://github.com/rodrigolessadev/toolbox/releases
-
+## v1.14.0 - 2026-08-03 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.14.0/Toolbox_1.14.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
-
-## v1.13.0 - 2026-08-03
-
-<details>
-<summary>Ver detalhes da versão</summary>
 
 - Added:
   - Suporte a campos opcionais dinâmicos no plugin Gerador de Marcações, com seletor tipo combobox e remoção individual de campos.
@@ -67,17 +76,9 @@
 
 </details>
 
-</details>
-
-## v1.13.0 - 2026-08-03 https://github.com/rodrigolessadev/toolbox/releases
-
+## v1.13.0 - 2026-08-03 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.13.0/Toolbox_1.13.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
-
-## v1.13.0 - 2026-08-03
-
-<details>
-<summary>Ver detalhes da versão</summary>
 
 - Added:
   - Suporte a campos opcionais dinâmicos no plugin Gerador de Marcações, com seletor tipo combobox e remoção individual de campos.
@@ -98,103 +99,33 @@
   - (sem itens nesta versão)
 
 - Security:
-  - (sem alterações relacionadas à segurança nesta versão)
+  - (sem alterações nesta versão)
 
 </details>
 
-</details>
-
-## v1.13.0 - 2026-08-03 https://github.com/rodrigolessadev/toolbox/releases
-
+## v1.12.0 - 2026-07-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.12.0/Toolbox_1.12.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
 
-## v1.13.0 - 2026-08-03
-
-<details>
-<summary>Ver detalhes da versão</summary>
-
 - Added:
-  - Suporte a campos opcionais dinâmicos no plugin Gerador de Marcações, com seletor tipo combobox e remoção individual de campos.
-  - Geração de INSERTs com múltiplos horários (HORACC) e intervalo de datas, incluindo filtro por dias da semana.
-  - Máscara automática de horário (HH:MM) nos campos Entrada/Saída e parâmetros noturnos da Calculadora de Jornadas, preservando o cursor.
+  - Suporte a downloads e instalações com verificação de integridade via hash SHA-256 no catálogo de plugins.
+  - Registro estruturado de eventos de execução e telemetria básica no backend Tauri.
 
 - Changed:
-  - Plugin Calculadora de Jornadas: aplicação de tema escuro completo ao TreeView, entradas e totais, com destaque visual para colunas editáveis.
-  - Comportamento de edição na tabela de jornadas: um clique abre o editor inline, conteúdo atual é selecionado e navegação por TAB entre Entrada/Saída e nova linha.
-  - Plugin Gerador de Marcações: UI reorganizada em layout com scroll, seções de campos fixos, principais e opcionais, e melhoria na geração de SQL para SQL Server e Oracle.
-  - Backend executor (RunResult): campo `message` deixa de ser omitido quando `None` e passa a ser sempre serializado para o frontend.
+  - Otimização do tempo de inicialização da janela principal e tratamento assíncrono de busca.
 
 - Fixed:
-  - Correção do comportamento do cursor durante a digitação de horários na Calculadora de Jornadas (não volta para posições anteriores ao aplicar a máscara).
-  - Limitação consistente de 4 dígitos para entrada de hora (HHMM) nos campos de jornada, evitando valores inválidos na máscara.
+  - Ajuste na persistência de comandos favoritos no `commands.json`.
 
 - Removed:
   - (sem itens nesta versão)
 
 - Security:
-  - (sem alterações relacionadas à segurança nesta versão)
+  - Proteção de integridade nos pacotes de plugins baixados do repositório remoto.
 
 </details>
 
-</details>
-
-## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
-
-<details>
-<summary>Ver detalhes da versao</summary>
-
-.
-
-</details>
-
-## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
-
-<details>
-<summary>Ver detalhes da versao</summary>
-
-Teste
-
-</details>
-
-## v1.12.0 - 2026-07-24 https://github.com/rodrigolessadev/toolbox/releases
-
-<details>
-<summary>Ver detalhes da versao</summary>
-
-## v1.12.0 - 2026-07-24
-
-<details>
-<summary>Ver detalhes da versão</summary>
-
-- Added:
-  - Fluxo guiado de instalação de plugins com criação imediata de comando via modal dedicado.
-  - Suporte a ícones do Lucide por nome nos comandos (ex.: `shield-check`, `puzzle`, `calculator`).
-  - Geração automática de `plugin.json` padrão quando o pacote do plugin não inclui manifesto.
-  - Detecção e remoção de pasta raiz extra em arquivos ZIP de plugins durante a instalação.
-
-- Changed:
-  - Resolução do caminho de plugins no executor para aceitar caminhos absolutos e relativos à pasta de plugins.
-  - Exclusão de comandos do tipo plugin passou a tentar remover também a pasta física do plugin.
-  - Layout dos ícones e truncamento dos títulos na lista de comandos para melhor legibilidade e alinhamento.
-
-- Fixed:
-  - Extração de plugins empacotados com uma única pasta raiz, evitando estruturas duplicadas de diretórios.
-  - Remoção de plugins agora tenta desvincular e apagar comandos associados, evitando comandos órfãos.
-
-- Removed:
-  - (sem alterações nesta categoria)
-
-- Security:
-  - (sem alterações nesta categoria)
-
-</details>
-
-</details>
-
-﻿# Releases
-
-## v1.11.1 - 2026-07-23 https://github.com/rodrigolessadev/toolbox/releases
+## v1.11.1 - 2026-07-23
 
 <details>
 <summary>Ver detalhes da versao</summary>
@@ -224,7 +155,7 @@ Teste
 
 </details>
 
-## v1.11.0 - 2026-07-23 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.11.0/Toolbox_1.11.0_x64-setup.exe)
+## v1.11.0 - 2026-07-23
 
 <details>
 <summary>Ver detalhes da versao</summary>
@@ -258,7 +189,7 @@ Teste
 
 ---
 
-## v1.10.0 - 2026-07-22 [Download](https://raw.githubusercontent.com/rodrigolessadev/toolbox-installer/main/builds/Toolbox_1.10.0_x64-setup.exe)
+## v1.10.0 - 2026-07-22
 <details>
 <summary>Ver detalhes da versÃ£o</summary>
 - Added:
@@ -408,5 +339,3 @@ Teste
 - Security:
   - Endurecimento do fluxo de download de favicons ao aceitar apenas content-types iniciados em `image/`, reduzindo o risco de tratar conteÃºdo inesperado como imagem
 </details>
-
-
