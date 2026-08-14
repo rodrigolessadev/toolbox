@@ -432,11 +432,16 @@ export default function App() {
               try {
                 const entry = commands[name];
                 if (entry && entry.type === "plugin") {
-                  const pluginId = entry.path || name;
-                  try {
-                    await api.removePlugin(pluginId);
-                  } catch (err) {
-                    console.warn("Falha ao apagar pasta do plugin:", err);
+                  const pluginPath = entry.path || name;
+                  const normalized = pluginPath.toLowerCase().replace(/\\/g, "/");
+                  const isProtected = normalized.includes("toolbox-plugins/plugins");
+
+                  if (!isProtected) {
+                    try {
+                      await api.removePlugin(pluginPath);
+                    } catch (err) {
+                      console.warn("Falha ao apagar pasta do plugin:", err);
+                    }
                   }
                 }
                 await api.deleteCommand(name);
