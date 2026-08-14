@@ -1,3 +1,174 @@
+## v1.16.1 - 2026-08-14
+
+Crie um novo plugin chamado `log-optimizer` no repositório `toolbox-plugins`.
+
+Objetivo:
+
+Processar arquivos de log e gerar uma versão compacta, normalizada e estruturada, reduzindo duplicidade e volume sem perder as evidências relevantes para investigação de incidentes.
+
+A implementação não pode utilizar IA, modelos de linguagem, APIs externas ou heurísticas não determinísticas.
+
+Funcionalidades obrigatórias:
+
+1. Aceitar logs nos formatos:
+   - Texto simples.
+   - JSON Lines/NDJSON.
+   - Um JSON contendo uma lista de eventos.
+   - Logs com stack trace multiline.
+   - Arquivos UTF-8 e, quando possível, UTF-8 com BOM.
+
+2. Detectar automaticamente:
+   - Timestamp.
+   - Nível do log.
+   - Serviço.
+   - Nome do arquivo.
+   - Mensagem.
+   - Request ID.
+   - Trace ID.
+   - Correlation ID.
+   - Order ID.
+   - User ID.
+   - Endpoint.
+   - Status HTTP.
+   - Exceção.
+   - Stack trace.
+
+3. Aceitar configuração opcional:
+   - Arquivo de entrada.
+   - Arquivo de saída.
+   - Níveis a preservar.
+   - Intervalo de tempo.
+   - Termos de busca.
+   - IDs de correlação.
+   - Quantidade máxima de amostras por grupo.
+   - Limite máximo de caracteres por evento.
+   - Lista de campos a preservar.
+   - Lista de padrões de mascaramento.
+   - Ativação ou desativação de agrupamento.
+   - Modo de saída: resumo, timeline, clusters ou evidências.
+
+4. Agrupar eventos semelhantes usando regras determinísticas:
+   - Remover timestamps variáveis.
+   - Normalizar UUIDs.
+   - Normalizar números.
+   - Normalizar endereços IP.
+   - Normalizar IDs numéricos.
+   - Normalizar valores entre aspas.
+   - Normalizar durações.
+   - Normalizar URLs com parâmetros variáveis.
+   - Preservar a mensagem original em amostras.
+
+5. Para cada grupo, gerar:
+   - ID do grupo.
+   - Template normalizado.
+   - Quantidade de ocorrências.
+   - Primeiro timestamp.
+   - Último timestamp.
+   - Níveis encontrados.
+   - Serviços encontrados.
+   - IDs de correlação associados.
+   - Até N amostras.
+   - Referência aos números das linhas originais.
+
+6. Gerar uma timeline compacta contendo:
+   - Eventos de nível ERROR, FATAL, CRITICAL e EXCEPTION.
+   - Eventos associados a IDs informados.
+   - Eventos próximos aos erros.
+   - Mudanças de status.
+   - Primeira e última ocorrência de cada grupo importante.
+
+7. Gerar estatísticas:
+   - Total de eventos.
+   - Eventos processados.
+   - Eventos ignorados.
+   - Eventos inválidos.
+   - Quantidade por nível.
+   - Quantidade por serviço.
+   - Quantidade por minuto.
+   - Top templates de erro.
+   - Quantidade de grupos encontrados.
+   - Redução aproximada de linhas e caracteres.
+
+8. Implementar mascaramento antes de gerar qualquer saída:
+   - Authorization.
+   - Bearer tokens.
+   - Cookies.
+   - JWTs.
+   - API keys.
+   - Senhas.
+   - CPF.
+   - E-mail, quando solicitado.
+   - Números de cartão.
+   - Valores de campos sensíveis.
+   - Query parameters sensíveis.
+
+9. Nunca modificar o arquivo original.
+
+10. Quando o conteúdo exceder os limites:
+    - Truncar de forma controlada.
+    - Informar `truncated: true`.
+    - Informar o total original.
+    - Informar quantos registros foram mantidos.
+    - Manter prioridade para erros e eventos correlacionados.
+
+Defina uma entrada JSON semelhante a:
+
+{
+  "input_file": "caminho/arquivo.log",
+  "output_file": "caminho/arquivo-otimizado.json",
+  "options": {
+    "levels": ["ERROR", "WARN", "FATAL"],
+    "keywords": [],
+    "correlation_ids": [],
+    "group_repetitions": true,
+    "samples_per_group": 3,
+    "include_timeline": true,
+    "include_statistics": true,
+    "mask_sensitive_data": true,
+    "max_output_chars": 500000
+  }
+}
+
+Defina uma saída de sucesso semelhante a:
+
+{
+  "protocol_version": "1.0",
+  "request_id": "req_x",
+  "status": "success",
+  "result": {
+    "summary": {},
+    "clusters": [],
+    "timeline": [],
+    "evidence": [],
+    "output_file": "arquivo-otimizado.json",
+    "statistics": {
+      "input_lines": 0,
+      "events_processed": 0,
+      "events_discarded": 0,
+      "clusters": 0,
+      "characters_before": 0,
+      "characters_after": 0,
+      "reduction_percent": 0
+    }
+  },
+  "error": null,
+  "warnings": []
+}
+
+Inclua testes para:
+
+- Log vazio.
+- Log com uma única linha.
+- Log JSON Lines.
+- Log com stack trace.
+- Eventos repetidos.
+- Timestamps em formatos diferentes.
+- Dados sensíveis.
+- Arquivo inexistente.
+- Conteúdo inválido.
+- Limite de saída excedido.
+- Preservação de eventos associados a request_id.
+
 ## v1.16.0 - 2026-08-14
 
 - Added:
