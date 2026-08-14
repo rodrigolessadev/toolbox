@@ -1,0 +1,251 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPlugins = await getCollection('plugins');
+  return allPlugins.map((plugin) => ({
+    params: { id: plugin.data.id },
+    props: { plugin, allPlugins },
+  }));
+}
+
+const { plugin, allPlugins } = Astro.props;
+const { Content } = await render(plugin);
+const sortedPlugins = allPlugins.sort((a, b) => a.data.name.localeCompare(b.data.name));
+---
+
+<Base 
+  title={`${plugin.data.name} — Documentação do Plugin | Toolbox`} 
+  description={plugin.data.description}
+>
+  <div class="plugin-layout">
+    <aside class="plugin-sidebar">
+      <div class="sidebar-header">
+        <a href="/plugins" class="back-link">← Catálogo de Plugins</a>
+        <h4>Plugins Disponíveis</h4>
+      </div>
+      <ul class="sidebar-list">
+        {sortedPlugins.map((p) => (
+          <li>
+            <a 
+              href={`/plugins/${p.data.id}`} 
+              class={`sidebar-link ${p.data.id === plugin.data.id ? 'active' : ''}`}
+            >
+              {p.data.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    <main class="plugin-main">
+      <div class="plugin-header-card">
+        <div class="header-top">
+          <span class="plugin-badge">Plugin Oficial</span>
+          <span class="plugin-ver">Versão {plugin.data.version}</span>
+        </div>
+        <h1 class="main-title">{plugin.data.name}</h1>
+        <p class="main-desc">{plugin.data.description}</p>
+
+        <div class="meta-row">
+          {plugin.data.author && <span class="meta-item">👤 Autor: <strong>{plugin.data.author}</strong></span>}
+          {plugin.data.language && <span class="meta-item">💻 Linguagem: <strong>{plugin.data.language}</strong></span>}
+          {plugin.data.updated_at && <span class="meta-item">📅 Atualizado: <strong>{plugin.data.updated_at}</strong></span>}
+          {plugin.data.download_url && (
+            <a href={plugin.data.download_url} class="download-btn" target="_blank" rel="noopener noreferrer">
+              ⬇ Baixar Plugin (.zip)
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div class="plugin-content docs-content">
+        <Content />
+      </div>
+    </main>
+  </div>
+</Base>
+
+<style>
+  .plugin-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+    align-items: start;
+    padding: 24px 0 60px;
+  }
+  .plugin-sidebar {
+    position: sticky;
+    top: 80px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .sidebar-header {
+    margin-bottom: 12px;
+  }
+  .back-link {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    margin-bottom: 12px;
+  }
+  .sidebar-header h4 {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sidebar-link {
+    display: block;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-link:hover {
+    background: var(--bg);
+    color: var(--text);
+  }
+  .sidebar-link.active {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .plugin-main {
+    min-width: 0;
+  }
+  .plugin-header-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .header-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .plugin-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .plugin-ver {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .main-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .main-desc {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0 0 18px;
+  }
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .meta-item strong {
+    color: var(--text);
+  }
+  .download-btn {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .download-btn:hover {
+    opacity: 0.9;
+  }
+
+  /* Documentacao Markdown */
+  .docs-content :global(h2) {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-top: 36px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .docs-content :global(h3) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+  .docs-content :global(p) {
+    line-height: 1.6;
+    margin: 12px 0;
+    color: var(--text);
+  }
+  .docs-content :global(pre) {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-size: 0.88rem;
+    margin: 16px 0;
+  }
+  .docs-content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+  }
+  .docs-content :global(th),
+  .docs-content :global(td) {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  .docs-content :global(th) {
+    background: var(--bg-elevated);
+  }
+
+  @media (max-width: 820px) {
+    .plugin-layout {
+      grid-template-columns: 1fr;
+    }
+    .plugin-sidebar {
+      position: static;
+    }
+  }
+</style>
