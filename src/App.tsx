@@ -33,6 +33,44 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "history",     label: "Histórico" },
 ];
 
+function scoreCommand(name: string, entry: CommandEntry, query: string): number {
+  const q = query.trim().toLowerCase();
+  if (!q) return 0;
+
+  const n = name.toLowerCase().trim();
+  const url = (entry.url || "").toLowerCase();
+  const path = (entry.path || "").toLowerCase();
+  const args = (entry.args || "").toLowerCase();
+
+  // 1. Match exato no nome do comando
+  if (n === q) return 1000;
+
+  // 2. Nome do comando inicia com o termo
+  if (n.startsWith(q)) return 800 - Math.min(100, n.length - q.length);
+
+  // 3. Nome do comando contem a palavra
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const wordRegex = new RegExp(`\\b${escaped}`);
+  if (wordRegex.test(n)) return 600;
+
+  // 4. Nome contem a substring
+  if (n.includes(q)) return 500;
+
+  // 5. Argumentos do comando contem a query
+  if (args.includes(q)) return 300;
+
+  // 6. Path do executavel/plugin contem a query
+  if (path.includes(q)) {
+    if (path.endsWith(q) || path.includes(`/${q}`) || path.includes(`\\${q}`)) return 250;
+    return 200;
+  }
+
+  // 7. URL contem a query (menor prioridade)
+  if (url.includes(q)) return 100;
+
+  return -1;
+}
+
 export default function App() {
   const [showAdd, setShowAdd]                   = useState(false);
   const [showSettings, setShowSettings]         = useState(false);
@@ -116,7 +154,7 @@ export default function App() {
     }
   }, [push]);
 
-  // ───── Lista filtrada + tab ─────
+    // ── Lista filtrada e ordenada por relevância + tab ───────────
   const filtered = useMemo<[string, CommandEntry][]>(() => {
     const q = query.trim().toLowerCase();
     let all = Object.entries(commands);
@@ -124,12 +162,29 @@ export default function App() {
     if (tab === "favorites")                all = all.filter(([, e]) => e.favorite);
     else if (tab !== "all")                 all = all.filter(([, e]) => e.type === tab);
 
-    if (!q) return all;
-    return all.filter(([name, e]) =>
-      name.toLowerCase().includes(q) ||
-      (e.url  && e.url.toLowerCase().includes(q)) ||
-      (e.path && e.path.toLowerCase().includes(q))
-    );
+    if (!q) {
+      return all.sort(([nameA, entryA], [nameB, entryB]) => {
+        if (entryA.favorite && !entryB.favorite) return -1;
+        if (!entryA.favorite && entryB.favorite) return 1;
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    const scored = all
+      .map(([name, entry]) => ({
+        item: [name, entry] as [string, CommandEntry],
+        score: scoreCommand(name, entry, q),
+      }))
+      .filter(({ score }) => score >= 0);
+
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.item[1].favorite && !b.item[1].favorite) return -1;
+      if (!a.item[1].favorite && b.item[1].favorite) return 1;
+      return a.item[0].localeCompare(b.item[0]);
+    });
+
+    return scored.map(({ item }) => item);
   }, [commands, query, tab]);
 
   useEffect(() => {
