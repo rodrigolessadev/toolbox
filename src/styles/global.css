@@ -383,6 +383,7 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .app__update-dismiss:hover { opacity: 1; }
 
 .app__icon-btn {
+  position: relative;
   width: 28px;
   height: 28px;
   display: inline-flex;
@@ -394,9 +395,63 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   cursor: pointer;
   font-size: 14px;
   color: var(--fg-muted);
-  transition: background var(--tr), color var(--tr);
+  transition: background var(--tr), color var(--tr), box-shadow var(--tr);
 }
 .app__icon-btn:hover { background: var(--border); color: var(--fg); }
+
+.app__icon-btn--has-update {
+  color: var(--accent) !important;
+  background: var(--accent-soft);
+}
+.app__icon-btn--has-update:hover {
+  background: var(--accent-soft);
+  filter: brightness(1.15);
+}
+
+.app__icon-btn-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.settings__update-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+
+.settings__update-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--tr);
+}
+.settings__update-btn:hover:not(:disabled) { filter: brightness(1.1); }
+.settings__update-btn:disabled { opacity: 0.6; cursor: wait; }
 
 /* Search input */
 .app__search {

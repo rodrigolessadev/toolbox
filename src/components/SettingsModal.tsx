@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import { api } from "../lib/api";
 
 interface Props {
@@ -9,6 +10,9 @@ interface Props {
   onError?: (message: string) => void;
   onOpenDataDir?: () => Promise<void> | void;
   onOpenLogsDir?: () => Promise<void> | void;
+  updateVersion?: string | null;
+  onInstallUpdate?: () => Promise<void>;
+  updating?: boolean;
 }
 
 export function SettingsModal({
@@ -19,14 +23,18 @@ export function SettingsModal({
   onError,
   onOpenDataDir,
   onOpenLogsDir,
+  updateVersion,
+  onInstallUpdate,
+  updating,
 }: Props) {
-  const [theme,      setTheme]      = useState<string>("dark");
-  const [dataDir,    setDataDir]    = useState<string>("");
+  const [theme, setTheme] = useState<string>("dark");
+  const [dataDir, setDataDir] = useState<string>("");
   const [pluginsDir, setPluginsDir] = useState<string>("");
-  const [logsDir,    setLogsDir]    = useState<string>("");
-  const [importing,  setImporting]  = useState(false);
-  const [exporting,  setExporting]  = useState(false);
-  const [working,    setWorking]    = useState(false);
+  const [logsDir, setLogsDir] = useState<string>("");
+  const [appVersion, setAppVersion] = useState<string>("");
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [working, setWorking] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -34,17 +42,19 @@ export function SettingsModal({
     (async () => {
       try {
         setWorking(true);
-        const [dd, pd, ld, t] = await Promise.all([
+        const [dd, pd, ld, t, v] = await Promise.all([
           api.getDataDir(),
           api.getPluginsDir(),
           api.getLogsDir(),
           api.getTheme().catch(() => "dark"),
+          getVersion().catch(() => "1.0.0"),
         ]);
         if (cancelled) return;
         setDataDir(dd);
         setPluginsDir(pd);
         setLogsDir(ld);
         setTheme(t);
+        setAppVersion(v);
       } catch {
         if (!cancelled) onError?.("Falha ao carregar configurações.");
       } finally {
@@ -125,6 +135,36 @@ export function SettingsModal({
         </header>
 
         <div className="modal__form">
+
+          {/* Atualizações */}
+          <section className="settings__section">
+            <h3 className="settings__title">Atualizações do Sistema</h3>
+            {updateVersion ? (
+              <div className="settings__update-row">
+                <div className="settings__row-info">
+                  <strong>Nova versão disponível: v{updateVersion}</strong>
+                  <span className="settings__path">Versão atual instalada: v{appVersion || "1.0.0"}</span>
+                </div>
+                {onInstallUpdate && (
+                  <button
+                    type="button"
+                    className="settings__update-btn"
+                    onClick={onInstallUpdate}
+                    disabled={updating}
+                  >
+                    {updating ? "Atualizando..." : "Atualizar agora"}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="settings__row">
+                <div className="settings__row-info">
+                  <strong>Toolbox v{appVersion || "1.0.0"}</strong>
+                  <span className="settings__path">O aplicativo está atualizado.</span>
+                </div>
+              </div>
+            )}
+          </section>
 
           {/* Aparência */}
           <section className="settings__section">
