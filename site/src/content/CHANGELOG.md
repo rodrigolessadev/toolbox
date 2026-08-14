@@ -1,3 +1,21 @@
+## v1.16.3 - 2026-08-14
+
+- Added:
+  - (sem novas adições nesta versão)
+
+- Changed:
+  - Modo do instalador de atualização configurado para `basicUi` no Windows para exibir a barra de progresso da instalação e solicitar a elevação do UAC do Windows.
+
+- Fixed:
+  - Correção na desserialização do catálogo do Marketplace: adicionados valores padrão e tolerância a campos ausentes (`language`, `icon`, `author`, `command`), eliminando o erro ao abrir o Marketplace.
+  - Correção na instalação de atualizações do Toolbox no Windows: adicionada execução com elevação de Administrador (`runas` / UAC) caso o updater nativo encontre restrições de permissão.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - (sem alterações de segurança nesta versão)
+
 ## v1.16.2 - 2026-08-14
 
 - Added:
