@@ -57,9 +57,24 @@ export default function App() {
     window.setTimeout(() => inputRef.current?.focus(), 0);
   }, []);
 
-  // Banner de atualização disponível
+  // Banner e estados de atualização
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [pluginUpdatesCount, setPluginUpdatesCount] = useState(0);
+
+  const checkPluginUpdates = useCallback(async () => {
+    try {
+      const catalog = await api.fetchCatalog();
+      const updates = catalog.filter((p) => p.status === "update_available").length;
+      setPluginUpdatesCount(updates);
+    } catch {
+      // Silencioso em caso de erro de rede
+    }
+  }, []);
+
+  useEffect(() => {
+    checkPluginUpdates();
+  }, [checkPluginUpdates]);
 
   useEffect(() => {
     const unlisten = listen<{ version: string; body?: string }>("update-available", (event) => {
@@ -205,7 +220,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [filtered, activeIndex, showAdd, showSettings, execute]);
+  }, [filtered, activeIndex, showAdd, showSettings, execute, focusInput, showConverterData, showGeradorAfd, showGeradorMarcacoes, showStractJson]);
 
   // Enter no input
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -275,20 +290,51 @@ export default function App() {
             title="Novo comando (N)"
             aria-label="Novo comando"
           >+</button>
+
           <button
             type="button"
-            className="app__icon-btn"
+            className={`app__icon-btn${pluginUpdatesCount > 0 ? " app__icon-btn--has-update" : ""}`}
             onClick={() => setShowMarketplace(true)}
-            title="Marketplace de plugins"
-            aria-label="Marketplace"
-          >🛒</button>
+            title={
+              pluginUpdatesCount > 0
+                ? `${pluginUpdatesCount} plugin${pluginUpdatesCount > 1 ? "s" : ""} com atualização disponível`
+                : "Marketplace de plugins"
+            }
+            aria-label={
+              pluginUpdatesCount > 0
+                ? `${pluginUpdatesCount} plugins com atualização disponível`
+                : "Marketplace"
+            }
+          >
+            🛒
+            {pluginUpdatesCount > 0 && (
+              <span className="app__icon-btn-badge" aria-hidden="true">
+                {pluginUpdatesCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
-            className="app__icon-btn"
+            className={`app__icon-btn${updateVersion ? " app__icon-btn--has-update" : ""}`}
             onClick={() => setShowSettings(true)}
-            title="Configurações (Ctrl+,)"
-            aria-label="Configurações"
-          >⚙</button>
+            title={
+              updateVersion
+                ? `Nova versão disponível - v${updateVersion}`
+                : "Configurações (Ctrl+,)"
+            }
+            aria-label={
+              updateVersion
+                ? `Nova versão disponível: v${updateVersion}`
+                : "Configurações"
+            }
+          >
+            ⚙
+            {updateVersion && (
+              <span className="app__icon-btn-badge" aria-hidden="true">!</span>
+            )}
+          </button>
+
           <button
             type="button"
             className="app__icon-btn"
@@ -431,13 +477,25 @@ export default function App() {
         onError={(m) => push(m, "error")}
         onOpenDataDir={openDataDir}
         onOpenLogsDir={openLogsDir}
+        updateVersion={updateVersion}
+        onInstallUpdate={handleInstallUpdate}
+        updating={updating}
       />
  
       <MarketplaceModal
         open={showMarketplace}
-        onClose={() => setShowMarketplace(false)}
-        onPluginInstalled={async () => { await reload(); }}
-        onPluginRemoved={async () => { await reload(); }}
+        onClose={() => {
+          setShowMarketplace(false);
+          checkPluginUpdates();
+        }}
+        onPluginInstalled={async () => {
+          await reload();
+          checkPluginUpdates();
+        }}
+        onPluginRemoved={async () => {
+          await reload();
+          checkPluginUpdates();
+        }}
         onInfo={(m) => push(m, "info")}
         onError={(m) => push(m, "error")}
       />
