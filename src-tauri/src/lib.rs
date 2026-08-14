@@ -17,6 +17,45 @@ use tauri::Manager;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_updater::UpdaterExt;
 
+#[cfg(windows)]
+fn launch_elevated_installer(installer_path: &std::path::Path) -> Result<(), String> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::PCWSTR;
+    use windows::Win32::UI::Shell::ShellExecuteW;
+    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    use windows::Win32::Foundation::HWND;
+
+    let path_wide: Vec<u16> = installer_path
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let verb_wide: Vec<u16> = std::ffi::OsStr::new("runas")
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    unsafe {
+        let result = ShellExecuteW(
+            HWND(std::ptr::null_mut()),
+            PCWSTR(verb_wide.as_ptr()),
+            PCWSTR(path_wide.as_ptr()),
+            PCWSTR(std::ptr::null()),
+            PCWSTR(std::ptr::null()),
+            SW_SHOWNORMAL,
+        );
+
+        if (result.0 as usize) <= 32 {
+            return Err(format!(
+                "Falha ao executar instalador com privilégios de Administrador (código: {})",
+                result.0 as usize
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
@@ -26,12 +65,33 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "Nenhuma atualização disponível.".to_string())?;
 
-    update
-        .download_and_install(|_chunk, _total| {}, || {})
-        .await
-        .map_err(|e| e.to_string())?;
+    log::info!("Iniciando atualização para v{}", update.version);
 
-    Ok("Atualização instalada com sucesso.".to_string())
+    #[cfg(windows)]
+    {
+        let bytes = update
+            .download(|_chunk, _total| {}, || {})
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if let Err(err) = update.install(bytes.clone()) {
+            log::warn!("Instalação padrão falhou ({err}), executando instalador como Administrador...");
+            let temp_installer = std::env::temp_dir().join(format!("Toolbox_Update_{}.exe", update.version));
+            std::fs::write(&temp_installer, &bytes)
+                .map_err(|e| format!("Falha ao gravar instalador temporário: {e}"))?;
+            launch_elevated_installer(&temp_installer)?;
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        update
+            .download_and_install(|_chunk, _total| {}, || {})
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    Ok("Atualização iniciada. O instalador será executado em breve.".to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

@@ -11,17 +11,34 @@ use tauri::AppHandle;
 const CATALOG_URL: &str =
     "https://raw.githubusercontent.com/rodrigolessadev/toolbox-plugins/main/catalog.json";
 
+fn default_language() -> String {
+    "python".to_string()
+}
+
+fn default_icon() -> String {
+    "Puzzle".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CatalogPlugin {
     pub id: String,
     pub name: String,
+    #[serde(default)]
     pub description: String,
     pub version: String,
+    #[serde(default)]
     pub author: String,
+    #[serde(default = "default_language")]
     pub language: String,
+    #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default = "default_icon")]
     pub icon: String,
+    #[serde(default)]
     pub command: String,
+    #[serde(default)]
+    pub entry: String,
+    #[serde(default)]
     pub download_url: String,
     #[serde(default)]
     pub min_toolbox_version: String,
@@ -499,6 +516,36 @@ fn find_common_root_dir<R: std::io::Read + std::io::Seek>(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_deserialize_catalog_with_missing_fields() {
+        let json_data = r#"{
+            "version": "1.0",
+            "updated_at": "2026-08-14",
+            "plugins": [
+                {
+                    "id": "log-optimizer",
+                    "name": "Log Optimizer",
+                    "version": "1.0.0"
+                },
+                {
+                    "id": "har-optimizer",
+                    "name": "HAR Optimizer",
+                    "version": "1.0.0",
+                    "description": "Processa arquivos HAR",
+                    "download_url": "https://example.com/har.zip"
+                }
+            ]
+        }"#;
+
+        let catalog: Result<Catalog, _> = serde_json::from_str(json_data);
+        assert!(catalog.is_ok(), "Catalog com campos ausentes deve ser desserializado com sucesso");
+        let cat = catalog.unwrap();
+        assert_eq!(cat.plugins.len(), 2);
+        assert_eq!(cat.plugins[0].language, "python");
+        assert_eq!(cat.plugins[0].icon, "Puzzle");
+        assert_eq!(cat.plugins[1].description, "Processa arquivos HAR");
+    }
+
     use super::*;
     use std::path::Path;
 
