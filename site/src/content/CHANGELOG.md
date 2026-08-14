@@ -1,3 +1,41 @@
+## v1.16.0 - 2026-08-14
+
+- Added:
+  - Destaque visual no ícone do Marketplace (carrinho 🛒) com token de destaque var(--accent), tooltip informativa e badge com contagem exata quando houver plugins com atualização disponível.
+  - Destaque visual no ícone de Configurações (⚙️) com token de destaque var(--accent), tooltip indicando a nova versão e badge de aviso ! quando houver update do Toolbox.
+  - Seção dedicada "Atualizações do Sistema" na modal de Configurações, exibindo a versão atual instalada e o botão "Atualizar agora" exclusivamente quando houver nova versão disponível.
+
+- Changed:
+  - Fluxo de atualização de plugins no Marketplace: atualizações de plugins já instalados agora ocorrem de forma direta e isolada via backend IPC, preservando 100% dos comandos cadastrados em commands.json sem solicitar nova parametrização.
+
+- Fixed:
+  - Eliminação da chamada indevida do modal de criação de comando (InstallPluginModal) ao clicar em "Atualizar" em plugins existentes.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - Preservação da integridade de comandos e configurações locais durante o ciclo de vida de atualização de plugins.
+
+## v1.16.0 - 2026-08-14
+
+- Added:
+  - Destaque visual no ícone do Marketplace (carrinho 🛒) com token de destaque var(--accent), tooltip informativa e badge com contagem exata quando houver plugins com atualização disponível.
+  - Destaque visual no ícone de Configurações (⚙️) com token de destaque var(--accent), tooltip indicando a nova versão e badge de aviso ! quando houver update do Toolbox.
+  - Seção dedicada "Atualizações do Sistema" na modal de Configurações, exibindo a versão atual instalada e o botão "Atualizar agora" exclusivamente quando houver nova versão disponível.
+
+- Changed:
+  - Fluxo de atualização de plugins no Marketplace: atualizações de plugins já instalados agora ocorrem de forma direta e isolada via backend IPC, preservando 100% dos comandos cadastrados em commands.json sem solicitar nova parametrização.
+
+- Fixed:
+  - Eliminação da chamada indevida do modal de criação de comando (InstallPluginModal) ao clicar em "Atualizar" em plugins existentes.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - Preservação da integridade de comandos e configurações locais durante o ciclo de vida de atualização de plugins.
+
 ## v1.15.0 - 2026-08-13
 
 ## v1.15.0 - 2026-08-13 https://github.com/rodrigolessadev/toolbox/releases
