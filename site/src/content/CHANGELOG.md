@@ -1,3 +1,20 @@
+## v1.16.2 - 2026-08-14
+
+- Added:
+  - (sem novas adições nesta versão)
+
+- Changed:
+  - Mecanismo de busca de comandos otimizado com algoritmo de relevância ponderada: correspondências pelo nome do comando (exatas, prefixo ou palavras) agora têm prioridade máxima sobre correspondências em argumentos, caminhos ou URLs.
+
+- Fixed:
+  - Correção na ordenação de resultados da busca, evitando que comandos secundários com URLs extensas sejam exibidos antes de comandos diretamente relevantes pelo nome.
+
+- Removed:
+  - (sem itens nesta versão)
+
+- Security:
+  - (sem alterações de segurança nesta versão)
+
 ## v1.16.1 - 2026-08-14
 
 Crie um novo plugin chamado `log-optimizer` no repositório `toolbox-plugins`.
