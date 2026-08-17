@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { api } from "../lib/api";
+import { Theme } from "../hooks/useTheme";
 
 interface Props {
   open: boolean;
@@ -13,6 +14,8 @@ interface Props {
   updateVersion?: string | null;
   onInstallUpdate?: () => Promise<void>;
   updating?: boolean;
+  theme?: Theme;
+  onThemeChange?: (theme: Theme) => void;
 }
 
 export function SettingsModal({
@@ -26,8 +29,14 @@ export function SettingsModal({
   updateVersion,
   onInstallUpdate,
   updating,
+  theme: propTheme,
+  onThemeChange,
 }: Props) {
-  const [theme, setTheme] = useState<string>("dark");
+  const [theme, setTheme] = useState<Theme>(propTheme || "dark");
+
+  useEffect(() => {
+    if (propTheme) setTheme(propTheme);
+  }, [propTheme]);
   const [dataDir, setDataDir] = useState<string>("");
   const [pluginsDir, setPluginsDir] = useState<string>("");
   const [logsDir, setLogsDir] = useState<string>("");
@@ -53,7 +62,7 @@ export function SettingsModal({
         setDataDir(dd);
         setPluginsDir(pd);
         setLogsDir(ld);
-        setTheme(t);
+        if (!propTheme && (t === "light" || t === "dark" || t === "system")) setTheme(t as Theme);
         setAppVersion(v);
       } catch {
         if (!cancelled) onError?.("Falha ao carregar configurações.");
@@ -74,9 +83,13 @@ export function SettingsModal({
   if (!open) return null;
 
   const handleThemeChange = async (next: string) => {
-    setTheme(next);
+    const nextTheme = next as Theme;
+    setTheme(nextTheme);
+    if (onThemeChange) {
+      onThemeChange(nextTheme);
+    }
     try {
-      await api.setTheme(next as "light" | "dark");
+      await api.setTheme(nextTheme);
       onInfo?.("Tema atualizado.");
     } catch {
       onError?.("Falha ao alterar tema.");

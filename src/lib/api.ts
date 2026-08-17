@@ -125,7 +125,7 @@ export const api = {
   clearHistory: () => invoke<void>("clear_history"),
 
   getTheme: () => invoke<string>("get_theme"),
-  setTheme: (theme: "light" | "dark") => invoke<void>("set_theme", { theme }),
+  setTheme: (theme: "light" | "dark" | "system") => invoke<void>("set_theme", { theme }),
 
   getDataDir: () => invoke<string>("get_data_dir"),
   getPluginsDir: () => invoke<string>("get_plugins_dir"),

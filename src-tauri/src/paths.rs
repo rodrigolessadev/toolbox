@@ -61,11 +61,22 @@ pub fn show_window(window: Window) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_theme() -> Result<String, String> {
+pub fn get_theme(app: AppHandle) -> Result<String, String> {
+    let theme_file = data_dir(&app).join("theme.txt");
+    if let Ok(content) = std::fs::read_to_string(theme_file) {
+        let trimmed = content.trim().to_string();
+        if trimmed == "light" || trimmed == "dark" || trimmed == "system" {
+            return Ok(trimmed);
+        }
+    }
     Ok("dark".to_string())
 }
 
 #[tauri::command]
-pub fn set_theme(_theme: String) -> Result<(), String> {
+pub fn set_theme(theme: String, app: AppHandle) -> Result<(), String> {
+    let dir = data_dir(&app);
+    std::fs::create_dir_all(&dir).ok();
+    let theme_file = dir.join("theme.txt");
+    let _ = std::fs::write(theme_file, theme);
     Ok(())
 }

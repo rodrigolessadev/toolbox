@@ -19,7 +19,7 @@
   gap: 4px;
   padding: 0 12px;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--fg-muted);
   -webkit-app-region: drag;
   app-region: drag;
   user-select: none;
@@ -41,11 +41,11 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--fg);
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
   border-radius: 3px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 0 var(--border);
 }
 
 .titlebar__plus {
@@ -60,7 +60,6 @@
   align-items: center;
   padding: 0 12px;
   min-width: 0;
-  /* importante para o flex não estourar */
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -83,7 +82,7 @@
 }
 
 .titlebar__version {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--fg-muted);
   font-size: 11px;
   font-weight: 500;
 }
@@ -94,12 +93,13 @@
 }
 
 .titlebar__btn--active {
-  background: rgba(96, 165, 250, 0.18);
-  color: #60a5fa;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .titlebar__btn--active:hover {
-  background: rgba(96, 165, 250, 0.28);
+  background: var(--accent-soft);
+  filter: brightness(1.15);
 }
 
 .titlebar__title {
@@ -130,11 +130,11 @@
 }
 
 .titlebar__btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
 }
 
 .titlebar__btn:active {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--border-muted);
 }
 
 .titlebar__btn--close:hover {
