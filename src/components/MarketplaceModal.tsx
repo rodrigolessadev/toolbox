@@ -223,7 +223,23 @@ export function MarketplaceModal({
             <div className="marketplace__loading">Carregando catálogo...</div>
           ) : visible.length === 0 ? (
             <div className="marketplace__empty">
-              {q ? `Nenhum plugin encontrado para "${q}".` : "Nenhum plugin nesta categoria."}
+              {q ? (
+                `Nenhum plugin encontrado para "${q}".`
+              ) : entries.length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                  <span>Não foi possível carregar os plugins no momento.</span>
+                  <button
+                    type="button"
+                    className="modal__btn modal__btn--primary"
+                    onClick={loadCatalog}
+                    disabled={loading}
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              ) : (
+                "Nenhum plugin nesta categoria."
+              )}
             </div>
           ) : (
             visible.map((entry) => (

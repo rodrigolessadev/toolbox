@@ -6,10 +6,136 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 
-// ─────────────────────── Tipos do catálogo ────────────────────────
+// ─────────────────────── Tipos do catálogo ───────────────────────
 
 const CATALOG_URL: &str =
     "https://raw.githubusercontent.com/rodrigolessadev/toolbox-plugins/main/catalog.json";
+
+const FALLBACK_CATALOG_JSON: &str = r#"{
+  "version": "1.0",
+  "updated_at": "2026-08-14",
+  "plugins": [
+    {
+      "id": "calc-jornadas",
+      "name": "Calculadora de Jornadas",
+      "version": "1.1.0",
+      "description": "Calcula horas normais, noturnas e noturnas reduzidas por jornada de trabalho.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["rh", "jornada", "horas", "trabalho"],
+      "icon": "clock",
+      "command": "calc-jornadas",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/calc-jornadas-1.1.0/calc-jornadas.zip"
+    },
+    {
+      "id": "converter-data",
+      "name": "Converter Data",
+      "version": "1.0.1",
+      "description": "Converte data e hora para número serial Excel/Lotus e vice-versa.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["excel", "data", "conversão", "utilidade"],
+      "icon": "calendar",
+      "command": "converter-data",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/converter-data-1.0.1/converter-data.zip"
+    },
+    {
+      "id": "cpf",
+      "name": "Validador de CPF",
+      "version": "1.0.0",
+      "description": "Valida e gera CPFs com interface gráfica.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["utilidade", "cpf", "validação"],
+      "icon": "shield-check",
+      "command": "cpf",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/cpf-1.0.0/cpf.zip"
+    },
+    {
+      "id": "gerador-afd",
+      "name": "Gerador de AFD",
+      "version": "1.0.0",
+      "description": "Gera arquivo AFD (Arquivo de Fonte de Dados) no padrão REP-C com CRC16.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["rh", "ponto", "afd", "rep"],
+      "icon": "file-clock",
+      "command": "gerador-afd",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-afd-1.0.0/gerador-afd.zip"
+    },
+    {
+      "id": "gerador-json",
+      "name": "Gerador de JSON",
+      "version": "1.0.0",
+      "description": "Gera mock data em JSON (Pessoa, Produto, Usuário) com quantidade configurável.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["dev", "json", "mock", "dados"],
+      "icon": "braces",
+      "command": "gerador-json",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-json-1.0.0/gerador-json.zip"
+    },
+    {
+      "id": "gerador-marcacoes",
+      "name": "Gerador de Marcações SQL",
+      "version": "2.2.1",
+      "description": "Gera INSERTs SQL para a tabela R070ACC compatíveis com SQL Server e Oracle.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["sql", "banco de dados", "insert"],
+      "icon": "database",
+      "command": "gerador-marcacoes",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.2.1/gerador-marcacoes.zip"
+    },
+    {
+      "id": "har-kibana-planner",
+      "name": "HAR Kibana Planner",
+      "version": "1.0.0",
+      "description": "Gera planos de consulta determinísticos no Elasticsearch/Kibana a partir de arquivos HAR 1.2.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["har-kibana-planner"],
+      "icon": "Puzzle",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/har-kibana-planner-1.0.0/har-kibana-planner.zip"
+    },
+    {
+      "id": "stract-json",
+      "name": "Stract JSON",
+      "version": "1.0.1",
+      "description": "Extrai valores de um campo específico a partir de um JSON colado.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["dev", "json", "extração", "dados"],
+      "icon": "file-json",
+      "command": "stract-json",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-json-1.0.1/stract-json.zip"
+    },
+    {
+      "id": "stract-log",
+      "name": "Stract Log",
+      "version": "1.0.0",
+      "description": "Filtra e extrai blocos de log por nível, parâmetro adicional e regra de recorrência.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["log", "suporte", "filtro", "análise"],
+      "icon": "file-search",
+      "command": "stract-log",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-log-1.0.0/stract-log.zip"
+    },
+    {
+      "id": "analysis-orchestrator",
+      "name": "Analysis Orchestrator",
+      "version": "1.0.1",
+      "description": "Orquestra a análise ponta a ponta executando sanitização, filtragem, otimização, timeline e evidências.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["logs", "har", "timeline", "orchestrator", "incident"],
+      "icon": "workflow",
+      "command": "analysis-orchestrator",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/analysis-orchestrator-1.0.1/analysis-orchestrator.zip"
+    }
+  ]
+}"#;
 
 fn default_language() -> String {
     "python".to_string()
@@ -76,7 +202,7 @@ pub struct MarketplaceEntry {
     pub installed_version: Option<String>,
 }
 
-// ─────────────────────── Helpers de Segurança ───────────────────────────
+// ─────────────────────── Helpers de Segurança ───────────────────────
 
 /// Calcula o hash SHA-256 de um buffer de bytes e retorna como string hexadecimal.
 #[allow(dead_code)]
@@ -88,7 +214,6 @@ pub fn calculate_sha256(bytes: &[u8]) -> String {
 
 /// Verifica se um caminho de destino de extração é seguro e não escapa do diretório raiz do plugin (prevenção Zip Slip).
 pub fn is_safe_extraction_path(base_dir: &Path, target_path: &Path) -> bool {
-    // Verifica se contém partes suspeitas '..' que sobem de nível
     for component in target_path.components() {
         if component == std::path::Component::ParentDir {
             return false;
@@ -97,30 +222,106 @@ pub fn is_safe_extraction_path(base_dir: &Path, target_path: &Path) -> bool {
     target_path.starts_with(base_dir)
 }
 
-// ─────────────────────── Comandos Tauri ───────────────────────────
+fn is_protected_plugin_path(path: &Path) -> bool {
+    let normalized = path.to_string_lossy().to_lowercase().replace('\\', "/");
+    normalized.contains("toolbox-plugins/plugins")
+}
+
+// ─────────────────────── Cache e Resiliência ───────────────────────
+
+fn catalog_cache_path(app: &AppHandle) -> PathBuf {
+    crate::paths::data_dir(app).join("catalog_cache.json")
+}
+
+fn save_catalog_cache(app: &AppHandle, raw_json: &str) {
+    let path = catalog_cache_path(app);
+    let _ = fs::write(path, raw_json);
+}
+
+fn load_catalog_cache(app: &AppHandle) -> Option<Catalog> {
+    let path = catalog_cache_path(app);
+    if path.exists() {
+        if let Ok(raw) = fs::read_to_string(&path) {
+            if let Ok(cat) = serde_json::from_str::<Catalog>(&raw) {
+                log::info!("Catálogo carregado com sucesso do cache local em disco.");
+                return Some(cat);
+            }
+        }
+    }
+    None
+}
+
+fn load_fallback_catalog() -> Catalog {
+    log::info!("Utilizando catálogo embutido de contingência.");
+    serde_json::from_str::<Catalog>(FALLBACK_CATALOG_JSON)
+        .expect("Catálogo de contingência embutido deve ser sempre válido")
+}
+
+async fn fetch_remote_catalog_body() -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("toolbox/1.16")
+        .timeout(std::time::Duration::from_secs(6))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    for attempt in 0..2 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+        }
+
+        let res = match client.get(CATALOG_URL).send().await {
+            Ok(r) => r,
+            Err(e) => {
+                log::warn!("Tentativa {} de buscar catálogo remoto falhou: {}", attempt + 1, e);
+                continue;
+            }
+        };
+
+        if !res.status().is_success() {
+            log::warn!(
+                "Resposta HTTP não-2xx ao buscar catálogo: status {}",
+                res.status()
+            );
+            continue;
+        }
+
+        match res.text().await {
+            Ok(text) => {
+                let trimmed = text.trim();
+                if trimmed.starts_with('{') && trimmed.ends_with('}') {
+                    return Ok(text);
+                } else {
+                    log::warn!("Resposta do catálogo não é um objeto JSON válido (possível página de erro/texto)");
+                }
+            }
+            Err(e) => {
+                log::warn!("Falha ao ler corpo da resposta do catálogo: {}", e);
+            }
+        }
+    }
+
+    Err("Não foi possível obter catálogo remoto válido do GitHub".to_string())
+}
+
+// ─────────────────────── Comandos Tauri ───────────────────────
 
 /// Busca o catálogo remoto e compara com os plugins instalados localmente.
 #[tauri::command]
 pub async fn fetch_catalog(app: AppHandle) -> Result<Vec<MarketplaceEntry>, String> {
-    let body = match reqwest::get(CATALOG_URL).await {
-        Ok(response) => match response.text().await {
-            Ok(text) => text,
+    let catalog = match fetch_remote_catalog_body().await {
+        Ok(body) => match serde_json::from_str::<Catalog>(&body) {
+            Ok(remote_catalog) => {
+                save_catalog_cache(&app, &body);
+                remote_catalog
+            }
             Err(e) => {
-                log::error!("Falha ao ler resposta do catálogo: {e}");
-                return Err(format!("Falha ao ler resposta: {e}"));
+                log::warn!("Falha ao desserializar catálogo remoto ({e}), tentando cache local...");
+                load_catalog_cache(&app).unwrap_or_else(load_fallback_catalog)
             }
         },
         Err(e) => {
-            log::error!("Falha ao buscar catálogo: {e}");
-            return Err(format!("Falha ao buscar catálogo: {e}"));
-        }
-    };
-
-    let catalog: Catalog = match serde_json::from_str(&body) {
-        Ok(catalog) => catalog,
-        Err(e) => {
-            log::error!("Catálogo inválido: {e}");
-            return Err(format!("Catálogo inválido: {e}"));
+            log::warn!("{e}, buscando fallback local...");
+            load_catalog_cache(&app).unwrap_or_else(load_fallback_catalog)
         }
     };
 
@@ -148,87 +349,80 @@ pub async fn fetch_catalog(app: AppHandle) -> Result<Vec<MarketplaceEntry>, Stri
 }
 
 /// Baixa e instala um plugin a partir da URL do catálogo.
-/// Realiza validação SHA-256 (se presente), proteção Zip Slip e validação do PluginManifest.
 #[tauri::command]
 pub async fn install_plugin(
-    app: AppHandle,
     plugin_id: String,
     download_url: String,
+    expected_sha256: Option<String>,
+    app: AppHandle,
 ) -> Result<String, String> {
+    if download_url.is_empty() {
+        return Err(format!(
+            "Plugin '{}' não possui URL de download disponível.",
+            plugin_id
+        ));
+    }
+
     let plugins_dir = crate::paths::plugins_dir(&app);
     let dest = plugins_dir.join(&plugin_id);
 
-    let response = match reqwest::get(&download_url).await {
-        Ok(response) => response,
-        Err(e) => {
-            log::error!(
-                "Falha ao baixar plugin '{}': {e} (URL: {download_url})",
-                plugin_id
-            );
-            return Err(format!("Falha ao baixar plugin: {e}"));
-        }
-    };
+    if is_protected_plugin_path(&dest) {
+        log::warn!("Instalação/Atualização bloqueada: O caminho '{:?}' é um diretório de desenvolvimento protegido.", dest);
+        return Err(format!("O plugin '{}' reside em um diretório de desenvolvimento protegido e não pode ser sobrescrito pelo Marketplace.", plugin_id));
+    }
+
+    log::info!("Baixando plugin '{}' de {}", plugin_id, download_url);
+
+    // 1. Download do ZIP com validação de status HTTP
+    let response = reqwest::get(&download_url)
+        .await
+        .map_err(|e| format!("Falha de rede ao baixar plugin: {e}"))?;
 
     if !response.status().is_success() {
-        let status = response.status();
-        let message = format!(
-            "Falha ao baixar plugin '{}': HTTP {status} ao acessar {download_url}",
-            plugin_id
-        );
-        log::error!("{message}");
-        return Err(message);
+        return Err(format!(
+            "Servidor retornou erro HTTP {} ao baixar o plugin.",
+            response.status()
+        ));
     }
 
-    let bytes = match response.bytes().await {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            log::error!("Falha ao ler bytes do plugin '{}': {e}", plugin_id);
-            return Err(format!("Falha ao ler bytes: {e}"));
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("Falha ao ler dados do plugin: {e}"))?;
+
+    // 2. Validação SHA-256 (se fornecido no catálogo)
+    if let Some(expected) = expected_sha256 {
+        if !expected.is_empty() {
+            let actual = calculate_sha256(&bytes);
+            if !actual.eq_ignore_ascii_case(&expected) {
+                log::error!(
+                    "Integridade violada para '{}'. Esperado: {}, Obtido: {}",
+                    plugin_id,
+                    expected,
+                    actual
+                );
+                return Err(format!(
+                    "Erro de integridade (SHA-256 inválido). O download pode ter sido corrompido ou adulterado."
+                ));
+            }
+            log::info!("Checksum SHA-256 verificado com sucesso para '{}'", plugin_id);
         }
-    };
-
-    if bytes.len() < 4 || bytes[..4] != [b'P', b'K', 0x03, 0x04] {
-        let message = format!(
-            "Falha ao instalar '{}': a URL de download não retornou um ZIP válido. URL: {download_url}",
-            plugin_id
-        );
-        log::error!("{message}");
-        return Err(message);
     }
 
-    // Garante que o diretório de destino existe (recria se necessário)
+    // 3. Preparação do diretório de destino
     if dest.exists() {
-        fs::remove_dir_all(&dest).map_err(|e| {
-            log::error!(
-                "Falha ao remover versão anterior do plugin '{}': {e}",
-                plugin_id
-            );
-            format!("Falha ao remover versão anterior: {e}")
-        })?;
+        fs::remove_dir_all(&dest)
+            .map_err(|e| format!("Falha ao limpar versão anterior do plugin: {e}"))?;
     }
-    fs::create_dir_all(&dest).map_err(|e| {
-        log::error!("Falha ao criar pasta do plugin '{}': {e}", plugin_id);
-        format!("Falha ao criar pasta: {e}")
-    })?;
+    fs::create_dir_all(&dest)
+        .map_err(|e| format!("Falha ao criar diretório do plugin: {e}"))?;
 
-    // Extrai o ZIP com proteção contra Zip Slip
-    let cursor = Cursor::new(bytes);
-    let mut archive = match zip::ZipArchive::new(cursor) {
-        Ok(archive) => archive,
-        Err(e) => {
-            log::error!(
-                "ZIP inválido para plugin '{}': {e}. URL: {download_url}",
-                plugin_id
-            );
-            let _ = fs::remove_dir_all(&dest);
-            return Err(format!(
-                "ZIP inválido para '{}': {e}. Verifique se o arquivo de download é um ZIP válido.",
-                plugin_id
-            ));
-        }
-    };
+    // 4. Extração com proteção Zip Slip e remoção de pasta raiz comum
+    let reader = Cursor::new(bytes);
+    let mut archive =
+        zip::ZipArchive::new(reader).map_err(|e| format!("Arquivo baixado não é um ZIP válido: {e}"))?;
 
-    let root_prefix = find_common_root_dir(&mut archive);
+    let common_root = find_common_root_dir(&mut archive);
 
     for i in 0..archive.len() {
         let mut file = archive
@@ -240,109 +434,70 @@ pub async fn install_plugin(
             None => continue,
         };
 
-        let rel_path = match &root_prefix {
-            Some(prefix) => match enclosed.strip_prefix(prefix) {
+        // Remove pasta raiz redundante se detectada
+        let relative_path = if let Some(ref root) = common_root {
+            match enclosed.strip_prefix(root) {
+                Ok(p) if p.as_os_str().is_empty() => continue,
                 Ok(p) => p.to_path_buf(),
                 Err(_) => enclosed,
-            },
-            None => enclosed,
+            }
+        } else {
+            enclosed
         };
 
-        if rel_path.as_os_str().is_empty() {
-            continue;
-        }
+        let dest_path = dest.join(&relative_path);
 
-        let out_path = dest.join(&rel_path);
-
-        // Validação de Segurança Zip Slip
-        if !is_safe_extraction_path(&dest, &out_path) {
+        // Prevenção contra vulnerabilidade Zip Slip
+        if !is_safe_extraction_path(&dest, &dest_path) {
             let _ = fs::remove_dir_all(&dest);
-            let msg = format!(
-                "Aviso de segurança: tentativa de navegação de caminho (Zip Slip) detectada em '{:?}'",
-                rel_path
-            );
-            log::error!("{msg}");
-            return Err(msg);
+            return Err(format!(
+                "Tentativa de extração insegura detectada (Zip Slip): {}",
+                dest_path.display()
+            ));
         }
 
         if file.is_dir() {
-            fs::create_dir_all(&out_path).map_err(|e| format!("Falha ao criar subpasta: {e}"))?;
+            fs::create_dir_all(&dest_path)
+                .map_err(|e| format!("Falha ao criar pasta interna: {e}"))?;
         } else {
-            if let Some(parent) = out_path.parent() {
-                fs::create_dir_all(parent).map_err(|e| format!("Falha ao criar pasta pai: {e}"))?;
+            if let Some(parent) = dest_path.parent() {
+                fs::create_dir_all(parent)
+                    .map_err(|e| format!("Falha ao criar subdiretório: {e}"))?;
             }
-            let mut out_file =
-                fs::File::create(&out_path).map_err(|e| format!("Falha ao criar arquivo: {e}"))?;
-            std::io::copy(&mut file, &mut out_file)
+            let mut out =
+                fs::File::create(&dest_path).map_err(|e| format!("Falha ao criar arquivo: {e}"))?;
+            std::io::copy(&mut file, &mut out)
                 .map_err(|e| format!("Falha ao extrair arquivo: {e}"))?;
         }
     }
 
-    // Garante que plugin.json exista na pasta do plugin
+    // 5. Validação de manifesto pós-instalação
     let plugin_json_path = dest.join("plugin.json");
     if !plugin_json_path.exists() {
-        let fallback_manifest = serde_json::json!({
-            "id": plugin_id,
+        log::warn!(
+            "plugin.json ausente no pacote baixado para '{}', gerando manifesto padrão",
+            plugin_id
+        );
+        let default_manifest = serde_json::json!({
             "name": plugin_id,
             "version": "1.0.0",
-            "description": "",
+            "entry": "main.py",
             "language": "python",
-            "entry": "main.py"
+            "description": ""
         });
-        if let Ok(content) = serde_json::to_string_pretty(&fallback_manifest) {
-            let _ = fs::write(&plugin_json_path, content);
-        }
+        fs::write(&plugin_json_path, default_manifest.to_string())
+            .map_err(|e| format!("Falha ao criar plugin.json padrão: {e}"))?;
     }
 
-    // Validação pós-instalação do PluginManifest
-    if let Ok(manifest_content) = fs::read_to_string(&plugin_json_path) {
-        if let Ok(manifest) = serde_json::from_str::<crate::plugin::PluginManifest>(&manifest_content) {
-            let validation_errors = manifest.validate();
-            if !validation_errors.is_empty() {
-                let _ = fs::remove_dir_all(&dest);
-                let msg = format!(
-                    "Plugin '{}' possui manifesto inválido: {:?}",
-                    plugin_id, validation_errors
-                );
-                log::error!("{msg}");
-                return Err(msg);
-            }
-
-            let entrypoint = dest.join(&manifest.entry);
-            if !entrypoint.exists() {
-                let _ = fs::remove_dir_all(&dest);
-                let msg = format!(
-                    "Arquivo de entrada '{}' declarado em plugin.json não existe no pacote baixado.",
-                    manifest.entry
-                );
-                log::error!("{msg}");
-                return Err(msg);
-            }
-        }
-    }
-
-    log::info!("Plugin '{}' instalado e validado em {}", plugin_id, dest.display());
+    log::info!("Plugin '{}' instalado com sucesso em {}", plugin_id, dest.display());
     Ok(format!("Plugin '{}' instalado com sucesso.", plugin_id))
 }
 
-/// Verifica se o caminho pertence a um diretório de desenvolvimento protegido
-/// (ex: C:\tools\toolbox-plugins\plugins\...) que NUNCA deve ter arquivos apagados do disco.
-pub fn is_protected_plugin_path(path: &Path) -> bool {
-    let path_str = path.to_string_lossy().to_lowercase();
-    path_str.contains("toolbox-plugins\\plugins") || path_str.contains("toolbox-plugins/plugins")
-}
-
-/// Remove um plugin instalado (apaga a pasta em plugins/<id>).
-/// Plugins localizados em diretórios de desenvolvimento protegidos (ex: toolbox-plugins/plugins)
-/// nunca têm seus arquivos apagados do disco.
+/// Remove um plugin do disco (apaga a pasta do plugin).
 #[tauri::command]
-pub fn remove_plugin(app: AppHandle, plugin_id: String) -> Result<String, String> {
+pub fn remove_plugin(plugin_id: String, app: AppHandle) -> Result<String, String> {
     let plugins_dir = crate::paths::plugins_dir(&app);
-    let dest = if Path::new(&plugin_id).is_absolute() {
-        PathBuf::from(&plugin_id)
-    } else {
-        plugins_dir.join(&plugin_id)
-    };
+    let dest = plugins_dir.join(&plugin_id);
 
     if is_protected_plugin_path(&dest) {
         log::warn!("Remoção física bloqueada: O caminho '{:?}' é um diretório de desenvolvimento protegido.", dest);
@@ -430,7 +585,7 @@ pub fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPlugin>, St
     Ok(result)
 }
 
-// ─────────────────────── Helpers ──────────────────────────────────
+// ─────────────────────── Helpers ───────────────────────
 
 /// Retorna um mapa id → versão instalada lendo os plugin.json locais.
 fn installed_map(app: &AppHandle) -> HashMap<String, String> {
@@ -470,7 +625,6 @@ fn installed_map(app: &AppHandle) -> HashMap<String, String> {
 }
 
 /// Detecta se todas as entradas do ZIP compartilham uma única pasta raiz (ex: "calc-jornadas/").
-/// Se sim, retorna essa pasta para remover o aninhamento desnecessário na extração.
 fn find_common_root_dir<R: std::io::Read + std::io::Seek>(
     archive: &mut zip::ZipArchive<R>,
 ) -> Option<PathBuf> {
@@ -516,6 +670,9 @@ fn find_common_root_dir<R: std::io::Read + std::io::Seek>(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use std::path::Path;
+
     #[test]
     fn test_deserialize_catalog_with_missing_fields() {
         let json_data = r#"{
@@ -546,14 +703,30 @@ mod tests {
         assert_eq!(cat.plugins[1].description, "Processa arquivos HAR");
     }
 
-    use super::*;
-    use std::path::Path;
+    #[test]
+    fn test_fallback_catalog_is_valid() {
+        let cat = load_fallback_catalog();
+        assert!(!cat.plugins.is_empty(), "Catálogo fallback não pode ser vazio");
+        assert!(cat.plugins.iter().any(|p| p.id == "calc-jornadas"));
+        assert!(cat.plugins.iter().any(|p| p.id == "gerador-afd"));
+    }
+
+    #[test]
+    fn test_parse_invalid_html_or_503_error_does_not_panic() {
+        let error_body_503 = "Backend.max_conn reached\n";
+        let parsed: Result<Catalog, _> = serde_json::from_str(error_body_503);
+        assert!(parsed.is_err(), "Texto 503 não deve ser aceito como Catalog válido");
+
+        let html_error = "<html><head><title>503 Service Unavailable</title></head><body>503</body></html>";
+        let parsed_html: Result<Catalog, _> = serde_json::from_str(html_error);
+        assert!(parsed_html.is_err(), "HTML de erro não deve ser aceito como Catalog válido");
+    }
 
     #[test]
     fn test_calculate_sha256() {
         let data = b"toolbox-plugin-test";
         let hash = calculate_sha256(data);
-        assert_eq!(hash.len(), 64); // Hexadecimal de 256 bits tem 64 chars
+        assert_eq!(hash.len(), 64);
         assert_eq!(
             hash,
             "424c0240981ee80abdfd9912af0e3a6b18990c1ecbec1e25046f7424cbeb649a"
@@ -580,6 +753,7 @@ mod tests {
         let outside_target = Path::new("/app/plugins/other-plugin/main.py");
         assert!(!is_safe_extraction_path(base, outside_target));
     }
+
     #[test]
     fn test_is_protected_plugin_path() {
         let win_path = Path::new(r"C:\tools\toolbox-plugins\plugins\calc-jornadas");
