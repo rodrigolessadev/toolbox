@@ -1,3 +1,12 @@
+## v1.16.5 - 2026-08-17
+
+## Marketplace Resiliente & Tolerância a Falhas
+- **Validação de Status HTTP**: Prevenção do erro `Catálogo inválido: expected value at line 2 column 1` ao validar respostas HTTP 2xx e descartar páginas de erro (como 503 `Backend.max_conn reached`, 429 ou HTML).
+- **Retentativa Automática**: Adicionada retentativa automática com timeout de 6s para lidar com oscilações temporárias de rede.
+- **Cache Local Persistente em Disco**: O catálogo obtido com sucesso agora é gravado em `catalog_cache.json` no diretório de dados, permitindo acesso instantâneo e offline.
+- **Catálogo Embutido de Contingência**: Disponibilizado catálogo embutido de fallback para garantir funcionamento mesmo em ambientes sem conectividade externa inicial.
+- **Melhorias de UX no Modal de Marketplace**: Adicionado estado visual de feedback com botão de "Tentar novamente".
+
 ## v1.16.4 - 2026-08-17
 
 ## Modo Claro e Escuro
