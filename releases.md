@@ -1,3 +1,16 @@
+## v1.16.4 - 2026-08-17 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.4/Toolbox_1.16.4_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## Modo Claro e Escuro
+- **Sincronização de Tema**: Integração completa do hook `useTheme` para gerenciar os modos `light`, `dark` e `system`.
+- **Alternância Rápida no Cabeçalho**: Adicionado botão de toggle (`☀️`/`🌙`) na barra de ações principal para troca instantânea de tema.
+- **Detecção do Sistema Operacional**: Adicionado listener em tempo real para `prefers-color-scheme`, atualizando a interface dinamicamente conforme o sistema do usuário.
+- **Configurações e Persistência**: Sincronização do `<select>` de temas em Configurações com o `localStorage` e persistência no arquivo `theme.txt` do backend Tauri.
+- **Contraste Visual no Modo Claro**: Ajuste nos componentes `TitleBar` e modais para uso dos tokens semânticos CSS, garantindo alto contraste e perfeita legibilidade.
+
+</details>
+
 ## v1.16.3 - 2026-08-14 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.3/Toolbox_1.16.3_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versão</summary>
