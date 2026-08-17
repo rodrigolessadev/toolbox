@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { api, CommandEntry } from "./lib/api";
 import { useCommands } from "./hooks/useCommands";
 import { useHistory } from "./hooks/useHistory";
+import { useTheme } from "./hooks/useTheme";
 import { TitleBar } from "./components/TitleBar";
 import { CommandList } from "./components/CommandList";
 import { HistoryPanel } from "./components/HistoryPanel";
@@ -72,6 +73,7 @@ function scoreCommand(name: string, entry: CommandEntry, query: string): number 
 }
 
 export default function App() {
+  const { theme, resolvedTheme, setTheme, toggle } = useTheme();
   const [showAdd, setShowAdd]                   = useState(false);
   const [showSettings, setShowSettings]         = useState(false);
   const [showMarketplace, setShowMarketplace]   = useState(false);
@@ -341,6 +343,16 @@ export default function App() {
           <button
             type="button"
             className="app__icon-btn"
+            onClick={toggle}
+            title={`Alternar tema (atual: ${resolvedTheme === "dark" ? "Escuro" : "Claro"})`}
+            aria-label="Alternar tema"
+          >
+            {resolvedTheme === "dark" ? "🌙" : "☀️"}
+          </button>
+
+          <button
+            type="button"
+            className="app__icon-btn"
             onClick={() => setShowAdd(true)}
             title="Novo comando (N)"
             aria-label="Novo comando"
@@ -540,6 +552,8 @@ export default function App() {
         updateVersion={updateVersion}
         onInstallUpdate={handleInstallUpdate}
         updating={updating}
+        theme={theme}
+        onThemeChange={setTheme}
       />
  
       <MarketplaceModal

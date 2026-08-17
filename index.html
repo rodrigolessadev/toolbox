@@ -7,9 +7,16 @@
   <title>Toolbox</title>
   <script>
     (function () {
-      const stored = localStorage.getItem("toolbox-theme");
-      const theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      document.documentElement.setAttribute("data-theme", theme);
+      try {
+        const stored = localStorage.getItem("toolbox-theme") || localStorage.getItem("toolbox:theme");
+        const theme = stored || "dark";
+        const resolved = theme === "system"
+          ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+          : theme;
+        document.documentElement.setAttribute("data-theme", resolved);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
     })();
   </script>
 </head>

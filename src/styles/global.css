@@ -3,7 +3,8 @@
 /* ===========================================================
    Design Tokens — Escala Expandida (Etapa 3)
    =========================================================== */
-:root {
+:root,
+[data-theme="light"] {
   /* Light Mode — Superfícies (5 níveis) */
   --bg:           #f4f5f8;
   --bg-elev-1:    #ffffff;
