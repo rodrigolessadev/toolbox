@@ -1,5 +1,12 @@
 ## v1.16.7 - 2026-08-18
 
+## Instalação de Atualização com Elevação de Administrador (UAC)
+- **Elevação Automática no Windows**: O processo de atualização agora baixa o instalador e o executa explicitamente com privilégios de Administrador (`runas` / UAC), permitindo atualizar a instalação em `Program Files` sem falhas de permissão.
+- **Encerramento Gracioso**: Após o início do instalador elevado, o Toolbox se encerra automaticamente para liberar os binários em uso e evitar conflitos de bloqueio de arquivo.
+- **Tratamento de Cancelamento**: Mensagem clara de retorno caso o usuário recuse o diálogo de confirmação do UAC.
+
+## v1.16.7 - 2026-08-18
+
 ## Padronização de Ícones dos Cards do Marketplace com Lucide
     - **Renderização Dinâmica de Ícones**: Substituição do mapeamento estático de emojis por resolução dinâmica de componentes vetoriais `lucide-react` para os cards de plugins no Marketplace.
     - **Fallbacks Resilientes**: Suporte completo para ícones vetoriais Lucide, favicons/imagens (`data:` / `http`) e fallback seguro para o ícone padrão `Puzzle`.
