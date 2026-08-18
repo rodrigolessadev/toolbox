@@ -45,10 +45,14 @@ fn launch_elevated_installer(installer_path: &std::path::Path) -> Result<(), Str
             SW_SHOWNORMAL,
         );
 
-        if (result.0 as usize) <= 32 {
+        let code = result.0 as usize;
+        if code <= 32 {
+            if code == 5 || code == 0 {
+                return Err("A solicitação de permissão de Administrador (UAC) foi cancelada ou negada.".to_string());
+            }
             return Err(format!(
                 "Falha ao executar instalador com privilégios de Administrador (código: {})",
-                result.0 as usize
+                code
             ));
         }
     }
@@ -74,13 +78,19 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
             .await
             .map_err(|e| e.to_string())?;
 
-        if let Err(err) = update.install(bytes.clone()) {
-            log::warn!("Instalação padrão falhou ({err}), executando instalador como Administrador...");
-            let temp_installer = std::env::temp_dir().join(format!("Toolbox_Update_{}.exe", update.version));
-            std::fs::write(&temp_installer, &bytes)
-                .map_err(|e| format!("Falha ao gravar instalador temporário: {e}"))?;
-            launch_elevated_installer(&temp_installer)?;
-        }
+        let temp_installer = std::env::temp_dir().join(format!("Toolbox_Update_{}.exe", update.version));
+        std::fs::write(&temp_installer, &bytes)
+            .map_err(|e| format!("Falha ao gravar instalador temporário: {e}"))?;
+
+        log::info!("Executando instalador como Administrador: {:?}", temp_installer);
+        launch_elevated_installer(&temp_installer)?;
+
+        // Fecha o aplicativo após disparar o instalador elevado para liberar os arquivos em Program Files
+        let app_handle = app.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+            app_handle.exit(0);
+        });
     }
 
     #[cfg(not(windows))]
@@ -91,7 +101,7 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
             .map_err(|e| e.to_string())?;
     }
 
-    Ok("Atualização iniciada. O instalador será executado em breve.".to_string())
+    Ok("Atualização iniciada. O instalador será executado como Administrador em breve.".to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
