@@ -6,108 +6,46 @@ version: "1.0.1"
 author: "Rodrigo Lessa"
 language: "python"
 command: "analysis-orchestrator"
+icon: "workflow"
 tags: ["logs", "har", "timeline", "orchestrator", "incident"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/analysis-orchestrator-1.0.1/analysis-orchestrator.zip"
-updated_at: "2026-08-14"
----
-## 📌 Visão Geral
-
-O plugin **Analysis Orchestrator** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Orquestra a análise ponta a ponta executando sanitização, filtragem, otimização, timeline e evidências.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# ⚡ Analysis Orchestrator
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Analysis Orchestrator** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+O **Analysis Orchestrator** é um pipeline automatizado de ponta a ponta para investigação e diagnóstico de incidentes em sistemas corporativos. Ele executa sequencialmente a sanitização de dados sensíveis, filtragem de ruído, otimização de logs, reconstrução de timeline e compilação de dossiê de evidências.
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `analysis-orchestrator` ou selecionando-o na lista de ferramentas.
-
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
-
-#### Exemplo de Entrada (STDIN):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
-```
-
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
-```
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `analysis-orchestrator` e pressione `Enter`.
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 📖 Guia Passo a Passo
 
+### 1. Selecionar os Arquivos de Entrada
+1. No campo **Diretório / Arquivos de Entrada**, selecione a pasta ou os arquivos coletados do incidente (arquivos `.log`, `.har`, dumps de erro ou payloads JSON).
+
+### 2. Configurar as Etapas da Pipeline
+Marque as etapas que deseja executar na análise:
+- [x] **Sanitização de Dados (LGPD/Segurança)**: Mascara senhas, tokens JWT, cartões e CPFs antes de processar.
+- [x] **Filtragem de Ruído**: Remove logs redundantes de healthcheck e polling repetitivo.
+- [x] **Otimização & Agrupamento**: Agrupa exceções com mesma assinatura estrutural.
+- [x] **Reconstrução de Timeline**: Ordena todos os eventos cronologicamente segundo o fuso horário correto.
+- [x] **Dossiê de Evidências**: Gera um arquivo consolidado em Markdown/HTML pronto para anexar no chamado/issue.
+
+### 3. Executar e Visualizar Relatório
+1. Clique no botão **Executar Pipeline de Análise**.
+2. Acompanhe a barra de progresso em tempo real para cada uma das etapas.
+3. Ao concluir, clique em **Visualizar Relatório** ou **Exportar Pacote de Evidências (.zip)**.
 
 ---
 
-## 📖 Documentação Detalhada
+## 💡 Dicas Úteis & Boas Práticas
 
-Plugin orquestrador determinístico do ecossistema Toolbox para investigações técnicas e análise de incidentes.
-
-## 🎯 Objetivo
-Automatizar a execução integrada e sequencial dos 8 plugins de análise (`log-sanitizer`, `incident-filter`, `log-optimizer`, `log-cluster`, `log-timeline`, `har-optimizer`, `source-extractor` e `evidence-package`), gerando uma árvore estruturada de resultados, manifestos de integridade e resumos executivos.
-
-## 🚀 Ações Suportadas
-1. **`run_analysis`**: Executa o pipeline completo (com suporte a `dry_run: true` para simulação).
-2. **`discover`**: Descobre e cataloga arquivos do diretório de análise e planeja as etapas sem executar.
-3. **`run_plugin`**: Executa uma única etapa/plugin isoladamente sobre o diretório de análise.
-4. **`validate_results`**: Valida a conformidade de uma pasta de resultados gerada anteriormente.
-5. **`resume`**: Retoma a execução a partir de um manifesto de resultados anterior, executando etapas pendentes.
-
-## 📁 Estrutura do Diretório de Resultados
-```
-analysis-directory/
-├── logs/
-├── har/
-├── source/
-├── metadata/
-└── analysis-results-YYYYMMDD-HHMMSS/
-    ├── manifest.json
-    ├── execution-summary.json
-    ├── sanitized/
-    ├── filtered/
-    ├── optimized/
-    ├── clusters/
-    ├── timelines/
-    ├── source-extracts/
-    ├── evidence/
-    ├── reports/
-    └── logs/
-```
-
-## 🔒 Segurança e Regras Determinísticas
-- **Não utiliza IA**, LLMs ou modelos probabilísticos.
-- Leitura não-destrutiva dos arquivos originais (nunca sobrescreve ou apaga a entrada).
-- Proteção contra path traversal e criação estrita dentro do escopo de análise.
-- Mascaramento e higienização estritos de secrets e credenciais.
+> [!TIP]
+> **Privacidade Garantida**: A etapa de sanitização roda localmente antes de qualquer geração de relatório, garantindo total conformidade com privacidade de dados.

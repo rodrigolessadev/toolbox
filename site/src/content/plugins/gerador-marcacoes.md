@@ -6,64 +6,50 @@ version: "2.2.1"
 author: "Rodrigo Lessa"
 language: "python"
 command: "gerador-marcacoes"
+icon: "table-properties"
 tags: ["sql", "banco de dados", "insert"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.2.1/gerador-marcacoes.zip"
-updated_at: "2026-08-03"
----
-## 📌 Visão Geral
-
-O plugin **Gerador de Marcações SQL** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Gera INSERTs SQL para a tabela R070ACC compatíveis com SQL Server e Oracle. Suporta campos opcionais dinâmicos, múltiplos horários e intervalo de datas.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# 🗄️ Gerador de Marcações SQL (R070ACC)
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Gerador de Marcações SQL** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+O **Gerador de Marcações SQL** cria scripts de inserção em lote (`INSERT INTO R070ACC`) compatíveis com bancos de dados **SQL Server** e **Oracle**, agilizando a simulação de marcações de ponto para testes em sistemas de RH e controle de ponto.
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `gerador-marcacoes` ou selecionando-o na lista de ferramentas.
-
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
-
-#### Exemplo de Entrada (STDIN):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
-```
-
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
-```
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `gerador-marcacoes` e pressione `Enter`.
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 📖 Guia Passo a Passo
+
+### 1. Identificação do Colaborador
+1. No campo **Empresa (NUMEMP)**, informe o código numérico da empresa (ex: `1`).
+2. No campo **Tipo de Colaborador (TIPCOL)**, informe o tipo (ex: `1` para Empregado, `2` para Terceiro, `3` para Parceiro).
+3. No campo **Cadastro (NUMCAD)**, informe o número de matrícula do colaborador (ex: `1001`).
+
+### 2. Período e Horários de Marcação
+1. No campo **Data Início**, preencha a data inicial no formato `DD/MM/AAAA`.
+2. No campo **Data Fim**, preencha a data final do período.
+3. No campo **Horários de Marcação**, liste os horários diários separados por vírgula (ex: `08:00, 12:00, 13:00, 18:00`).
+
+### 3. Seleção do Dialeto de Banco de Dados
+- Selecione a opção correspondente ao seu ambiente:
+  - 🔵 **SQL Server**: Gera datas com `CONVERT(DATETIME, 'YYYY-MM-DD...', 120)`.
+  - 🟠 **Oracle**: Gera datas com `TO_DATE('YYYY-MM-DD...', 'YYYY-MM-DD HH24:MI:SS')`.
+
+### 4. Geração do Script
+1. Clique no botão **Gerar Script SQL**.
+2. O script completo de `INSERT` será apresentado no editor de texto inferior.
+3. Clique em **Copiar Script** para colar no SQL Server Management Studio (SSMS), DBeaver ou PL/SQL Developer.
+
+---
+
+## 💡 Dicas Úteis & Como Evitar Erros
+
+> [!NOTE]
+> **Dias Úteis**: O gerador preenche as marcações dia a dia respeitando o intervalo de datas informado.

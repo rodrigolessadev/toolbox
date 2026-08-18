@@ -1,3 +1,9 @@
+## v1.16.10 - 2026-08-18
+
+## Documentação Didática e Passo a Passo dos Plugins
+- **Guias Amigáveis de Usuário**: Reformulação de toda a documentação dos 10 plugins do catálogo no site do Toolbox com instruções claras passo a passo ("no campo X, preencha Y; clique em Z").
+- **Exemplos Práticos e Dicas**: Inclusão de cenários reais de uso, explicações visuais de cada funcionalidade e alertas para prevenção de erros comuns no dia a dia.
+
 ## v1.16.9 - 2026-08-18
 
 ## v1.16.9 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.9/Toolbox_1.16.9_x64-setup.exe)
