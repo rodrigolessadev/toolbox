@@ -2,10 +2,16 @@
 <details>
 <summary>Ver detalhes da versao</summary>
 
+## v1.16.6 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.6/Toolbox_1.16.6_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
 ## Harmonização Visual do Cabeçalho e Alternância de Tema
 - **Ícones Vetoriais Padronizados**: Substituição dos botões com caracteres e emojis (`☀️`/`🌙`, `+`, `🛒`, `⚙`, `✦`, `✕`) por ícones vetoriais monocromáticos da biblioteca `lucide-react` (`Sun`, `Moon`, `Plus`, `ShoppingBag`, `Settings`, `History`, `X`).
 - **Coerência Contextual de Grupo**: Unificação da barra de ações do cabeçalho (`.app__header-actions`) com alinhamento pixel-perfect, dimensões e espessura de traço consistentes.
 - **Herança de Cores e Estados Ativos**: Ícones adaptados automaticamente para herdar `currentColor`, tokens semânticos de tema (`var(--fg)`, `var(--accent)`) e suporte ao estado ativo destacado para o painel de Histórico.
+
+</details>
 
 </details>
 
