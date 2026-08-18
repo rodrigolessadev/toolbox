@@ -87,10 +87,31 @@ export default function App() {
   const [tab, setTab]                   = useState<Tab>("all");
   const [editingCommand, setEditingCommand] = useState<{ name: string; entry: CommandEntry } | null>(null);
 
-  const { commands, reload }              = useCommands();
+  const { commands, reload } = useCommands();
+  const loadPluginIcons = useCallback(async () => {
+    try {
+      const list = await api.listPlugins();
+      const map: Record<string, string> = {};
+      for (const p of list) {
+        if (p.icon) {
+          const leaf = p.path.replace(/\\/g, "/").split("/").filter(Boolean).pop()?.toLowerCase();
+          if (leaf) map[leaf] = p.icon;
+          map[p.name.toLowerCase()] = p.icon;
+        }
+      }
+      setPluginIcons(map);
+    } catch (err) {
+      console.warn("Falha ao carregar ícones de plugins:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPluginIcons();
+  }, [loadPluginIcons]);
   const { history, reload: reloadHistory } = useHistory();
 
-  const [toasts, setToasts]   = useState<Toast[]>([]);
+  const [pluginIcons, setPluginIcons] = useState<Record<string, string>>({});
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const toastIdRef             = useRef(0);
   const inputRef               = useRef<HTMLInputElement>(null);
 
@@ -497,6 +518,7 @@ export default function App() {
           <CommandList
             items={filtered}
             activeIndex={activeIndex}
+            pluginIcons={pluginIcons}
             onSelect={execute}
             onToggleFavorite={async (name, current) => {
               try {

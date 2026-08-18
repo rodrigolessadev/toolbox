@@ -22,6 +22,7 @@ pub struct PluginInfo {
     pub path: String,
     pub language: String,
     pub entry: String,
+    pub icon: Option<String>,
 }
 
 #[tauri::command]
@@ -297,6 +298,7 @@ pub fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, String> {
                 .cloned()
                 .unwrap_or_else(|| "python".to_string()),
             entry: manifest.get("entry").cloned().unwrap_or_default(),
+            icon: manifest.get("icon").cloned(),
         });
     }
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface InstallPluginModalProps {
   open: boolean;
@@ -9,6 +11,55 @@ export interface InstallPluginModalProps {
   } | null;
   onConfirm: (data: { commandName: string; favorite: boolean }) => void;
   onCancel: () => void;
+}
+
+function toPascalCase(name: string): string {
+  return name
+    .replace(/-+/g, " ")
+    .replace(/_+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join("");
+}
+
+function resolveLucideIcon(name: string): LucideIcon | null {
+  if (!name) return null;
+  const key = toPascalCase(name) as keyof typeof LucideIcons;
+  const Icon = LucideIcons[key];
+  if (typeof Icon === "function") return Icon as LucideIcon;
+  return null;
+}
+
+function PluginIconPreview({ icon }: { icon?: string }) {
+  if (!icon) {
+    return <span style={{ fontSize: 22, marginRight: 8 }}>🧩</span>;
+  }
+
+  if (icon.startsWith("data:") || icon.startsWith("http")) {
+    return (
+      <img
+        src={icon}
+        alt=""
+        style={{ width: 24, height: 24, objectFit: "contain", marginRight: 8 }}
+      />
+    );
+  }
+
+  const LucideComp = resolveLucideIcon(icon);
+  if (LucideComp) {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", marginRight: 8 }}>
+        <LucideComp size={22} color="var(--accent)" strokeWidth={2} />
+      </span>
+    );
+  }
+
+  if (icon.length <= 4) {
+    return <span style={{ fontSize: 22, marginRight: 8 }}>{icon}</span>;
+  }
+
+  return <span style={{ fontSize: 22, marginRight: 8 }}>🧩</span>;
 }
 
 export function InstallPluginModal({
@@ -57,7 +108,10 @@ export function InstallPluginModal({
         aria-labelledby="install-plugin-modal-title"
       >
         <header className="modal__header">
-          <h2 id="install-plugin-modal-title">Plugin instalado com sucesso</h2>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <PluginIconPreview icon={plugin.icon} />
+            <h2 id="install-plugin-modal-title">Plugin instalado com sucesso</h2>
+          </div>
           <button
             type="button"
             className="modal__close"

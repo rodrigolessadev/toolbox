@@ -4,6 +4,7 @@ import { CommandItem } from "./CommandItem";
 interface Props {
   items: [string, CommandEntry][];
   activeIndex: number;
+  pluginIcons?: Record<string, string>;
   onSelect: (name: string) => void;
   onToggleFavorite: (name: string, current: boolean) => void;
   onEdit: (name: string, entry: CommandEntry) => void;
@@ -14,6 +15,7 @@ interface Props {
 export function CommandList({
   items,
   activeIndex,
+  pluginIcons,
   onSelect,
   onToggleFavorite,
   onEdit,
@@ -31,18 +33,28 @@ export function CommandList({
 
   return (
     <ul className="command-list" role="listbox">
-      {items.map(([name, entry], idx) => (
-        <CommandItem
-          key={name}
-          name={name}
-          entry={entry}
-          active={idx === activeIndex}
-          onClick={() => onSelect(name)}
-          onToggleFavorite={() => onToggleFavorite(name, entry.favorite)}
-          onEdit={() => onEdit(name, entry)}
-          onDelete={() => onDelete(name)}
-        />
-      ))}
+      {items.map(([name, entry], idx) => {
+        let pluginIcon: string | undefined;
+        if (entry.type === "plugin" && pluginIcons) {
+          const rawPath = entry.path || name;
+          const leaf = rawPath.toLowerCase().replace(/\\/g, "/").split("/").filter(Boolean).pop();
+          pluginIcon = (leaf && pluginIcons[leaf]) || pluginIcons[name.toLowerCase()] || pluginIcons[rawPath.toLowerCase()];
+        }
+
+        return (
+          <CommandItem
+            key={name}
+            name={name}
+            entry={entry}
+            active={idx === activeIndex}
+            pluginIcon={pluginIcon}
+            onClick={() => onSelect(name)}
+            onToggleFavorite={() => onToggleFavorite(name, entry.favorite)}
+            onEdit={() => onEdit(name, entry)}
+            onDelete={() => onDelete(name)}
+          />
+        );
+      })}
     </ul>
   );
 }
