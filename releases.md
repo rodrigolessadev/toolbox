@@ -2,10 +2,16 @@
 <details>
 <summary>Ver detalhes da versao</summary>
 
+## v1.16.7 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.7/Toolbox_1.16.7_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
 ## Instalação de Atualização com Elevação de Administrador (UAC)
 - **Elevação Automática no Windows**: O processo de atualização agora baixa o instalador e o executa explicitamente com privilégios de Administrador (`runas` / UAC), permitindo atualizar a instalação em `Program Files` sem falhas de permissão.
 - **Encerramento Gracioso**: Após o início do instalador elevado, o Toolbox se encerra automaticamente para liberar os binários em uso e evitar conflitos de bloqueio de arquivo.
 - **Tratamento de Cancelamento**: Mensagem clara de retorno caso o usuário recuse o diálogo de confirmação do UAC.
+
+</details>
 
 </details>
 
