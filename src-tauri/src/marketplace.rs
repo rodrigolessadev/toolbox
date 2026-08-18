@@ -189,6 +189,7 @@ pub struct InstalledPlugin {
     pub language: String,
     pub entry: String,
     pub path: String,
+    pub icon: Option<String>,
 }
 
 /// Resposta rica enviada ao frontend: plugin do catálogo + status
@@ -579,6 +580,10 @@ pub fn list_installed_plugins(app: AppHandle) -> Result<Vec<InstalledPlugin>, St
                 .unwrap_or("")
                 .to_string(),
             path: path.to_string_lossy().to_string(),
+            icon: manifest
+                .get("icon")
+                .and_then(|v| v.as_str())
+                .map(String::from),
         });
     }
 

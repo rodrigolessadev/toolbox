@@ -40,6 +40,27 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   const [favorite,   setFavorite]   = useState(false);
   const [iconLoading, setIconLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [plugins, setPlugins] = useState<import("../lib/api").PluginInfo[]>([]);
+
+  useEffect(() => {
+    if (open && tab === "plugin") {
+      api.listPlugins().then(setPlugins).catch(() => setPlugins([]));
+    }
+  }, [open, tab]);
+
+  useEffect(() => {
+    if (tab === "plugin" && path && !icon) {
+      const normalizedPath = path.toLowerCase().replace(/\\/g, "/");
+      const leaf = normalizedPath.split("/").filter(Boolean).pop();
+      const match = plugins.find((p) => {
+        const pLeaf = p.path.toLowerCase().replace(/\\/g, "/").split("/").filter(Boolean).pop();
+        return pLeaf === leaf || p.name.toLowerCase() === leaf || p.path.toLowerCase() === normalizedPath;
+      });
+      if (match?.icon) {
+        setIcon(match.icon);
+      }
+    }
+  }, [tab, path, plugins, icon]);
 
   // Reset ao abrir / carregar dados de edição
   useEffect(() => {

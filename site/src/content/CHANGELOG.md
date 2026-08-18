@@ -1,3 +1,10 @@
+## v1.16.9 - 2026-08-18
+
+## Herança Automática de Ícones Oficiais de Plugins
+- **Preservação de Ícones no Marketplace**: Ao instalar novos plugins, o comando criado herda e persiste automaticamente o ícone oficial Lucide do manifesto do plugin.
+- **Detecção Automática no Cadastro de Comandos**: Ao selecionar ou apontar a pasta de um plugin no `AddCommandModal`, o ícone oficial é pré-carregado no seletor de ícones.
+- **Fallback Inteligente na Lista de Comandos**: Na listagem principal (`CommandItem`), comandos do tipo `plugin` sem ícone explícito consultam os metadados dos plugins instalados para exibir o ícone Lucide oficial correspondente antes de recorrer ao fallback `🧩`.
+
 ## v1.16.8 - 2026-08-18
 
 ## v1.16.8 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.8/Toolbox_1.16.8_x64-setup.exe)

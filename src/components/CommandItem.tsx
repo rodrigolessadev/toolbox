@@ -6,6 +6,7 @@ export interface CommandItemProps {
   name: string;
   entry: CommandEntry;
   active: boolean;
+  pluginIcon?: string;
   onClick: () => void;
   onToggleFavorite: () => void;
   onEdit: () => void;
@@ -34,7 +35,7 @@ function toPascalCase(name: string): string {
     .join("");
 }
 
-/** Resolve o componente Lucide pelo nome do ícone (ex: "puzzle" → Puzzle component) */
+/** Resolve o componente Lucide pelo nome do ícone (ex: "puzzle" -> Puzzle component) */
 function resolveLucideIcon(name: string): LucideIcon | null {
   if (!name) return null;
   const key = toPascalCase(name) as keyof typeof LucideIcons;
@@ -43,19 +44,19 @@ function resolveLucideIcon(name: string): LucideIcon | null {
   return null;
 }
 
-function IconCell({ entry }: { entry: CommandEntry }) {
-  const icon = entry.icon;
+function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: string }) {
+  const icon = entry.icon || (entry.type === "plugin" ? pluginIcon : undefined);
 
-  // Sem ícone → fallback por tipo
+  // Sem ícone -> fallback por tipo
   if (!icon) {
     return (
       <span className="command-item__icon" aria-hidden="true">
-        {TYPE_FALLBACK[entry.type] ?? "▸"}
+        {TYPE_FALLBACK[entry.type] ?? "⚡"}
       </span>
     );
   }
 
-  // Imagem (favicon data URL)
+  // Imagem (favicon data URL ou ícone extraído)
   if (isImageIcon(icon)) {
     return (
       <img
@@ -63,17 +64,16 @@ function IconCell({ entry }: { entry: CommandEntry }) {
         alt=""
         className="command-item__icon"
         onError={(e) => {
-          // Se a imagem falhar, troca por emoji de fallback
           const span = document.createElement("span");
           span.className = "command-item__icon";
-          span.textContent = TYPE_FALLBACK[entry.type] ?? "▸";
+          span.textContent = TYPE_FALLBACK[entry.type] ?? "⚡";
           (e.currentTarget as HTMLImageElement).replaceWith(span);
         }}
       />
     );
   }
 
-  // Tenta resolver nome de ícone do Lucide (ex: "shield-check", "calculator", "puzzle")
+  // Tenta resolver nome de ícone do Lucide (ex: "id-card", "calculator", "fingerprint", "puzzle")
   const LucideComp = resolveLucideIcon(icon);
   if (LucideComp) {
     return (
@@ -83,7 +83,7 @@ function IconCell({ entry }: { entry: CommandEntry }) {
     );
   }
 
-  // Emoji ou texto curto (ex: ≤ 4 caracteres)
+  // Emoji ou texto curto (ex: ⚙️)
   if (icon.length <= 4) {
     return (
       <span className="command-item__icon" aria-hidden="true">
@@ -95,7 +95,7 @@ function IconCell({ entry }: { entry: CommandEntry }) {
   // Fallback se for string longa desconhecida
   return (
     <span className="command-item__icon" aria-hidden="true">
-      {TYPE_FALLBACK[entry.type] ?? "▸"}
+      {TYPE_FALLBACK[entry.type] ?? "⚡"}
     </span>
   );
 }
@@ -107,7 +107,16 @@ function kindLabel(entry: CommandEntry): string {
   return "";
 }
 
-export function CommandItem({ name, entry, active, onClick, onToggleFavorite, onEdit, onDelete }: CommandItemProps) {
+export function CommandItem({
+  name,
+  entry,
+  active,
+  pluginIcon,
+  onClick,
+  onToggleFavorite,
+  onEdit,
+  onDelete
+}: CommandItemProps) {
   const subtitle = kindLabel(entry);
 
   return (
@@ -118,7 +127,7 @@ export function CommandItem({ name, entry, active, onClick, onToggleFavorite, on
       aria-selected={active}
     >
       <div className="command-item__main">
-        <IconCell entry={entry} />
+        <IconCell entry={entry} pluginIcon={pluginIcon} />
 
         <span className="command-item__title">{name}</span>
 
@@ -155,7 +164,7 @@ export function CommandItem({ name, entry, active, onClick, onToggleFavorite, on
           aria-label="Excluir"
           title="Excluir"
         >
-          ×
+          ✕
         </button>
       </div>
     </li>

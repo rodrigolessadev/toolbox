@@ -27,6 +27,7 @@ export interface PluginInfo {
   path: string;
   language: string;
   entry: string;
+  icon?: string;
 }
 
 export interface HistoryEntry {
@@ -91,6 +92,7 @@ export interface InstalledPlugin {
   language: string;
   entry: string;
   path: string;
+  icon?: string;
 }
 
 // ─────────────────────── Bridge Tauri ────────────────────
