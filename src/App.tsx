@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Sun, Moon, Plus, ShoppingBag, Settings, History, X } from "lucide-react";
 import { listen } from "@tauri-apps/api/event";
 import { api, CommandEntry } from "./lib/api";
 import { useCommands } from "./hooks/useCommands";
@@ -347,7 +348,11 @@ export default function App() {
             title={`Alternar tema (atual: ${resolvedTheme === "dark" ? "Escuro" : "Claro"})`}
             aria-label="Alternar tema"
           >
-            {resolvedTheme === "dark" ? "🌙" : "☀️"}
+            {resolvedTheme === "dark" ? (
+              <Moon size={15} strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <Sun size={15} strokeWidth={2} aria-hidden="true" />
+            )}
           </button>
 
           <button
@@ -356,7 +361,9 @@ export default function App() {
             onClick={() => setShowAdd(true)}
             title="Novo comando (N)"
             aria-label="Novo comando"
-          >+</button>
+          >
+            <Plus size={16} strokeWidth={2} aria-hidden="true" />
+          </button>
 
           <button
             type="button"
@@ -373,7 +380,7 @@ export default function App() {
                 : "Marketplace"
             }
           >
-            🛒
+            <ShoppingBag size={15} strokeWidth={2} aria-hidden="true" />
             {pluginUpdatesCount > 0 && (
               <span className="app__icon-btn-badge" aria-hidden="true">
                 {pluginUpdatesCount}
@@ -396,7 +403,7 @@ export default function App() {
                 : "Configurações"
             }
           >
-            ⚙
+            <Settings size={15} strokeWidth={2} aria-hidden="true" />
             {updateVersion && (
               <span className="app__icon-btn-badge" aria-hidden="true">!</span>
             )}
@@ -404,11 +411,13 @@ export default function App() {
 
           <button
             type="button"
-            className="app__icon-btn"
-            onClick={() => setTab("history")}
+            className={`app__icon-btn${tab === "history" ? " app__icon-btn--active" : ""}`}
+            onClick={() => setTab(tab === "history" ? "all" : "history")}
             title="Histórico"
             aria-label="Histórico"
-          >✦</button>
+          >
+            <History size={15} strokeWidth={2} aria-hidden="true" />
+          </button>
         </div>
       </div>
 
@@ -430,7 +439,9 @@ export default function App() {
               className="app__update-dismiss"
               onClick={() => setUpdateVersion(null)}
               aria-label="Fechar"
-            >✕</button>
+            >
+              <X size={14} strokeWidth={2} aria-hidden="true" />
+            </button>
           </div>
         </div>
       )}
