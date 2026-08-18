@@ -399,6 +399,14 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   transition: background var(--tr), color var(--tr), box-shadow var(--tr);
 }
 .app__icon-btn:hover { background: var(--border); color: var(--fg); }
+.app__icon-btn--active {
+  color: var(--accent) !important;
+  background: var(--accent-soft);
+}
+.app__icon-btn--active:hover {
+  background: var(--accent-soft);
+  filter: brightness(1.15);
+}
 
 .app__icon-btn--has-update {
   color: var(--accent) !important;
