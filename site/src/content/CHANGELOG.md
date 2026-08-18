@@ -1,3 +1,9 @@
+## v1.16.8 - 2026-08-18
+
+## Sincronização de Tema com Plugins Externos
+- **Injeção de Tema Ativo no Runtime**: O executor de plugins agora propaga a variável de ambiente `TOOLBOX_THEME` e o argumento de linha de comando `--theme <light|dark>` ao iniciar processos de plugins Python e baseados em protocolo.
+- **Integração com Design System**: Permite que plugins gráficos (Tkinter) abram dinamicamente com o tema claro ou escuro configurado no Toolbox.
+
 ## v1.16.7 - 2026-08-18
 
 ## v1.16.7 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.7/Toolbox_1.16.7_x64-setup.exe)

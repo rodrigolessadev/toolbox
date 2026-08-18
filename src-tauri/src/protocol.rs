@@ -192,6 +192,8 @@ pub fn run_protocol_plugin(
         }
     };
 
+    let theme = crate::paths::get_theme(app.clone()).unwrap_or_else(|_| "dark".to_string());
+    cmd.env("TOOLBOX_THEME", &theme);
     cmd.current_dir(&plugin_path);
     cmd.stdin(Stdio::piped());
     cmd.stdout(Stdio::piped());

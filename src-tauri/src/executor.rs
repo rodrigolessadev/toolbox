@@ -203,9 +203,12 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
         }
     };
 
+    let theme = crate::paths::get_theme(app.clone()).unwrap_or_else(|_| "dark".to_string());
+    cmd.env("TOOLBOX_THEME", &theme);
     cmd.arg("--name").arg(name);
     cmd.arg("--commands-file").arg(&commands_file);
     cmd.arg("--data-dir").arg(&data_dir);
+    cmd.arg("--theme").arg(&theme);
     cmd.current_dir(&plugin_path); // ← cwd do plugin
 
     // Captura stdout e stderr em vez de herdar o console do processo pai
