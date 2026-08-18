@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { ShoppingBag, RotateCw, X, Puzzle } from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { api, MarketplaceEntry } from "../lib/api";
 import { InstallPluginModal } from "./InstallPluginModal";
 
@@ -173,8 +176,13 @@ export function MarketplaceModal({
 
         {/* Header */}
         <header className="modal__header">
-          <h2>🛒 Marketplace de Plugins</h2>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">✕</button>
+          <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <ShoppingBag size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
+            Marketplace de Plugins
+          </h2>
+          <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">
+            <X size={16} aria-hidden="true" />
+          </button>
         </header>
 
         {/* Barra de busca */}
@@ -193,8 +201,9 @@ export function MarketplaceModal({
             onClick={loadCatalog}
             disabled={loading}
             title="Recarregar catálogo"
+            aria-label="Recarregar catálogo"
           >
-            {loading ? "⏳" : "↻"}
+            <RotateCw size={16} className={loading ? "marketplace__refresh-icon--spinning" : ""} aria-hidden="true" />
           </button>
         </div>
 
@@ -245,7 +254,7 @@ export function MarketplaceModal({
             visible.map((entry) => (
               <div key={entry.id} className="marketplace__item">
                 <div className="marketplace__item-icon">
-                  {entry.icon ? iconEmoji(entry.icon) : "🔌"}
+                  <MarketplaceItemIcon icon={entry.icon} />
                 </div>
 
                 <div className="marketplace__item-body">
@@ -344,19 +353,63 @@ export function MarketplaceModal({
   );
 }
 
-// Converte nome de ícone Lucide em emoji aproximado para exibição simples
-function iconEmoji(icon: string): string {
-  const map: Record<string, string> = {
-    "shield-check": "🛡️",
-    "braces": "{ }",
-    "database": "🗄️",
-    "clock": "⏰",
-    "file-json": "📄",
-    "calendar": "📅",
-    "puzzle": "🧩",
-    "terminal": "⌨️",
-    "cpu": "🖥️",
-    "zap": "⚡",
-  };
-  return map[icon] ?? "🔌";
+/** Retorna true se o ícone é uma imagem (data URL ou URL http) */
+function isImageIcon(icon: string): boolean {
+  return icon.startsWith("data:") || icon.startsWith("http");
+}
+
+/** Converte "meu-nome" ou "MeuNome" para o nome do export Lucide (PascalCase) */
+function toPascalCase(name: string): string {
+  return name
+    .replace(/-+/g, " ")
+    .replace(/_+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join("");
+}
+
+/** Resolve o componente Lucide pelo nome do ícone (ex: "shield-check" → ShieldCheck component) */
+function resolveLucideIcon(name: string): LucideIcon | null {
+  if (!name) return null;
+  const key = toPascalCase(name) as keyof typeof LucideIcons;
+  const Icon = LucideIcons[key];
+  if (typeof Icon === "function") return Icon as LucideIcon;
+  return null;
+}
+
+function MarketplaceItemIcon({ icon }: { icon?: string | null }) {
+  if (!icon) {
+    return <Puzzle size={24} strokeWidth={2} aria-hidden="true" />;
+  }
+
+  // Imagem (favicon / data URL ou URL externa)
+  if (isImageIcon(icon)) {
+    return (
+      <img
+        src={icon}
+        alt=""
+        className="marketplace__item-icon-img"
+        onError={(e) => {
+          const fallback = document.createElement("span");
+          fallback.className = "marketplace__item-icon-fallback";
+          (e.currentTarget as HTMLImageElement).replaceWith(fallback);
+        }}
+      />
+    );
+  }
+
+  // Resolução dinâmica de ícone Lucide
+  const LucideComp = resolveLucideIcon(icon);
+  if (LucideComp) {
+    return <LucideComp size={24} strokeWidth={2} aria-hidden="true" />;
+  }
+
+  // Emoji ou texto curto (≤ 4 caracteres)
+  if (icon.length <= 4) {
+    return <span aria-hidden="true">{icon}</span>;
+  }
+
+  // Fallback para ícone genérico de plugin
+  return <Puzzle size={24} strokeWidth={2} aria-hidden="true" />;
 }

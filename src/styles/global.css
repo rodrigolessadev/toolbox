@@ -753,18 +753,31 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .marketplace__refresh-btn {
   width: 42px;
   height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg-elev);
   color: var(--fg);
   cursor: pointer;
   transition: background var(--tr), border-color var(--tr), transform var(--tr);
+  flex-shrink: 0;
 }
 
 .marketplace__refresh-btn:hover:not(:disabled) {
   background: var(--bg-elev-2);
   border-color: var(--accent-soft);
   transform: translateY(-1px);
+}
+
+.marketplace__refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.marketplace__refresh-icon--spinning {
+  animation: spin 0.8s linear infinite;
 }
 
 .marketplace__list {
@@ -803,8 +816,19 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   justify-content: center;
   font-size: 24px;
   background: var(--bg);
-  color: var(--fg);
+  color: var(--accent);
+  border: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+.marketplace__item-icon-img {
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+}
+
+.marketplace__item-icon-fallback {
+  font-size: 24px;
 }
 
 .marketplace__item-body {
