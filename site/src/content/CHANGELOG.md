@@ -1,3 +1,17 @@
+## v1.16.7 - 2026-08-18
+
+## v1.16.7 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.7/Toolbox_1.16.7_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## Padronização de Ícones dos Cards do Marketplace com Lucide
+- **Renderização Dinâmica de Ícones**: Substituição do mapeamento estático de emojis por resolução dinâmica de componentes vetoriais `lucide-react` para os cards de plugins no Marketplace.
+- **Fallbacks Resilientes**: Suporte completo para ícones vetoriais Lucide, favicons/imagens (`data:` / `http`) e fallback seguro para o ícone padrão `Puzzle`.
+- **Harmonização Visual do Modal**: Substituição dos caracteres/emojis no cabeçalho e botão de atualização por componentes vetoriais (`ShoppingBag`, `RotateCw`, `X`) com animação contínua de rotação durante requisições de recarregamento do catálogo.
+- **Aprimoramento de Contraste e Tokens CSS**: Estilização do container de ícones dos cards (`.marketplace__item-icon`) com cores semânticas (`var(--accent)`, `var(--border)`, `var(--bg)`), garantindo alto contraste no tema escuro e claro.
+
+</details>
+
 ## v1.16.6 - 2026-08-18
 
 ## v1.16.6 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.6/Toolbox_1.16.6_x64-setup.exe)
