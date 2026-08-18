@@ -6,98 +6,50 @@ version: "1.0.0"
 author: "Rodrigo Lessa"
 language: "python"
 command: "stract-log"
+icon: "filter"
 tags: ["log", "suporte", "filtro", "análise"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-log-1.0.0/stract-log.zip"
-updated_at: "2026-08-14"
----
-## 📌 Visão Geral
-
-O plugin **Stract Log** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Filtra e extrai blocos de log por nível, parâmetro adicional e regra de recorrência (mais recente / mais antiga). Salva o resultado em um arquivo .log ao lado do original.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# 🔍 Stract Log (Filtro e Extrator de Logs)
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Stract Log** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+O **Stract Log** analisa arquivos de log extensos (dezenas ou centenas de megabytes), filtrando blocos de eventos por nível de severidade (ERROR, WARN, INFO, DEBUG) e palavras-chave, gerando um novo arquivo consolidado e preservando o log original.
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `stract-log` ou selecionando-o na lista de ferramentas.
-
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
-
-#### Exemplo de Entrada (STDIN):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
-```
-
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
-```
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `stract-log` e pressione `Enter`.
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 📖 Guia Passo a Passo
 
+### 1. Seleção do Arquivo de Log
+1. No campo **Arquivo de Log**, clique no botão **📁 Procurar** e selecione o seu arquivo `.log` ou `.txt`.
+
+### 2. Configuração dos Filtros
+1. No campo **Nível de Log**, selecione a severidade desejada:
+   - `ERROR`: Apenas erros e exceções de sistema.
+   - `WARN`: Alertas e avisos.
+   - `INFO`: Mensagens informativas.
+   - `TODOS`: Todos os níveis.
+2. No campo **Filtro de Texto / Palavra-Chave**, digite termos específicos que o bloco deve conter (ex: `NullPointerException`, `Timeout` ou `ID_USUARIO`).
+3. No campo **Regra de Recorrência**:
+   - **Todas as Ocorrências**: Extrai todas as entradas que atendem aos filtros.
+   - **Mais Recente**: Mantém apenas a última ocorrência de cada erro repetido.
+   - **Mais Antiga**: Mantém apenas a primeira ocorrência do incidente.
+
+### 3. Processamento e Abertura
+1. Clique no botão **Filtrar e Extrair**.
+2. O plugin processará o log e criará um novo arquivo no mesmo diretório (ex: `app.filtered.log`).
+3. Uma notificação exibirá a quantidade de blocos encontrados. Clique em **Abrir Arquivo** para inspecionar no Bloco de Notas ou VS Code.
 
 ---
 
-## 📖 Documentação Detalhada
+## 💡 Dicas Úteis
 
-Filtra arquivos de log por **nível**, **parâmetro adicional** e regra de
-**recorrência**, salvando o resultado em um arquivo `.log` no mesmo diretório
-do arquivo de origem.
-
-## Como executar
-
-O Toolbox descobre este plugin automaticamente. Digite `stract-log` na barra
-de pesquisa e pressione **Enter**.
-
-## Campos da interface
-
-| Campo | Descrição |
-|-------|-----------|
-| Arquivo | Caminho do arquivo de log (botão para procurar no disco) |
-| Level | Lista com os níveis mais comuns — `SEVERE`, `WARNING`, `INFO`, `FINE`, `ERROR` |
-| Parâmetro adicional | Texto opcional que deve aparecer no bloco de log |
-| Recorrências | Quando marcado, agrupa blocos com o mesmo conteúdo (ignorando data) e mantém apenas a ocorrência *Mais recente* ou *Mais antiga* |
-| Ocorrência | `Mais recente` (padrão) ou `Mais antiga`. Habilitado somente quando *Recorrências* está marcado |
-
-## Saída
-
-O resultado é gravado em
-`<diretório do arquivo>/<nome>-stract-<YYYYMMDD-HHMMSS>.log` com os blocos
-filtrados na mesma ordem em que aparecem no arquivo original.
-
-## Requisitos
-
-- Python 3.7+ (Tkinter é nativo)
+> [!NOTE]
+> **Segurança do Arquivo Original**: O arquivo de log original **nunca é modificado ou sobrescrito**. O plugin sempre gera uma cópia limpa filtrada.

@@ -6,64 +6,65 @@ version: "1.0.1"
 author: "Rodrigo Lessa"
 language: "python"
 command: "stract-json"
+icon: "braces"
 tags: ["dev", "json", "extração", "dados"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-json-1.0.1/stract-json.zip"
-updated_at: "2026-08-13"
----
-## 📌 Visão Geral
-
-O plugin **Stract JSON** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Extrai valores de um campo específico a partir de um JSON colado. Útil para transformar listas de objetos em listas de valores.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# 🧩 Stract JSON (Extrator de Campos)
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Stract JSON** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+O **Stract JSON** extrai os valores de uma chave ou propriedade específica a partir de listas de objetos ou payloads complexos em JSON, convertendo-os em listas limpas prontas para uso em consultas SQL, filtros ou planilhas.
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `stract-json` ou selecionando-o na lista de ferramentas.
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `stract-json` e pressione `Enter`.
 
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
+---
 
-#### Exemplo de Entrada (STDIN):
+## 📖 Guia Passo a Passo
+
+### 1. Colar o Conteúdo JSON
+1. No campo superior **JSON**, cole o seu payload ou lista de objetos (ex: uma resposta de API contendo uma lista de usuários).
+
+### 2. Informar o Campo a Extrair
+1. No campo **Nome do Campo**, digite o nome da propriedade que deseja extrair (ex: `id`, `email` ou `codigo`).
+2. *(Opcional)* Escolha o delimitador de saída:
+   - **Quebra de linha**: Um valor por linha (ideal para listas ou blocos de notas).
+   - **Vírgula**: Valores separados por vírgula (`1, 2, 3, 4`).
+   - **SQL IN**: Valores entre aspas e separados por vírgula `('item1', 'item2', 'item3')`.
+
+### 3. Extrair e Copiar
+1. Clique no botão **Extrair Valores**.
+2. O resultado limpo e consolidado aparecerá no painel de saída.
+3. Clique em **Copiar Resultado** para transferir para a Área de Transferência.
+
+---
+
+## 💡 Exemplo Prático
+
+**Entrada (JSON):**
 ```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
+[
+  { "id": 101, "nome": "Ana Silva", "ativo": true },
+  { "id": 102, "nome": "Carlos Lessa", "ativo": false },
+  { "id": 103, "nome": "Mariana Souza", "ativo": true }
+]
 ```
 
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
+**Campo Informado:** `id` com formato **SQL IN**
+
+**Saída Gerada:**
+```sql
+(101, 102, 103)
 ```
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 💡 Dicas Úteis
+
+> [!TIP]
+> **Campos Aninhados**: O plugin suporta acesso a objetos internos através de notação com ponto (ex: `endereco.cidade`).

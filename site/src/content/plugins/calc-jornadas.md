@@ -6,64 +6,52 @@ version: "1.1.0"
 author: "Rodrigo Lessa"
 language: "python"
 command: "calc-jornadas"
+icon: "calculator"
 tags: ["rh", "jornada", "horas", "trabalho"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/calc-jornadas-1.1.0/calc-jornadas.zip"
-updated_at: "2026-08-13"
----
-## 📌 Visão Geral
-
-O plugin **Calculadora de Jornadas** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Calcula horas normais, noturnas e noturnas reduzidas por jornada de trabalho.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# ⏱️ Calculadora de Jornadas de Trabalho
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Calculadora de Jornadas** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+A **Calculadora de Jornadas** permite apurar de forma precisa o total de horas trabalhadas, segregando horas normais diurnas, horas noturnas e o cálculo da redução ficta noturna conforme a CLT (onde 52 minutos e 30 segundos equivalem a 1 hora de trabalho).
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `calc-jornadas` ou selecionando-o na lista de ferramentas.
-
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
-
-#### Exemplo de Entrada (STDIN):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
-```
-
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
-```
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `calc-jornadas` e pressione `Enter`.
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 📖 Guia Passo a Passo
+
+### 1. Preenchimento dos Horários
+1. No campo **Entrada**, informe o horário de início do expediente no formato `HH:MM` (ex: `08:00` ou `22:00`).
+2. No campo **Saída**, informe o horário de término do expediente no formato `HH:MM` (ex: `17:00` ou `06:00`).
+3. *(Opcional)* Se a jornada possui intervalo de almoço/refeição:
+   - Informe a **Saída para Intervalo** e o **Retorno do Intervalo**.
+
+### 2. Parâmetros Noturnos
+- Por padrão, o início do horário noturno é definido para às `22:00` e o término às `05:00`.
+- Se o seu acordo coletivo utilizar horários diferenciados (ex: rural ou categorias especiais), ajuste os campos **Início Noturno** e **Fim Noturno**.
+
+### 3. Visualização do Resultado
+1. Clique no botão **Calcular**.
+2. O painel inferior exibirá o resumo detalhado:
+   - **Total de Horas Trabalhadas** (tempo bruto decorrido).
+   - **Horas Normais Diurnas**.
+   - **Horas Noturnas com Redução Ficta (52m30s)**.
+   - **Valor Estimado do Adicional Noturno**.
+3. Clique em **Copiar Resumo** para colar as informações no seu e-mail ou planilha.
+
+---
+
+## 💡 Dicas Úteis & Casos Especiais
+
+> [!NOTE]
+> **Jornadas que Viram a Noite**: O plugin calcula automaticamente jornadas que cruzam a meia-noite (por exemplo, entrada às `22:00` de um dia e saída às `06:00` do dia seguinte).
+
+> [!TIP]
+> **Digitação Rápida**: Você pode digitar os 4 números seguidos (ex: `0800`), e a máscara colocará os dois pontos (`:`) automaticamente.

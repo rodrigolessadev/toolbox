@@ -6,64 +6,44 @@ version: "1.0.1"
 author: "Rodrigo Lessa"
 language: "python"
 command: "converter-data"
+icon: "calendar-sync"
 tags: ["excel", "data", "conversão", "utilidade"]
 download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/converter-data-1.0.1/converter-data.zip"
-updated_at: "2026-08-13"
----
-## 📌 Visão Geral
-
-O plugin **Converter Data** é uma extensão oficial para o **Toolbox Desktop** desenvolvida em **Python**.
-Converte data e hora para número serial Excel/Lotus e vice-versa.
-
+updated_at: "2026-08-18"
 ---
 
-## 🚀 Como Instalar e Ativar
+# 📅 Conversor de Data e Serial Excel
 
-1. Abra o **Toolbox Desktop**.
-2. Acesse a aba **Marketplace**.
-3. Localize o card **Converter Data** e clique em **Instalar** (ou **Atualizar**).
-4. O plugin será instalado automaticamente no diretório local de plugins e estará pronto para uso.
+O **Converter Data** realiza a conversão bidirecional entre datas/horas civis convencionais e o formato de **Número Serial do Excel** (base `30/12/1899`), muito utilizado em integrações de banco de dados, relatórios e fórmulas de planilhas.
 
 ---
 
-## 💻 Modos de Uso
+## 🚀 Como Abrir o Plugin
 
-### 1. Interface Gráfica (Desktop)
-Você pode abrir a janela interativa do plugin diretamente pelo launcher do Toolbox digitando `converter-data` ou selecionando-o na lista de ferramentas.
-
-### 2. Protocolo Headless (IPC v1.0)
-Para integrações via linha de comando ou automações externas, o plugin suporta o **Protocolo Toolbox IPC v1.0** via `STDIN`/`STDOUT` no formato JSON:
-
-#### Exemplo de Entrada (STDIN):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "action": "run",
-  "input": {
-    "sample_field": "valor_de_exemplo"
-  },
-  "options": {}
-}
-```
-
-#### Exemplo de Saída (STDOUT):
-```json
-{
-  "protocol_version": "1.0",
-  "request_id": "req_001",
-  "status": "success",
-  "result": {
-    "output": "Operação realizada com sucesso."
-  },
-  "error": null,
-  "warnings": []
-}
-```
+1. Abra o **Toolbox** (`Ctrl + Space`).
+2. Digite `converter-data` e pressione `Enter`.
 
 ---
 
-## 🔒 Segurança e Privacidade
-- **Processamento 100% Local**: O plugin executa exclusivamente no ambiente do usuário, sem chamadas para APIs de terceiros ou serviços externos.
-- **Determinismo**: Todas as saídas são geradas por algoritmos e regras determinísticas.
-- **Não Destrutivo**: O plugin nunca sobrescreve arquivos originais sem autorização explícita.
+## 📖 Guia Passo a Passo
+
+### 1. Converter Data e Hora para Serial Excel
+1. No campo **Data**, digite a data desejada no formato `AAAA-MM-DD` (ex: `2026-08-18`).
+2. No campo **Hora**, digite o horário no formato `HH:MM` (ex: `14:30`).
+3. O número serial correspondente (ex: `46252.604167`) é gerado automaticamente no quadro inferior.
+4. Clique em cima do número serial ou no botão **Copiar** para transferi-lo para a Área de Transferência.
+
+### 2. Converter Serial Excel de Volta para Data e Hora
+1. Caso você tenha um número serial (ex: `45500.5`), cole-o no campo **Número Serial**.
+2. Clique no botão **Converter para Data**.
+3. Os campos **Data** e **Hora** serão atualizados instantaneamente com o valor legível correspondente.
+
+---
+
+## 💡 Dicas Úteis & Como Evitar Erros
+
+> [!TIP]
+> **Data Padrão**: Ao abrir a tela, o plugin já vem pré-preenchido com a data e horário atual do seu computador, permitindo obter o serial de hoje em 1 segundo.
+
+> [!WARNING]
+> Certifique-se de usar o formato `AAAA-MM-DD` com 4 dígitos no ano para evitar interpretações ambíguas de século.
