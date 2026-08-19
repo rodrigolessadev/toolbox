@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ShoppingBag, RotateCw, X, Puzzle } from "lucide-react";
+﻿import { useEffect, useState } from "react";
+import { ShoppingBag, RotateCw, X, Puzzle, ArrowUpCircle } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { api, MarketplaceEntry } from "../lib/api";
@@ -17,9 +17,9 @@ interface Props {
 type Filter = "all" | "installed" | "available" | "update_available";
 
 const FILTER_LABELS: { id: Filter; label: string }[] = [
-  { id: "all",              label: "Todos"       },
-  { id: "installed",        label: "Instalados"  },
-  { id: "available",        label: "Disponíveis" },
+  { id: "all",              label: "Todos"        },
+  { id: "installed",        label: "Instalados"   },
+  { id: "available",        label: "Disponíveis"  },
   { id: "update_available", label: "Atualizações" },
 ];
 
@@ -45,6 +45,7 @@ export function MarketplaceModal({
 }: Props) {
   const [entries,        setEntries]        = useState<MarketplaceEntry[]>([]);
   const [loading,        setLoading]        = useState(false);
+  const [updatingAll,    setUpdatingAll]    = useState(false);
   const [filter,         setFilter]         = useState<Filter>("all");
   const [search,         setSearch]         = useState("");
   const [busy,           setBusy]           = useState<Record<string, boolean>>({});
@@ -72,6 +73,7 @@ export function MarketplaceModal({
   }
 
   async function handleInstall(entry: MarketplaceEntry) {
+    const isUpdate = entry.status === "update_available";
     setBusy((b) => ({ ...b, [entry.id]: true }));
     try {
       await api.installPlugin(entry.id, entry.download_url);
@@ -82,11 +84,64 @@ export function MarketplaceModal({
             : e
         )
       );
-      setPendingInstall(entry);
+
+      if (isUpdate) {
+        onInfo?.(`Plugin "${entry.name}" atualizado para v${entry.version}.`);
+        onPluginInstalled?.(entry.id);
+      } else {
+        setPendingInstall(entry);
+      }
     } catch (e) {
-      onError?.(`Falha ao instalar "${entry.name}": ` + (e instanceof Error ? e.message : String(e)));
+      onError?.(
+        `Falha ao ${isUpdate ? "atualizar" : "instalar"} "${entry.name}": ` +
+          (e instanceof Error ? e.message : String(e))
+      );
     } finally {
       setBusy((b) => ({ ...b, [entry.id]: false }));
+    }
+  }
+
+  async function handleUpdateAll() {
+    const updateEntries = entries.filter((e) => e.status === "update_available");
+    if (updateEntries.length === 0 || updatingAll) return;
+
+    setUpdatingAll(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const entry of updateEntries) {
+      setBusy((b) => ({ ...b, [entry.id]: true }));
+      try {
+        await api.installPlugin(entry.id, entry.download_url);
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.id === entry.id
+              ? { ...e, status: "installed", installed_version: entry.version }
+              : e
+          )
+        );
+        onPluginInstalled?.(entry.id);
+        successCount++;
+      } catch (e) {
+        failCount++;
+        console.error(`Falha ao atualizar "${entry.name}":`, e);
+      } finally {
+        setBusy((b) => ({ ...b, [entry.id]: false }));
+      }
+    }
+
+    setUpdatingAll(false);
+
+    if (failCount === 0) {
+      onInfo?.(
+        successCount === 1
+          ? "1 plugin foi atualizado com sucesso."
+          : `${successCount} plugins foram atualizados com sucesso.`
+      );
+    } else if (successCount > 0) {
+      onError?.(`${successCount} plugins atualizados, mas ${failCount} falharam.`);
+    } else {
+      onError?.("Falha ao atualizar os plugins disponíveis.");
     }
   }
 
@@ -144,6 +199,7 @@ export function MarketplaceModal({
     if (!open) return;
     const h = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (updatingAll) return;
         if (pendingInstall) {
           setPendingInstall(null);
           return;
@@ -153,7 +209,7 @@ export function MarketplaceModal({
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [open, onClose, pendingInstall]);
+  }, [open, onClose, pendingInstall, updatingAll]);
 
   if (!open) return null;
 
@@ -171,7 +227,7 @@ export function MarketplaceModal({
   const updateCount = entries.filter((e) => e.status === "update_available").length;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={updatingAll ? undefined : onClose}>
       <div className="modal modal--wide" onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
@@ -180,7 +236,13 @@ export function MarketplaceModal({
             <ShoppingBag size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
             Marketplace de Plugins
           </h2>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Fechar">
+          <button
+            type="button"
+            className="modal__close"
+            onClick={onClose}
+            aria-label="Fechar"
+            disabled={updatingAll}
+          >
             <X size={16} aria-hidden="true" />
           </button>
         </header>
@@ -190,40 +252,60 @@ export function MarketplaceModal({
           <input
             type="text"
             className="modal__input"
-            placeholder="Buscar plugins..."
+            placeholder="Buscar por nome, descrição ou tag..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            disabled={updatingAll}
             autoFocus
           />
           <button
             type="button"
             className="marketplace__refresh-btn"
+            title="Atualizar catálogo"
             onClick={loadCatalog}
-            disabled={loading}
-            title="Recarregar catálogo"
-            aria-label="Recarregar catálogo"
+            disabled={loading || updatingAll}
           >
             <RotateCw size={16} className={loading ? "marketplace__refresh-icon--spinning" : ""} aria-hidden="true" />
           </button>
         </div>
 
-        {/* Filtros */}
-        <div className="modal__tabs" role="tablist">
-          {FILTER_LABELS.map((f) => (
+        {/* Filtros e Ação em Lote */}
+        <div className="marketplace__tabs-bar">
+          <div className="modal__tabs" role="tablist">
+            {FILTER_LABELS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === f.id}
+                className={`modal__tab${filter === f.id ? " modal__tab--active" : ""}`}
+                onClick={() => setFilter(f.id)}
+                disabled={updatingAll}
+              >
+                {f.label}
+                {f.id === "update_available" && updateCount > 0 && (
+                  <span className="marketplace__badge-count">{updateCount}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {updateCount > 0 && (
             <button
-              key={f.id}
               type="button"
-              role="tab"
-              aria-selected={filter === f.id}
-              className={`modal__tab${filter === f.id ? " modal__tab--active" : ""}`}
-              onClick={() => setFilter(f.id)}
+              className="modal__btn modal__btn--primary marketplace__btn-update-all"
+              onClick={handleUpdateAll}
+              disabled={updatingAll || loading}
+              title="Atualizar todos os plugins com atualização disponível"
             >
-              {f.label}
-              {f.id === "update_available" && updateCount > 0 && (
-                <span className="marketplace__badge-count">{updateCount}</span>
-              )}
+              <ArrowUpCircle
+                size={15}
+                className={updatingAll ? "marketplace__refresh-icon--spinning" : ""}
+                aria-hidden="true"
+              />
+              <span>{updatingAll ? "Atualizando..." : `Atualizar todos (${updateCount})`}</span>
             </button>
-          ))}
+          )}
         </div>
 
         {/* Lista */}
@@ -241,7 +323,7 @@ export function MarketplaceModal({
                     type="button"
                     className="modal__btn modal__btn--primary"
                     onClick={loadCatalog}
-                    disabled={loading}
+                    disabled={loading || updatingAll}
                   >
                     Tentar novamente
                   </button>
@@ -284,7 +366,7 @@ export function MarketplaceModal({
                     <button
                       type="button"
                       className="modal__btn modal__btn--ghost marketplace__btn-remove"
-                      disabled={busy[entry.id]}
+                      disabled={busy[entry.id] || updatingAll}
                       onClick={() => handleRemove(entry)}
                     >
                       {busy[entry.id] ? "..." : "Remover"}
@@ -294,7 +376,7 @@ export function MarketplaceModal({
                     <button
                       type="button"
                       className="modal__btn modal__btn--primary"
-                      disabled={busy[entry.id]}
+                      disabled={busy[entry.id] || updatingAll}
                       onClick={() => handleInstall(entry)}
                     >
                       {busy[entry.id] ? "Instalando..." : "Instalar"}
@@ -305,7 +387,7 @@ export function MarketplaceModal({
                       <button
                         type="button"
                         className="modal__btn modal__btn--primary"
-                        disabled={busy[entry.id]}
+                        disabled={busy[entry.id] || updatingAll}
                         onClick={() => handleInstall(entry)}
                       >
                         {busy[entry.id] ? "Atualizando..." : "Atualizar"}
@@ -313,7 +395,7 @@ export function MarketplaceModal({
                       <button
                         type="button"
                         className="modal__btn modal__btn--ghost marketplace__btn-remove"
-                        disabled={busy[entry.id]}
+                        disabled={busy[entry.id] || updatingAll}
                         onClick={() => handleRemove(entry)}
                       >
                         Remover
@@ -329,11 +411,34 @@ export function MarketplaceModal({
         <footer className="modal__footer">
           <span className="marketplace__footer-info">
             {entries.length} plugins no catálogo
-            {updateCount > 0 && ` · ${updateCount} atualização${updateCount > 1 ? "ões" : ""} disponível${updateCount > 1 ? "is" : ""}`}
+            {updateCount > 0 &&
+              ` • ${updateCount} atualização${updateCount > 1 ? "ões" : ""} disponível${updateCount > 1 ? "is" : ""}`}
           </span>
-          <button type="button" className="modal__btn modal__btn--ghost" onClick={onClose}>
-            Fechar
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {updateCount > 0 && (
+              <button
+                type="button"
+                className="modal__btn modal__btn--primary marketplace__btn-update-all"
+                onClick={handleUpdateAll}
+                disabled={updatingAll || loading}
+              >
+                <ArrowUpCircle
+                  size={15}
+                  className={updatingAll ? "marketplace__refresh-icon--spinning" : ""}
+                  aria-hidden="true"
+                />
+                <span>{updatingAll ? "Atualizando..." : `Atualizar todos (${updateCount})`}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="modal__btn modal__btn--ghost"
+              onClick={onClose}
+              disabled={updatingAll}
+            >
+              Fechar
+            </button>
+          </div>
         </footer>
 
         {pendingInstall && (
@@ -369,7 +474,7 @@ function toPascalCase(name: string): string {
     .join("");
 }
 
-/** Resolve o componente Lucide pelo nome do ícone (ex: "shield-check" → ShieldCheck component) */
+/** Resolve o componente Lucide pelo nome do ícone (ex: "shield-check" -> ShieldCheck component) */
 function resolveLucideIcon(name: string): LucideIcon | null {
   if (!name) return null;
   const key = toPascalCase(name) as keyof typeof LucideIcons;

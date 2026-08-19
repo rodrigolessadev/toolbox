@@ -1,4 +1,4 @@
-@import './components.css';
+﻿@import './components.css';
 
 /* ===========================================================
    Design Tokens — Escala Expandida (Etapa 3)
@@ -778,6 +778,36 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 
 .marketplace__refresh-icon--spinning {
   animation: spin 0.8s linear infinite;
+}
+.marketplace__tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.marketplace__tabs-bar .modal__tabs {
+  padding: 0;
+}
+
+.marketplace__btn-update-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 14px;
+  height: 32px;
+  min-width: auto;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.marketplace__tabs-bar .marketplace__btn-update-all {
+  margin-bottom: 6px;
 }
 
 .marketplace__list {
