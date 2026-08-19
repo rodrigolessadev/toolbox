@@ -1,3 +1,12 @@
+## v1.16.11 - 2026-08-19
+
+### Adicionado
+- **Marketplace de Plugins**: Botão "Atualizar todos" exibido dinamicamente na barra de filtros e no rodapé do modal quando há plugins com nova versão disponível.
+- **Atualização em Lote Progressiva**: Execução sequencial resiliente com indicadores visuais de carregamento e feedback consolidado via toast ao término.
+
+### Corrigido
+- **Fluxo de Atualização de Plugins**: O modal de criação de atalho/comando (`InstallPluginModal`) agora é suprimido durante atualizações (individuais ou em lote), preservando os comandos e configurações pré-existentes.
+
 ## v1.16.10 - 2026-08-18
 
 ## Documentação Didática e Passo a Passo dos Plugins

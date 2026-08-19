@@ -1,3 +1,16 @@
+## v1.16.11 - 2026-08-19 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.11/Toolbox_1.16.11_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Adicionado
+- **Marketplace de Plugins**: Botão "Atualizar todos" exibido dinamicamente na barra de filtros e no rodapé do modal quando há plugins com nova versão disponível.
+- **Atualização em Lote Progressiva**: Execução sequencial resiliente com indicadores visuais de carregamento e feedback consolidado via toast ao término.
+
+### Corrigido
+- **Fluxo de Atualização de Plugins**: O modal de criação de atalho/comando (`InstallPluginModal`) agora é suprimido durante atualizações (individuais ou em lote), preservando os comandos e configurações pré-existentes.
+
+</details>
+
 ## v1.16.10 - 2026-08-18 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.16.10/Toolbox_1.16.10_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
