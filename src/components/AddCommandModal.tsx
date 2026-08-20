@@ -192,7 +192,9 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
         if (typeof r === "string") selected = r;
       }
       if (selected) setPath(selected);
-    } catch { onError?.("Não foi possível abrir o seletor de pastas."); }
+    } catch (e) {
+      onError?.("Não foi possível abrir o seletor de pastas: " + (e instanceof Error ? e.message : String(e)));
+    }
   };
 
   const browseExe = async () => {
@@ -204,7 +206,9 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
         filters: [{ name: "Executáveis", extensions: ["exe", "bat", "cmd"] }, { name: "Todos", extensions: ["*"] }],
       });
       if (typeof r === "string") setPath(r);
-    } catch { onError?.("Não foi possível abrir o seletor de arquivos."); }
+    } catch (e) {
+      onError?.("Não foi possível abrir o seletor de arquivos: " + (e instanceof Error ? e.message : String(e)));
+    }
   };
 
   return (
