@@ -13,126 +13,138 @@ const CATALOG_URL: &str =
 
 const FALLBACK_CATALOG_JSON: &str = r#"{
   "version": "1.0",
-  "updated_at": "2026-08-14",
+  "updated_at": "2026-08-19",
   "plugins": [
     {
       "id": "calc-jornadas",
       "name": "Calculadora de Jornadas",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": "Calcula horas normais, noturnas e noturnas reduzidas por jornada de trabalho.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["rh", "jornada", "horas", "trabalho"],
-      "icon": "clock",
+      "icon": "clock-3",
       "command": "calc-jornadas",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/calc-jornadas-1.1.0/calc-jornadas.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/calc-jornadas-1.2.0/calc-jornadas.zip"
     },
     {
       "id": "converter-data",
       "name": "Converter Data",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "description": "Converte data e hora para número serial Excel/Lotus e vice-versa.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["excel", "data", "conversão", "utilidade"],
-      "icon": "calendar",
+      "icon": "calendar-sync",
       "command": "converter-data",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/converter-data-1.0.1/converter-data.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/converter-data-1.1.0/converter-data.zip"
     },
     {
       "id": "cpf",
       "name": "Validador de CPF",
-      "version": "1.0.0",
-      "description": "Valida e gera CPFs com interface gráfica.",
+      "version": "1.1.0",
+      "description": "Valida e gera CPFs com interface gráfica. Suporta formatação automática e cópia para área de transferência.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["utilidade", "cpf", "validação"],
-      "icon": "shield-check",
+      "icon": "badge-check",
       "command": "cpf",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/cpf-1.0.0/cpf.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/cpf-1.1.0/cpf.zip"
     },
     {
       "id": "gerador-afd",
       "name": "Gerador de AFD",
-      "version": "1.0.0",
-      "description": "Gera arquivo AFD (Arquivo de Fonte de Dados) no padrão REP-C com CRC16.",
+      "version": "1.1.0",
+      "description": "Gera arquivo AFD (Arquivo de Fonte de Dados) no padrão REP-C com CRC16. Suporta múltiplos colaboradores, horários e intervalo de datas.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["rh", "ponto", "afd", "rep"],
       "icon": "file-clock",
       "command": "gerador-afd",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-afd-1.0.0/gerador-afd.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-afd-1.1.0/gerador-afd.zip"
     },
     {
       "id": "gerador-json",
       "name": "Gerador de JSON",
-      "version": "1.0.0",
-      "description": "Gera mock data em JSON (Pessoa, Produto, Usuário) com quantidade configurável.",
+      "version": "1.1.0",
+      "description": "Gera mock data em JSON (Pessoa, Produto, Usuário) com quantidade configurável e cópia para área de transferência.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["dev", "json", "mock", "dados"],
-      "icon": "braces",
+      "icon": "file-json",
       "command": "gerador-json",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-json-1.0.0/gerador-json.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-json-1.1.0/gerador-json.zip"
     },
     {
       "id": "gerador-marcacoes",
       "name": "Gerador de Marcações SQL",
-      "version": "2.2.1",
-      "description": "Gera INSERTs SQL para a tabela R070ACC compatíveis com SQL Server e Oracle.",
+      "version": "2.3.0",
+      "description": "Gera INSERTs SQL para a tabela R070ACC compatíveis com SQL Server e Oracle. Suporta campos opcionais dinâmicos, múltiplos horários e intervalo de datas.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["sql", "banco de dados", "insert"],
       "icon": "database",
       "command": "gerador-marcacoes",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.2.1/gerador-marcacoes.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.3.0/gerador-marcacoes.zip"
     },
     {
       "id": "har-kibana-planner",
       "name": "HAR Kibana Planner",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "Gera planos de consulta determinísticos no Elasticsearch/Kibana a partir de arquivos HAR 1.2.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["har-kibana-planner"],
-      "icon": "Puzzle",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/har-kibana-planner-1.0.0/har-kibana-planner.zip"
+      "icon": "search-code",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/har-kibana-planner-1.1.0/har-kibana-planner.zip"
     },
     {
       "id": "stract-json",
       "name": "Stract JSON",
-      "version": "1.0.1",
-      "description": "Extrai valores de um campo específico a partir de um JSON colado.",
+      "version": "1.1.0",
+      "description": "Extrai valores de um campo específico a partir de um JSON colado. Útil para transformar listas de objetos em listas de valores.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["dev", "json", "extração", "dados"],
-      "icon": "file-json",
+      "icon": "scan-search",
       "command": "stract-json",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-json-1.0.1/stract-json.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-json-1.1.0/stract-json.zip"
     },
     {
       "id": "stract-log",
       "name": "Stract Log",
-      "version": "1.0.0",
-      "description": "Filtra e extrai blocos de log por nível, parâmetro adicional e regra de recorrência.",
+      "version": "1.1.0",
+      "description": "Filtra e extrai blocos de log por nível, parâmetro adicional e regra de recorrência (mais recente / mais antiga). Salva o resultado em um arquivo .log ao lado do original.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["log", "suporte", "filtro", "análise"],
       "icon": "file-search",
       "command": "stract-log",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-log-1.0.0/stract-log.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/stract-log-1.1.0/stract-log.zip"
     },
     {
       "id": "analysis-orchestrator",
       "name": "Analysis Orchestrator",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "description": "Orquestra a análise ponta a ponta executando sanitização, filtragem, otimização, timeline e evidências.",
       "author": "Rodrigo Lessa",
       "language": "python",
       "tags": ["logs", "har", "timeline", "orchestrator", "incident"],
       "icon": "workflow",
       "command": "analysis-orchestrator",
-      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/analysis-orchestrator-1.0.1/analysis-orchestrator.zip"
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/analysis-orchestrator-1.1.0/analysis-orchestrator.zip"
+    },
+    {
+      "id": "novo-ticket",
+      "name": "Novo Ticket",
+      "version": "1.3.1",
+      "description": "Criação de tickets (CLIENTE_TICKET) e extrator temporal de logs com interface moderna pywebview e tema dark oficial.",
+      "author": "Rodrigo Lessa",
+      "language": "python",
+      "tags": ["ticket", "atendimento", "suporte", "diretorio", "logs", "filtro", "utilidade"],
+      "icon": "ticket",
+      "command": "novo-ticket",
+      "download_url": "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/novo-ticket-1.3.1/novo-ticket.zip"
     }
   ]
 }"#;

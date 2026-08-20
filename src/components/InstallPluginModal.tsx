@@ -1,42 +1,27 @@
 import { useEffect, useState } from "react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 
 export interface InstallPluginModalProps {
-  open: boolean;
   plugin: {
     name: string;
     suggestedCommand: string;
     icon?: string;
   } | null;
+  open: boolean;
   onConfirm: (data: { commandName: string; favorite: boolean }) => void;
   onCancel: () => void;
 }
 
-function toPascalCase(name: string): string {
-  return name
-    .replace(/-+/g, " ")
-    .replace(/_+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("");
-}
-
-function resolveLucideIcon(name: string): LucideIcon | null {
-  if (!name) return null;
-  const key = toPascalCase(name) as keyof typeof LucideIcons;
-  const Icon = LucideIcons[key];
-  if (typeof Icon === "function") return Icon as LucideIcon;
-  return null;
-}
-
 function PluginIconPreview({ icon }: { icon?: string }) {
   if (!icon) {
-    return <span style={{ fontSize: 22, marginRight: 8 }}>🧩</span>;
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", marginRight: 8 }}>
+        <FallbackPluginIcon size={22} color="var(--accent)" strokeWidth={2} />
+      </span>
+    );
   }
 
-  if (icon.startsWith("data:") || icon.startsWith("http")) {
+  if (isImageIcon(icon)) {
     return (
       <img
         src={icon}
@@ -59,7 +44,11 @@ function PluginIconPreview({ icon }: { icon?: string }) {
     return <span style={{ fontSize: 22, marginRight: 8 }}>{icon}</span>;
   }
 
-  return <span style={{ fontSize: 22, marginRight: 8 }}>🧩</span>;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", marginRight: 8 }}>
+      <FallbackPluginIcon size={22} color="var(--accent)" strokeWidth={2} />
+    </span>
+  );
 }
 
 export function InstallPluginModal({

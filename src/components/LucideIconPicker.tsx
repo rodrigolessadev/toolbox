@@ -6,37 +6,10 @@
  * data:image/svg+xml;base64 e notifica o pai via onSelect.
  */
 import { useState, useEffect, useCallback } from "react";
-import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import React from "react";
-
-// Ícones sugeridos para plugins (aparecem como atalhos)
-const SUGGESTIONS = [
-  "puzzle", "terminal", "cpu", "code", "wrench", "bolt",
-  "flask-conical", "layers", "blocks", "settings",
-  "zap", "package", "box", "command", "binary",
-];
-
-/** Converte "meu-nome" ou "MeuNome" para o nome do export Lucide (PascalCase) */
-function toPascalCase(name: string): string {
-  return name
-    .replace(/-+/g, " ")
-    .replace(/_+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("");
-}
-
-/** Resolve o componente Lucide pelo nome do ícone (ex: "puzzle" → Puzzle component) */
-function resolveIcon(name: string): LucideIcon | null {
-  if (!name) return null;
-  const key = toPascalCase(name) as keyof typeof LucideIcons;
-  const Icon = LucideIcons[key];
-  if (typeof Icon === "function") return Icon as LucideIcon;
-  return null;
-}
+import { resolveLucideIcon, SUGGESTED_LUCIDE_ICONS } from "../lib/icons";
 
 /** Gera uma data URL SVG a partir do componente Lucide.
  *  Usa cor fixa (#6aa3ff = accent dark) para funcionar em <img src=...> */
@@ -76,7 +49,7 @@ export function LucideIconPicker({ value, onSelect }: Props) {
       onSelect("");
       return;
     }
-    const Icon = resolveIcon(trimmed);
+    const Icon = resolveLucideIcon(trimmed);
     if (Icon) {
       setPreview(Icon);
       setNotFound(false);
@@ -90,7 +63,7 @@ export function LucideIconPicker({ value, onSelect }: Props) {
 
   const pick = useCallback((name: string) => {
     setQuery(name);
-    const Icon = resolveIcon(name);
+    const Icon = resolveLucideIcon(name);
     if (Icon) {
       setPreview(Icon);
       setNotFound(false);
@@ -136,8 +109,8 @@ export function LucideIconPicker({ value, onSelect }: Props) {
       {/* Sugestões rápidas */}
       {!preview && !query && (
         <div className="lucide-picker__suggestions">
-          {SUGGESTIONS.map((name) => {
-            const Icon = resolveIcon(name);
+          {SUGGESTED_LUCIDE_ICONS.map((name) => {
+            const Icon = resolveLucideIcon(name);
             if (!Icon) return null;
             return (
               <button
