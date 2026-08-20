@@ -1,6 +1,5 @@
 import { CommandEntry } from "../lib/api";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 
 export interface CommandItemProps {
   name: string;
@@ -19,36 +18,18 @@ const TYPE_FALLBACK: Record<string, string> = {
   application: "⚙️",
 };
 
-/** Retorna true se o ícone é uma imagem (data URL ou URL http) */
-function isImageIcon(icon: string): boolean {
-  return icon.startsWith("data:") || icon.startsWith("http");
-}
-
-/** Converte "meu-nome" ou "MeuNome" para o nome do export Lucide (PascalCase) */
-function toPascalCase(name: string): string {
-  return name
-    .replace(/-+/g, " ")
-    .replace(/_+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("");
-}
-
-/** Resolve o componente Lucide pelo nome do ícone (ex: "puzzle" -> Puzzle component) */
-function resolveLucideIcon(name: string): LucideIcon | null {
-  if (!name) return null;
-  const key = toPascalCase(name) as keyof typeof LucideIcons;
-  const Icon = LucideIcons[key];
-  if (typeof Icon === "function") return Icon as LucideIcon;
-  return null;
-}
-
 function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: string }) {
   const icon = entry.icon || (entry.type === "plugin" ? pluginIcon : undefined);
 
   // Sem ícone -> fallback por tipo
   if (!icon) {
+    if (entry.type === "plugin") {
+      return (
+        <span className="command-item__icon" aria-hidden="true">
+          <FallbackPluginIcon size={16} color="var(--accent)" strokeWidth={2} />
+        </span>
+      );
+    }
     return (
       <span className="command-item__icon" aria-hidden="true">
         {TYPE_FALLBACK[entry.type] ?? "⚡"}
@@ -73,7 +54,7 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
     );
   }
 
-  // Tenta resolver nome de ícone do Lucide (ex: "id-card", "calculator", "fingerprint", "puzzle")
+  // Tenta resolver nome de ícone do Lucide (ex: "workflow", "clock-3", "search-code", "ticket", "puzzle")
   const LucideComp = resolveLucideIcon(icon);
   if (LucideComp) {
     return (
@@ -93,6 +74,14 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
   }
 
   // Fallback se for string longa desconhecida
+  if (entry.type === "plugin") {
+    return (
+      <span className="command-item__icon" aria-hidden="true">
+        <FallbackPluginIcon size={16} color="var(--accent)" strokeWidth={2} />
+      </span>
+    );
+  }
+
   return (
     <span className="command-item__icon" aria-hidden="true">
       {TYPE_FALLBACK[entry.type] ?? "⚡"}

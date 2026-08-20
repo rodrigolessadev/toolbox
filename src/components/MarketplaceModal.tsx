@@ -1,8 +1,7 @@
-﻿import { useEffect, useState } from "react";
-import { ShoppingBag, RotateCw, X, Puzzle, ArrowUpCircle } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ShoppingBag, RotateCw, X, ArrowUpCircle } from "lucide-react";
 import { api, MarketplaceEntry } from "../lib/api";
+import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 import { InstallPluginModal } from "./InstallPluginModal";
 
 interface Props {
@@ -458,34 +457,9 @@ export function MarketplaceModal({
   );
 }
 
-/** Retorna true se o ícone é uma imagem (data URL ou URL http) */
-function isImageIcon(icon: string): boolean {
-  return icon.startsWith("data:") || icon.startsWith("http");
-}
-
-/** Converte "meu-nome" ou "MeuNome" para o nome do export Lucide (PascalCase) */
-function toPascalCase(name: string): string {
-  return name
-    .replace(/-+/g, " ")
-    .replace(/_+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("");
-}
-
-/** Resolve o componente Lucide pelo nome do ícone (ex: "shield-check" -> ShieldCheck component) */
-function resolveLucideIcon(name: string): LucideIcon | null {
-  if (!name) return null;
-  const key = toPascalCase(name) as keyof typeof LucideIcons;
-  const Icon = LucideIcons[key];
-  if (typeof Icon === "function") return Icon as LucideIcon;
-  return null;
-}
-
 function MarketplaceItemIcon({ icon }: { icon?: string | null }) {
   if (!icon) {
-    return <Puzzle size={24} strokeWidth={2} aria-hidden="true" />;
+    return <FallbackPluginIcon size={24} strokeWidth={2} aria-hidden="true" />;
   }
 
   // Imagem (favicon / data URL ou URL externa)
@@ -515,6 +489,6 @@ function MarketplaceItemIcon({ icon }: { icon?: string | null }) {
     return <span aria-hidden="true">{icon}</span>;
   }
 
-  // Fallback para ícone genérico de plugin
-  return <Puzzle size={24} strokeWidth={2} aria-hidden="true" />;
+  // Fallback para ícone genérico de plugin (Puzzle)
+  return <FallbackPluginIcon size={24} strokeWidth={2} aria-hidden="true" />;
 }
