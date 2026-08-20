@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Variante visual do botão */
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'warning';
+  variant?: 'primary' | 'secondary' | 'tonal' | 'outlined' | 'danger' | 'success' | 'warning';
   /** Tamanho do botão */
   size?: 'sm' | 'md' | 'lg';
   /** Conteúdo do botão */

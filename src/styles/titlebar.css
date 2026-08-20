@@ -1,12 +1,12 @@
 .titlebar {
   display: flex;
   align-items: stretch;
-  height: 32px;
-  background: var(--bg-elev-2);
-  color: var(--fg);
+  height: 34px;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
   user-select: none;
   -webkit-user-select: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -19,7 +19,7 @@
   gap: 4px;
   padding: 0 12px;
   font-size: 11px;
-  color: var(--fg-muted);
+  color: var(--md-sys-color-on-surface-variant);
   -webkit-app-region: drag;
   app-region: drag;
   user-select: none;
@@ -28,7 +28,7 @@
 .titlebar__hint-label {
   margin-left: 6px;
   font-style: italic;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .titlebar__kbd {
@@ -38,14 +38,14 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: inherit;
   font-size: 10px;
   font-weight: 600;
-  color: var(--fg);
-  background: var(--bg-elev-1);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  box-shadow: 0 1px 0 var(--border);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-xs);
+  box-shadow: 0 1px 0 var(--md-sys-color-outline-variant);
 }
 
 .titlebar__plus {
@@ -70,7 +70,7 @@
   gap: 8px;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -82,24 +82,24 @@
 }
 
 .titlebar__version {
-  color: var(--fg-muted);
+  color: var(--md-sys-color-on-surface-variant);
   font-size: 11px;
   font-weight: 500;
 }
 
 .titlebar__icon {
   font-size: 14px;
-  opacity: 0.85;
+  color: var(--md-sys-color-primary);
 }
 
 .titlebar__btn--active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
 
 .titlebar__btn--active:hover {
-  background: var(--accent-soft);
-  filter: brightness(1.15);
+  background: var(--md-sys-color-primary-container);
+  filter: brightness(1.08);
 }
 
 .titlebar__title {
@@ -122,26 +122,26 @@
   height: 100%;
   border: none;
   background: transparent;
-  color: inherit;
+  color: var(--md-sys-color-on-surface);
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
 .titlebar__btn:hover {
-  background: var(--border);
+  background: var(--md-sys-color-surface-container-high);
 }
 
 .titlebar__btn:active {
-  background: var(--border-muted);
+  background: var(--md-sys-color-surface-container-highest);
 }
 
 .titlebar__btn--close:hover {
-  background: #e81123;
-  color: #ffffff;
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
 }
 
 .titlebar__btn--close:active {
-  background: #c50f1f;
+  filter: brightness(0.9);
 }

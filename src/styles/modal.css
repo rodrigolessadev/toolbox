@@ -14,15 +14,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-elev-2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--fg);
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-xs);
+  color: var(--md-sys-color-on-surface);
   font-size: 16px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal__browse:hover {
-  background: var(--border);
+  background: var(--md-sys-color-surface-container-highest);
+  border-color: var(--md-sys-color-outline);
 }

@@ -4,7 +4,7 @@
    =========================================================== */
 
 /* ───────────────────────────────────────────────────────
-   Button Component
+   Button Component — Material Design 3
    ─────────────────────────────────────────────────────── */
 
 .button {
@@ -12,85 +12,109 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--md-sys-shape-corner-full);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--tr), color var(--tr), border-color var(--tr), opacity var(--tr);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  user-select: none;
 }
 
-/* Primary */
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Primary (Filled M3) */
 .button--primary {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: transparent;
+  box-shadow: var(--md-sys-elevation-level1);
 }
 .button--primary:hover:not(:disabled) {
   background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  box-shadow: var(--md-sys-elevation-level2);
 }
 .button--primary:active:not(:disabled) {
   background: var(--accent-active);
-  opacity: 0.85;
 }
 
-/* Secondary */
+/* Secondary (Surface M3) */
 .button--secondary {
-  background: var(--bg-elev-3);
-  color: var(--fg);
-  border-color: var(--border);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  border-color: var(--md-sys-color-outline-variant);
 }
 .button--secondary:hover:not(:disabled) {
-  background: var(--bg-elev-4);
-  border-color: var(--accent);
-}
-.button--secondary:active:not(:disabled) {
-  opacity: 0.75;
+  background: var(--md-sys-color-surface-container-highest);
+  border-color: var(--md-sys-color-outline);
 }
 
-/* Danger */
+/* Tonal (Secondary Container M3) */
+.button--tonal {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  border-color: transparent;
+}
+.button--tonal:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* Outlined M3 */
+.button--outlined {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-outline);
+}
+.button--outlined:hover:not(:disabled) {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-color: transparent;
+}
+
+/* Danger (Error M3) */
 .button--danger {
-  background: var(--danger);
-  color: #fff;
-  border-color: var(--danger);
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  border-color: transparent;
 }
 .button--danger:hover:not(:disabled) {
-  opacity: 0.85;
+  filter: brightness(1.1);
 }
 
 /* Success */
 .button--success {
-  background: var(--success);
-  color: #fff;
-  border-color: var(--success);
+  background: var(--md-sys-color-success);
+  color: var(--md-sys-color-on-success);
+  border-color: transparent;
 }
 .button--success:hover:not(:disabled) {
-  opacity: 0.85;
+  filter: brightness(1.1);
 }
 
 /* Warning */
 .button--warning {
-  background: var(--warning);
-  color: #000;
-  border-color: var(--warning);
+  background: var(--md-sys-color-warning);
+  color: var(--md-sys-color-on-warning);
+  border-color: transparent;
 }
 .button--warning:hover:not(:disabled) {
-  opacity: 0.85;
+  filter: brightness(1.1);
 }
 
 /* Sizes */
 .button--sm {
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 5px 10px;
+  font-size: 11px;
   gap: 4px;
 }
 .button--lg {
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 12px 20px;
+  font-size: 15px;
   gap: 10px;
 }
 
