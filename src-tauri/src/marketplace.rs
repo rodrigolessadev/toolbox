@@ -384,24 +384,90 @@ pub async fn install_plugin(
         return Err(format!("O plugin '{}' reside em um diretório de desenvolvimento protegido e não pode ser sobrescrito pelo Marketplace.", plugin_id));
     }
 
-    log::info!("Baixando plugin '{}' de {}", plugin_id, download_url);
+    log::info!("Iniciando download do plugin '{}' de {}", plugin_id, download_url);
 
-    // 1. Download do ZIP com validação de status HTTP
-    let response = reqwest::get(&download_url)
-        .await
-        .map_err(|e| format!("Falha de rede ao baixar plugin: {e}"))?;
+    // 1. Download do ZIP com validação de status HTTP e retry com backoff para propagação de release
+    let client = reqwest::Client::builder()
+        .user_agent("toolbox/1.18")
+        .timeout(std::time::Duration::from_secs(12))
+        .build()
+        .map_err(|e| format!("Falha ao inicializar cliente HTTP: {e}"))?;
 
-    if !response.status().is_success() {
-        return Err(format!(
-            "Servidor retornou erro HTTP {} ao baixar o plugin.",
-            response.status()
-        ));
+    let max_attempts = 3;
+    let mut last_status = reqwest::StatusCode::OK;
+    let mut bytes_opt = None;
+
+    for attempt in 1..=max_attempts {
+        log::info!(
+            "Baixando plugin '{}' de {} (tentativa {}/{})",
+            plugin_id,
+            download_url,
+            attempt,
+            max_attempts
+        );
+
+        match client.get(&download_url).send().await {
+            Ok(response) => {
+                let status = response.status();
+                if status.is_success() {
+                    match response.bytes().await {
+                        Ok(b) => {
+                            bytes_opt = Some(b);
+                            break;
+                        }
+                        Err(e) => {
+                            log::warn!("Falha ao ler bytes do download na tentativa {}: {}", attempt, e);
+                        }
+                    }
+                } else if status == reqwest::StatusCode::NOT_FOUND {
+                    last_status = status;
+                    log::warn!(
+                        "Asset do plugin '{}' não encontrado (HTTP 404) na tentativa {}/{}. Possível latência de propagação na CDN de release.",
+                        plugin_id,
+                        attempt,
+                        max_attempts
+                    );
+                    if attempt < max_attempts {
+                        std::thread::sleep(std::time::Duration::from_millis(2000 * attempt as u64));
+                        continue;
+                    }
+                } else {
+                    last_status = status;
+                    log::warn!("Resposta HTTP {} ao baixar plugin '{}'", status, plugin_id);
+                    if attempt < max_attempts {
+                        std::thread::sleep(std::time::Duration::from_millis(1500));
+                        continue;
+                    }
+                }
+            }
+            Err(e) => {
+                log::warn!("Erro de rede ao baixar plugin na tentativa {}: {}", attempt, e);
+                if attempt < max_attempts {
+                    std::thread::sleep(std::time::Duration::from_millis(1500));
+                    continue;
+                }
+            }
+        }
     }
 
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| format!("Falha ao ler dados do plugin: {e}"))?;
+    let bytes = match bytes_opt {
+        Some(b) => b,
+        None => {
+            if last_status == reqwest::StatusCode::NOT_FOUND {
+                return Err(format!(
+                    "O arquivo de release do plugin '{}' ainda está sendo processado na CDN do GitHub (HTTP 404). Por favor, aguarde 1 a 2 minutos e tente novamente.",
+                    plugin_id
+                ));
+            } else {
+                return Err(format!(
+                    "Não foi possível baixar o plugin '{}' após {} tentativas (Status HTTP: {}).",
+                    plugin_id,
+                    max_attempts,
+                    last_status
+                ));
+            }
+        }
+    };
 
     // 2. Validação SHA-256 (se fornecido no catálogo)
     if let Some(expected) = expected_sha256 {
