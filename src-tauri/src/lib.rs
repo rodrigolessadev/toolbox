@@ -8,6 +8,7 @@ mod marketplace;
 mod paths;
 pub mod plugin;
 pub mod protocol;
+pub mod runtimes;
 
 
 use commands_store::CommandStore;
@@ -243,6 +244,8 @@ pub fn run() {
             marketplace::install_plugin,
             marketplace::remove_plugin,
             marketplace::list_installed_plugins,
+            runtimes::check_runtime_status,
+            runtimes::check_all_runtimes,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
