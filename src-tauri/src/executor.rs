@@ -225,9 +225,24 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
     }
 
     let plugin_name = name.to_string();
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| format!("Falha ao iniciar plugin {}: {}", name, e))?;
+    let lang_str = language.clone();
+    let mut child = cmd.spawn().map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            match lang_str.as_str() {
+                "python" => format!(
+                    "Falha ao iniciar plugin '{}': Interpretador Python não encontrado no sistema. Por favor, instale o Python em https://python.org ou execute 'winget install Python.Python.3.12'.",
+                    name
+                ),
+                "node" | "javascript" => format!(
+                    "Falha ao iniciar plugin '{}': Runtime Node.js não encontrado no sistema. Por favor, instale o Node.js em https://nodejs.org.",
+                    name
+                ),
+                _ => format!("Falha ao iniciar plugin {}: {}", name, e),
+            }
+        } else {
+            format!("Falha ao iniciar plugin {}: {}", name, e)
+        }
+    })?;
 
     // Drena stdout e stderr em threads separadas, gravando no log do toolbox
     if let Some(stdout) = child.stdout.take() {

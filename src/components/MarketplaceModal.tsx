@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShoppingBag, RotateCw, X, ArrowUpCircle } from "lucide-react";
+import { ShoppingBag, RotateCw, X, ArrowUpCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import { api, MarketplaceEntry } from "../lib/api";
 import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 import { InstallPluginModal } from "./InstallPluginModal";
@@ -49,6 +49,7 @@ export function MarketplaceModal({
   const [search,         setSearch]         = useState("");
   const [busy,           setBusy]           = useState<Record<string, boolean>>({});
   const [pendingInstall, setPendingInstall] = useState<MarketplaceEntry | null>(null);
+  const [pythonAvailable, setPythonAvailable] = useState(true);
 
   // Carrega catálogo ao abrir
   useEffect(() => {
@@ -62,8 +63,14 @@ export function MarketplaceModal({
   async function loadCatalog() {
     setLoading(true);
     try {
-      const data = await api.fetchCatalog();
+      const [data, pyStatus] = await Promise.all([
+        api.fetchCatalog(),
+        api.checkRuntimeStatus("python").catch(() => ({ name: "python", available: true })),
+      ]);
       setEntries(data);
+      if (pyStatus && typeof pyStatus.available === "boolean") {
+        setPythonAvailable(pyStatus.available);
+      }
     } catch (e) {
       onError?.("Falha ao carregar catálogo: " + (e instanceof Error ? e.message : String(e)));
     } finally {
@@ -307,6 +314,68 @@ export function MarketplaceModal({
           )}
         </div>
 
+        {/* Banner de Pré-requisito de Runtime */}
+        {!pythonAvailable && (
+          <div
+            className="marketplace__runtime-warning"
+            style={{
+              background: "rgba(245, 158, 11, 0.12)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+              borderRadius: "var(--radius-md, 8px)",
+              padding: "10px 14px",
+              margin: "0 24px 12px 24px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 12,
+              fontSize: "12px",
+              color: "var(--fg, #e8eaed)",
+            }}
+          >
+            <AlertTriangle size={18} style={{ color: "#f59e0b", flexShrink: 0, marginTop: 2 }} />
+            <div style={{ flex: 1 }}>
+              <strong style={{ color: "#f59e0b" }}>Pré-requisito ausente: Python não detectado</strong>
+              <div style={{ marginTop: 2, color: "var(--fg-muted, #8b94a3)", fontSize: "11.5px" }}>
+                Plugins baseados em Python requerem a instalação do interpretador Python 3 no computador.
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6, flexWrap: "wrap" }}>
+                <a
+                  href="https://www.python.org/downloads/"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: "var(--accent, #3b82f6)",
+                    textDecoration: "underline",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontWeight: 500,
+                  }}
+                >
+                  Baixar no python.org <ExternalLink size={12} />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText("winget install Python.Python.3.12");
+                    onInfo?.("Comando copiado: winget install Python.Python.3.12");
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    color: "var(--fg-muted, #8b94a3)",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Copiar comando winget
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Lista */}
         <div className="marketplace__list">
           {loading && entries.length === 0 ? (
@@ -344,6 +413,19 @@ export function MarketplaceModal({
                     <span className={`marketplace__badge ${STATUS_CLASS[entry.status] ?? ""}`}>
                       {STATUS_LABEL[entry.status] ?? entry.status}
                     </span>
+                    {entry.language === "python" && !pythonAvailable && (
+                      <span
+                        className="marketplace__badge"
+                        style={{
+                          background: "rgba(245, 158, 11, 0.18)",
+                          color: "#f59e0b",
+                          border: "1px solid rgba(245, 158, 11, 0.35)",
+                        }}
+                        title="Requer interpretador Python instalado"
+                      >
+                        ⚠️ Requer Python
+                      </span>
+                    )}
                     <span className="marketplace__item-version">v{entry.version}</span>
                   </div>
                   <p className="marketplace__item-desc">{entry.description}</p>

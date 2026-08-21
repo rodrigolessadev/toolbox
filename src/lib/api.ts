@@ -102,6 +102,12 @@ export interface UpdateCheckResult {
   body?: string | null;
 }
 
+export interface RuntimeInfo {
+  name: string;
+  available: boolean;
+  version?: string | null;
+}
+
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
@@ -143,6 +149,10 @@ export const api = {
   openPath: (path: string) => invoke<void>("open_path", { path }),
   checkUpdate: () => invoke<UpdateCheckResult>("check_update"),
   installUpdate: () => invoke<string>("install_update"),
+
+  checkRuntimeStatus: (runtime: string) =>
+    invoke<RuntimeInfo>("check_runtime_status", { runtime }),
+  checkAllRuntimes: () => invoke<RuntimeInfo[]>("check_all_runtimes"),
 
   hideWindow: () => invoke<void>("hide_window"),
   showWindow: () => invoke<void>("show_window"),
