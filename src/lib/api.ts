@@ -95,6 +95,13 @@ export interface InstalledPlugin {
   icon?: string;
 }
 
+export interface UpdateCheckResult {
+  available: boolean;
+  current_version: string;
+  version?: string | null;
+  body?: string | null;
+}
+
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
@@ -134,6 +141,7 @@ export const api = {
   getLogsDir: () => invoke<string>("get_logs_dir"),
   getWorkdir: () => invoke<string>("get_data_dir"),
   openPath: (path: string) => invoke<void>("open_path", { path }),
+  checkUpdate: () => invoke<UpdateCheckResult>("check_update"),
   installUpdate: () => invoke<string>("install_update"),
 
   hideWindow: () => invoke<void>("hide_window"),
