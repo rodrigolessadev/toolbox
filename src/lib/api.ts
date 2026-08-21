@@ -106,6 +106,8 @@ export interface RuntimeInfo {
   name: string;
   available: boolean;
   version?: string | null;
+  is_embedded?: boolean;
+  path?: string | null;
 }
 
 // ─────────────────────── Bridge Tauri ────────────────────

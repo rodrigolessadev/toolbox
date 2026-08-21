@@ -183,7 +183,17 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
 
     let mut cmd = match language.as_str() {
         "python" => {
-            let mut c = Command::new("python");
+            let (python_bin, is_embedded, _) = crate::runtimes::get_python_executable(Some(app));
+            let mut c = Command::new(&python_bin);
+            if is_embedded {
+                if let Some(parent_dir) = python_bin.parent() {
+                    let site_packages = parent_dir.join("Lib").join("site-packages");
+                    if site_packages.exists() {
+                        c.env("PYTHONPATH", &site_packages);
+                    }
+                    c.env("PYTHONHOME", parent_dir);
+                }
+            }
             c.arg(&entry_path);
             c
         }
