@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
+import { RefreshCw } from "lucide-react";
 import { api } from "../lib/api";
 import { Theme } from "../hooks/useTheme";
 
@@ -12,6 +13,7 @@ interface Props {
   onOpenDataDir?: () => Promise<void> | void;
   onOpenLogsDir?: () => Promise<void> | void;
   updateVersion?: string | null;
+  onUpdateDetected?: (version: string) => void;
   onInstallUpdate?: () => Promise<void>;
   updating?: boolean;
   theme?: Theme;
@@ -27,6 +29,7 @@ export function SettingsModal({
   onOpenDataDir,
   onOpenLogsDir,
   updateVersion,
+  onUpdateDetected,
   onInstallUpdate,
   updating,
   theme: propTheme,
@@ -44,6 +47,8 @@ export function SettingsModal({
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [working, setWorking] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [lastCheckedText, setLastCheckedText] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +86,27 @@ export function SettingsModal({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const res = await api.checkUpdate();
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      if (res.available && res.version) {
+        onUpdateDetected?.(res.version);
+        setLastCheckedText(`Nova versão encontrada às ${timeStr}`);
+        onInfo?.(`Nova versão disponível: v${res.version}`);
+      } else {
+        setLastCheckedText(`Verificado às ${timeStr}`);
+        onInfo?.(`O Toolbox está atualizado na versão mais recente (v${res.current_version || appVersion || "1.0.0"}).`);
+      }
+    } catch (e) {
+      onError?.(`Falha ao verificar atualizações: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
 
   const handleThemeChange = async (next: string) => {
     const nextTheme = next as Theme;
@@ -156,25 +182,54 @@ export function SettingsModal({
               <div className="settings__update-row">
                 <div className="settings__row-info">
                   <strong>Nova versão disponível: v{updateVersion}</strong>
-                  <span className="settings__path">Versão atual instalada: v{appVersion || "1.0.0"}</span>
+                  <span className="settings__path">
+                    Versão atual instalada: v{appVersion || "1.0.0"}
+                    {lastCheckedText ? ` • ${lastCheckedText}` : ""}
+                  </span>
                 </div>
-                {onInstallUpdate && (
+                <div className="settings__update-actions">
                   <button
                     type="button"
-                    className="settings__update-btn"
-                    onClick={onInstallUpdate}
-                    disabled={updating}
+                    className="settings__btn-verify"
+                    onClick={handleCheckUpdate}
+                    disabled={checkingUpdate || updating}
+                    title="Verificar novamente"
                   >
-                    {updating ? "Atualizando..." : "Atualizar agora"}
+                    <RefreshCw size={13} className={checkingUpdate ? "spin" : ""} />
+                    <span>{checkingUpdate ? "Verificando..." : "Verificar"}</span>
                   </button>
-                )}
+                  {onInstallUpdate && (
+                    <button
+                      type="button"
+                      className="settings__update-btn"
+                      onClick={onInstallUpdate}
+                      disabled={updating || checkingUpdate}
+                    >
+                      {updating ? "Atualizando..." : "Atualizar agora"}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="settings__row">
                 <div className="settings__row-info">
                   <strong>Toolbox v{appVersion || "1.0.0"}</strong>
-                  <span className="settings__path">O aplicativo está atualizado.</span>
+                  <span className="settings__path">
+                    {lastCheckedText
+                      ? `O aplicativo está atualizado • ${lastCheckedText}`
+                      : "O aplicativo está atualizado."}
+                  </span>
                 </div>
+                <button
+                  type="button"
+                  className="settings__btn-verify"
+                  onClick={handleCheckUpdate}
+                  disabled={checkingUpdate || working}
+                  title="Verificar se há novas versões"
+                >
+                  <RefreshCw size={13} className={checkingUpdate ? "spin" : ""} />
+                  <span>{checkingUpdate ? "Verificando..." : "Verificar"}</span>
+                </button>
               </div>
             )}
           </section>

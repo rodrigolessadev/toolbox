@@ -104,6 +104,55 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
     Ok("Atualização iniciada. O instalador será executado como Administrador em breve.".to_string())
 }
 
+#[derive(serde::Serialize)]
+pub struct UpdateCheckResult {
+    pub available: bool,
+    pub current_version: String,
+    pub version: Option<String>,
+    pub body: Option<String>,
+}
+
+#[tauri::command]
+async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    match updater.check().await {
+        Ok(Some(update)) => {
+            log::info!(
+                "Verificação manual: Nova versão disponível: {} (atual: {})",
+                update.version,
+                update.current_version
+            );
+            let _ = app.emit(
+                "update-available",
+                serde_json::json!({
+                    "version": update.version,
+                    "body": update.body,
+                }),
+            );
+            Ok(UpdateCheckResult {
+                available: true,
+                current_version: update.current_version.clone(),
+                version: Some(update.version),
+                body: update.body,
+            })
+        }
+        Ok(None) => {
+            let current = app.package_info().version.to_string();
+            log::info!("Verificação manual: Aplicativo atualizado na versão {}", current);
+            Ok(UpdateCheckResult {
+                available: false,
+                current_version: current,
+                version: None,
+                body: None,
+            })
+        }
+        Err(e) => {
+            log::error!("Falha ao verificar atualização manualmente: {e}");
+            Err(e.to_string())
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -171,6 +220,7 @@ pub fn run() {
             commands_store::toggle_favorite,
             commands_store::import_commands,
             commands_store::export_commands,
+            check_update,
             install_update,
             executor::run_command,
             executor::list_plugins,

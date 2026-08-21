@@ -583,6 +583,7 @@ export default function App() {
         onOpenDataDir={openDataDir}
         onOpenLogsDir={openLogsDir}
         updateVersion={updateVersion}
+        onUpdateDetected={setUpdateVersion}
         onInstallUpdate={handleInstallUpdate}
         updating={updating}
         theme={theme}
