@@ -1,3 +1,20 @@
+## v1.18.0 - 2026-08-21 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.18.0/Toolbox_1.18.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🚀 Novas Funcionalidades & Auto-Updater
+- **Botão Verificar Atualização (#51):** Adicionado botão interativo de checagem manual sob demanda na seção *Atualizações do Sistema* da tela de Configurações (`SettingsModal`).
+- **Feedback em Tempo Real:** Indicador de carregamento animado com spinner (`Verificando...`), exibição do timestamp da última consulta bem-sucedida e notificações toast contextuais.
+- **Acionamento Imediato:** Quando uma nova versão for detectada, a interface atualiza dinamicamente o card com a versão encontrada e habilita o botão "Atualizar agora".
+
+### ⚡ Backend Tauri (Rust)
+- **Comando `check_update`:** Endpoint IPC serializável nativo que consulta o manifesto de atualização e emite eventos `update-available`.
+
+### 🎨 Design System & UX
+- Novos estilos e micro-animações para botões de verificação e linhas de atualização alinhados ao Material Design 3.
+
+</details>
+
 ## v1.17.1 - 2026-08-21 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.17.1/Toolbox_1.17.1_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
