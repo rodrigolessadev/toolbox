@@ -1,3 +1,20 @@
+## v1.17.1 - 2026-08-21
+
+### 🎨 Design System & Material Design 3
+- Sincronização automática de Design Tokens M3 (`tokens.json` ➔ `theme.css` / `index.ts`).
+- Suporte aprimorado para temas Claro e Escuro com paletas harmônicas e contraste acessível (WCAG AA).
+- Padronização de componentes visuais, elevações e tipografia responsiva.
+
+### 🚀 Novas Funcionalidades & Auto-Updater
+- Reativação completa do manifesto de atualização contínua (`latest.json`) no pipeline de empacotamento Tauri.
+- Compatibilidade total do notificador de novas versões para usuários em builds anteriores.
+- Integração nativa com novos plugins corporativos do catálogo (ex: *Logon AWS & Port Forwarding*).
+
+### 🐛 Correções & Estabilidade
+- Resiliência na compilação do instalador desktop em múltiplos ambientes com tratamento inteligente de chaves de assinatura.
+- Otimização no carregamento de ícones e fontes offline para inicialização ultra-rápida.
+- Validação automática de Quality Gates pré-release para garantia de integridade SemVer.
+
 ## v1.17.0 - 2026-08-21
 
 ### 🎨 Design System & Material Design 3
