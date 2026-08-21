@@ -2,6 +2,10 @@
 <details>
 <summary>Ver detalhes da versao</summary>
 
+## v1.18.0 - 2026-08-21 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.18.0/Toolbox_1.18.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
 ### 🚀 Novas Funcionalidades & Auto-Updater
 - **Botão Verificar Atualização (#51):** Adicionado botão interativo de checagem manual sob demanda na seção *Atualizações do Sistema* da tela de Configurações (`SettingsModal`).
 - **Feedback em Tempo Real:** Indicador de carregamento animado com spinner (`Verificando...`), exibição do timestamp da última consulta bem-sucedida e notificações toast contextuais.
@@ -12,6 +16,8 @@
 
 ### 🎨 Design System & UX
 - Novos estilos e micro-animações para botões de verificação e linhas de atualização alinhados ao Material Design 3.
+
+</details>
 
 </details>
 
@@ -81,38 +87,6 @@
 </details>
 
 ## v1.19.0 - 2026-08-20 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.19.0/Toolbox_1.19.0_x64-setup.exe)
-<details>
-<summary>Ver detalhes da versao</summary>
-
-### 🎨 Design System & Material Design 3
-- Implementação completa dos padrões visuais do Material Design 3 (M3).
-- Novos componentes de botões com suporte a variantes Filled, Tonal, Outlined e formato Pill.
-- Superfícies tonais adaptativas (surface-container-lowest a highest) com elevação tonal e cantos M3 (shape-corner-lg).
-- Suporte dinâmico e suave a temas Claro e Escuro com conformidade estrita de contraste WCAG AA.
-- Modernização visual da barra de título (TitleBar) e controles de janela.
-
-### 📦 Design Tokens & Temas
-- Criação do pacote mestre de tokens (@toolbox/design-tokens / tokens.json).
-- Exportações automatizadas de variáveis CSS (theme.css) e tipagens TypeScript.
-- Preset oficial para Tailwind CSS (tailwind.preset.js) com suporte nativo a tokens M3.
-- Script automatizado de compilação de temas (`npm run tokens:build` e `npm run theme:sync`).
-
-### 🚀 Novas Funcionalidades & Automações
-- Adicionados templates de scaffolding no toolbox-automation para novos projetos React + Vite e Data Apps em Streamlit no padrão M3.
-- Regras de Stylelint e ESLint para bloqueio automático de cores hardcoded.
-- Novo Quality Gate e analisador de conformidade de contraste matemático WCAG AA.
-- Criação do guia oficial de governança visual e migração (DESIGN-SYSTEM.md).
-
-### 🐛 Correções de Bugs
-- Correção na inicialização do tauri-plugin-dialog no backend Rust, solucionando o erro ao abrir o seletor de arquivos e pastas no modal de criação e edição de comandos (#43).
-- Aprimoramento no tratamento de seleção e cancelamento de arquivos executáveis e diretórios de plugins.
-
-### ♿ Acessibilidade (WCAG AA)
-- Relação de contraste mínima de 4.5:1 para textos e 3.0:1 para elementos de interface em todas as paletas de cores.
-
-</details>
-
-## v1.18.0 - 2026-08-20 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.18.0/Toolbox_1.18.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
 
