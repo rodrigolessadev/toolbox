@@ -3,21 +3,19 @@
 <summary>Ver detalhes da versao</summary>
 
 ### 🎨 Design System & Material Design 3
-- Adoção de novos componentes visuais e superfícies tonais M3.
-- Suporte aprimorado a temas Claro e Escuro com transição suave.
+- Sincronização automática de Design Tokens M3 (`tokens.json` ➔ `theme.css` / `index.ts`).
+- Suporte aprimorado para temas Claro e Escuro com paletas harmônicas e contraste acessível (WCAG AA).
+- Padronização de componentes visuais, elevações e tipografia responsiva.
 
-### 📦 Design Tokens & Temas
-- Atualização e sincronização dos tokens de cores, formas e tipografia.
-- Exportação automatizada de variáveis CSS e presets de estilização.
+### 🚀 Novas Funcionalidades & Auto-Updater
+- Reativação completa do manifesto de atualização contínua (`latest.json`) no pipeline de empacotamento Tauri.
+- Compatibilidade total do notificador de novas versões para usuários em builds anteriores.
+- Integração nativa com novos plugins corporativos do catálogo (ex: *Logon AWS & Port Forwarding*).
 
-### 🚀 Novas Funcionalidades & Automações
-- Novas opções e fluxos de trabalho adicionados aos módulos do ecossistema.
-
-### 🐛 Correções & Ajustes
-- Correções de bugs, tratamento de exceções e melhorias de estabilidade.
-
-### ♿ Acessibilidade (WCAG AA)
-- Conformidade estrita de contraste de cores (mínimo 4.5:1 / 3.0:1) em todas as interfaces.
+### 🐛 Correções & Estabilidade
+- Resiliência na compilação do instalador desktop em múltiplos ambientes com tratamento inteligente de chaves de assinatura.
+- Otimização no carregamento de ícones e fontes offline para inicialização ultra-rápida.
+- Validação automática de Quality Gates pré-release para garantia de integridade SemVer.
 
 </details>
 
