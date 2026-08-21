@@ -1,3 +1,19 @@
+## v1.20.0 - 2026-08-21
+
+## Toolbox — v1.20.0 (2026-08-21)
+<details>
+<summary>Ver detalhes da versão</summary>
+
+### 🚀 Novas Funcionalidades
+- **Detecção de Runtimes no Marketplace (#56):** O Toolbox agora verifica silenciosamente se o interpretador Python está disponível na máquina ao navegar pelo catálogo de plugins.
+- **Avisos de Pré-Requisitos e Ações Rápidas:** Plugins dependentes de Python exibem uma badge de advertência e um banner orientativo com link direto de download oficial (`python.org`) e botão para copiar o comando de instalação via `winget`.
+- **Mensagens Amigáveis no Executor:** Em caso de tentativa de execução de um plugin sem o interpretador configurado, o aplicativo orienta o usuário de forma clara sobre como resolver a dependência.
+
+### 🛡️ Testes & Estabilidade
+- Adicionados testes automatizados para verificação e consulta de runtimes do sistema no backend Rust (`30 testes aprovados`).
+
+</details>
+
 ## v1.19.0 - 2026-08-21
 
 ## v1.19.0 - 2026-08-21 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.19.0/Toolbox_1.19.0_x64-setup.exe)
