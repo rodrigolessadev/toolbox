@@ -1,0 +1,2 @@
+Toolbox Embedded Runtime Resource Directory
+This directory is used to bundle the embedded Python distribution.

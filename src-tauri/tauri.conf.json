@@ -44,6 +44,9 @@
       "icons/icon.ico"
     ],
     "category": "Utility",
+    "resources": [
+      "resources/runtime/*"
+    ],
     "shortDescription": "Toolbox com Plugins",
     "longDescription": "Aplicativo desktop moderno e leve para executar comandos, links e aplicativos via plugins personalizados para Windows.",
     "createUpdaterArtifacts": "v1Compatible"

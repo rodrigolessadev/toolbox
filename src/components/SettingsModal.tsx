@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { RefreshCw } from "lucide-react";
-import { api } from "../lib/api";
+import { api, RuntimeInfo } from "../lib/api";
 import { Theme } from "../hooks/useTheme";
 
 interface Props {
@@ -44,6 +44,7 @@ export function SettingsModal({
   const [pluginsDir, setPluginsDir] = useState<string>("");
   const [logsDir, setLogsDir] = useState<string>("");
   const [appVersion, setAppVersion] = useState<string>("");
+  const [pythonRuntime, setPythonRuntime] = useState<RuntimeInfo | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [working, setWorking] = useState(false);
@@ -56,12 +57,13 @@ export function SettingsModal({
     (async () => {
       try {
         setWorking(true);
-        const [dd, pd, ld, t, v] = await Promise.all([
+        const [dd, pd, ld, t, v, py] = await Promise.all([
           api.getDataDir(),
           api.getPluginsDir(),
           api.getLogsDir(),
           api.getTheme().catch(() => "dark"),
           getVersion().catch(() => "1.0.0"),
+          api.checkRuntimeStatus("python").catch(() => null),
         ]);
         if (cancelled) return;
         setDataDir(dd);
@@ -69,6 +71,7 @@ export function SettingsModal({
         setLogsDir(ld);
         if (!propTheme && (t === "light" || t === "dark" || t === "system")) setTheme(t as Theme);
         setAppVersion(v);
+        if (py) setPythonRuntime(py);
       } catch {
         if (!cancelled) onError?.("Falha ao carregar configurações.");
       } finally {
@@ -248,6 +251,33 @@ export function SettingsModal({
                 <option value="light">Claro</option>
                 <option value="system">Sistema</option>
               </select>
+            </div>
+          </section>
+
+          {/* Ambiente de Execução (Runtimes) */}
+          <section className="settings__section">
+            <h3 className="settings__title">Ambiente de Execução (Runtimes)</h3>
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Python</strong>
+                <span className="settings__path">
+                  {pythonRuntime?.available
+                    ? `${pythonRuntime.version || "Disponível"} ${pythonRuntime.is_embedded ? "• Embutido no aplicativo" : "• Sistema operacional"}`
+                    : "Não detectado no sistema"}
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: "12px",
+                  padding: "3px 8px",
+                  borderRadius: "4px",
+                  background: pythonRuntime?.available ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                  color: pythonRuntime?.available ? "#10b981" : "#ef4444",
+                  fontWeight: 500,
+                }}
+              >
+                {pythonRuntime?.available ? (pythonRuntime.is_embedded ? "Embutido" : "Sistema") : "Ausente"}
+              </span>
             </div>
           </section>
 
