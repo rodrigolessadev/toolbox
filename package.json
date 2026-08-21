@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "npm run tokens:build && tauri build",
+    "tauri:build": "npm run prepare:runtime && npm run tokens:build && tauri build",
+    "prepare:runtime": "node scripts/setup-embedded-python.js",
     "tokens:build": "node scripts/build-tokens.js",
     "theme:sync": "node scripts/build-tokens.js"
   },

@@ -29,6 +29,12 @@ plugins/**/*.pyc
 plugins/**/.venv
 plugins/**/venv
 
+# Embedded runtime binaries (gerados no build)
+src-tauri/resources/runtime/python/
+src-tauri/resources/runtime/*.zip
+src-tauri/resources/runtime/*.tar.gz
+!src-tauri/resources/runtime/placeholder.txt
+
 # Logs
 logs/*.log
 logs/*.log.*
