@@ -1,3 +1,19 @@
+## v1.21.0 - 2026-08-21
+
+## Toolbox — v1.21.0 (2026-08-21)
+<details>
+<summary>Ver detalhes da versão</summary>
+
+### 🚀 Novas Funcionalidades
+- **Suporte a Python Embutido (#58):** O Toolbox agora suporta execução de plugins através de uma distribuição integrada de Python (Embedded Runtime), permitindo funcionamento imediato e isolado sem requerer instalação prévia do Python no Windows.
+- **Resolução em Cascata de Runtimes:** Busca automática priorizando o runtime embutido com fallback transparente para o Python do sistema operacional.
+- **Painel de Runtimes nas Configurações:** Nova seção visual nas Configurações exibindo o status, versão e origem do interpretador ativo (Embutido ou Sistema).
+
+### 🛡️ Testes & Estabilidade
+- Atualizada a suíte de testes unitários para cobrir os fluxos de resolução e isolamento de ambiente (`30 testes aprovados`).
+
+</details>
+
 ## v1.20.0 - 2026-08-21
 
 ## Toolbox — v1.20.0 (2026-08-21)
