@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { getVersion } from "@tauri-apps/api/app";
 import { MessageSquarePlus, Send, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { sendFeedback, type FeedbackType } from "../lib/supabase";
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
+  const [mounted, setMounted] = useState(false);
   const [type, setType] = useState<FeedbackType>("suggestion");
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
@@ -19,6 +21,10 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Carrega versão da aplicação
   useEffect(() => {
@@ -44,7 +50,7 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, status, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted || typeof document === "undefined") return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +98,7 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="modal-backdrop"
       onClick={(e) => {
@@ -370,6 +376,7 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
