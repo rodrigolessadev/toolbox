@@ -1,3 +1,17 @@
+## v1.22.2 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.2/Toolbox_1.22.2_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 💬 Estabilização do Feedback, React Portal & Logs Estruturados (#73, #75, #76)
+- **Renderização via React Portal (#73, #74):** Teletransporte do `FeedbackModal` diretamente para `document.body` com estado `mounted` seguro para SSR, eliminando o corte visual superior causado pelo `backdrop-filter` do cabeçalho.
+- **Fallbacks Nativos do Supabase (#75):** Injeção de configurações padrão para a chave pública anônima no cliente TypeScript, garantindo funcionamento instantâneo no portal web (Vercel) e no app desktop.
+- **Logs Estruturados no `toolbox.log` (#76, #77):** Novo comando Tauri `log_event` em Rust para registro detalhado de todas as etapas de envio de feedbacks (início, validações, latência em ms e respostas do Supabase) no arquivo de log nativo `logs/toolbox.log`.
+
+### 🛡️ Testes & Governança
+- Verificação de tipos TypeScript, compilação Rust (`cargo check`) e builds de produção da documentação Astro e do aplicativo Desktop 100% aprovados.
+
+</details>
+
 ## v1.22.1 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.1/Toolbox_1.22.1_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
