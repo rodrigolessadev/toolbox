@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { sendFeedback, type FeedbackType } from '../lib/supabase';
 
 interface FeedbackModalProps {
@@ -13,6 +14,7 @@ export default function FeedbackModal({
   variant = 'nav',
 }: FeedbackModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [type, setType] = useState<FeedbackType>('suggestion');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -21,6 +23,11 @@ export default function FeedbackModal({
   const [errorMessage, setErrorMessage] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Garante montagem no cliente para uso seguro do React Portal no SSR
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Escuta tecla ESC e cliques fora do modal
   useEffect(() => {
@@ -140,8 +147,8 @@ export default function FeedbackModal({
         </button>
       )}
 
-      {/* Modal / Dialog */}
-      {isOpen && (
+      {/* Modal / Dialog via React Portal */}
+      {isOpen && mounted && typeof document !== 'undefined' && createPortal(
         <div
           className="feedback-overlay"
           onClick={(e) => {
@@ -316,7 +323,8 @@ export default function FeedbackModal({
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Estilos encapsulados com CSS Variables do tema */}
