@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { MessageSquarePlus, X, Send, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { MessageSquarePlus, Send, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { sendFeedback, type FeedbackType } from "../lib/supabase";
 
 interface Props {
@@ -104,263 +104,271 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
       aria-modal="true"
       aria-labelledby="feedback-dialog-title"
     >
-      <div className="modal-window" style={{ maxWidth: "520px" }}>
+      <div
+        className="modal"
+        style={{
+          width: "490px",
+          maxWidth: "94vw",
+          maxHeight: "min(90vh, 520px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <header className="modal-header">
+        <header className="modal__header">
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <MessageSquarePlus size={18} style={{ color: "var(--md-sys-color-primary, #7c9eff)" }} />
-            <h2 id="feedback-dialog-title" style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>
+            <MessageSquarePlus size={18} style={{ color: "var(--accent)" }} />
+            <h2 id="feedback-dialog-title" className="modal__title" style={{ margin: 0 }}>
               Enviar Feedback
             </h2>
           </div>
           <button
             type="button"
-            className="modal-close-btn"
+            className="modal__close"
             onClick={handleClose}
             disabled={status === "sending"}
             aria-label="Fechar modal"
-            style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--md-sys-color-on-surface-variant, #888)",
-              padding: "4px",
-              display: "flex",
-              alignItems: "center",
-            }}
           >
-            <X size={18} />
+            ✕
           </button>
         </header>
 
-        {/* Body */}
-        <div className="modal-body" style={{ padding: "16px 20px" }}>
-          {status === "success" ? (
-            <div style={{ textAlign: "center", padding: "28px 12px" }}>
-              <CheckCircle2
-                size={48}
-                style={{ color: "var(--md-sys-color-primary, #4ade80)", marginBottom: "12px" }}
-              />
-              <h3 style={{ margin: "0 0 8px 0", fontSize: "1.1rem" }}>Obrigado!</h3>
-              <p
-                style={{
-                  color: "var(--md-sys-color-on-surface-variant, #9aa3b2)",
-                  fontSize: "13px",
-                  margin: "0 0 24px 0",
-                }}
-              >
-                Seu feedback foi enviado com sucesso e ajudará na melhoria contínua do Toolbox.
-              </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleClose}
-                style={{ padding: "8px 24px" }}
-              >
-                Concluir
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {/* Alerta de erro */}
-              {errorMessage && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    background: "rgba(248, 113, 113, 0.12)",
-                    border: "1px solid rgba(248, 113, 113, 0.4)",
-                    color: "var(--md-sys-color-error, #f87171)",
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                  }}
-                  role="alert"
-                >
-                  <AlertCircle size={16} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
-
-              {/* Categoria */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label
-                  htmlFor="feedback-desktop-type"
-                  style={{ fontSize: "12px", fontWeight: 600, color: "var(--md-sys-color-on-surface, #e6e9ef)" }}
-                >
-                  Tipo de feedback <span style={{ color: "var(--md-sys-color-error, #f87171)" }}>*</span>
-                </label>
-                <select
-                  id="feedback-desktop-type"
-                  value={type}
-                  onChange={(e) => setType(e.target.value as FeedbackType)}
-                  disabled={status === "sending"}
-                  className="modal-select"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    background: "var(--md-sys-color-surface-container, #131722)",
-                    border: "1px solid var(--md-sys-color-outline-variant, #2a3142)",
-                    borderRadius: "6px",
-                    color: "var(--md-sys-color-on-surface, #e6e9ef)",
-                    fontSize: "13px",
-                  }}
-                >
-                  <option value="suggestion">💡 Sugestão de melhoria</option>
-                  <option value="bug">🐛 Reportar um bug ou problema</option>
-                  <option value="question">❓ Dúvida sobre o uso</option>
-                  <option value="praise">❤️ Elogio</option>
-                  <option value="other">📝 Outro assunto</option>
-                </select>
-              </div>
-
-              {/* Mensagem */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <label
-                    htmlFor="feedback-desktop-message"
-                    style={{ fontSize: "12px", fontWeight: 600, color: "var(--md-sys-color-on-surface, #e6e9ef)" }}
-                  >
-                    Mensagem <span style={{ color: "var(--md-sys-color-error, #f87171)" }}>*</span>
-                  </label>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color:
-                        message.length > 5000
-                          ? "var(--md-sys-color-error, #f87171)"
-                          : "var(--md-sys-color-on-surface-variant, #9aa3b2)",
-                    }}
-                  >
-                    {message.length} / 5000
-                  </span>
-                </div>
-                <textarea
-                  id="feedback-desktop-message"
-                  ref={textareaRef}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  disabled={status === "sending"}
-                  placeholder="Descreva detalhadamente sua sugestão, dúvida ou o que aconteceu..."
-                  rows={4}
-                  required
-                  minLength={10}
-                  maxLength={5000}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "8px 12px",
-                    background: "var(--md-sys-color-surface-container, #131722)",
-                    border: "1px solid var(--md-sys-color-outline-variant, #2a3142)",
-                    borderRadius: "6px",
-                    color: "var(--md-sys-color-on-surface, #e6e9ef)",
-                    fontSize: "13px",
-                    fontFamily: "inherit",
-                    resize: "vertical",
-                    minHeight: "90px",
-                  }}
-                />
-              </div>
-
-              {/* E-mail (Opcional) */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label
-                  htmlFor="feedback-desktop-email"
-                  style={{ fontSize: "12px", fontWeight: 600, color: "var(--md-sys-color-on-surface, #e6e9ef)" }}
-                >
-                  E-mail{" "}
-                  <span style={{ color: "var(--md-sys-color-on-surface-variant, #9aa3b2)", fontWeight: 400 }}>
-                    (opcional)
-                  </span>
-                </label>
-                <input
-                  type="email"
-                  id="feedback-desktop-email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={status === "sending"}
-                  placeholder="seu.email@exemplo.com"
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "8px 12px",
-                    background: "var(--md-sys-color-surface-container, #131722)",
-                    border: "1px solid var(--md-sys-color-outline-variant, #2a3142)",
-                    borderRadius: "6px",
-                    color: "var(--md-sys-color-on-surface, #e6e9ef)",
-                    fontSize: "13px",
-                  }}
-                />
-                <span style={{ fontSize: "11px", color: "var(--md-sys-color-on-surface-variant, #9aa3b2)" }}>
-                  Informe seu e-mail caso deseje receber um retorno da equipe.
-                </span>
-              </div>
-
-              {/* Honeypot invisível */}
-              <div style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, overflow: "hidden" }}>
-                <label htmlFor="website_url_hp_desktop">Não preencher</label>
-                <input
-                  type="text"
-                  id="website_url_hp_desktop"
-                  value={honeypot}
-                  onChange={(e) => setHoneypot(e.target.value)}
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-              </div>
-
-              {/* Nota de Privacidade */}
+        {/* Body / Form */}
+        {status === "success" ? (
+          <div style={{ textAlign: "center", padding: "28px 16px", overflowY: "auto" }}>
+            <CheckCircle2
+              size={44}
+              style={{ color: "var(--success, #4ade80)", marginBottom: "10px" }}
+            />
+            <h3 style={{ margin: "0 0 6px 0", fontSize: "1.05rem" }}>Obrigado!</h3>
+            <p
+              style={{
+                color: "var(--fg-muted)",
+                fontSize: "13px",
+                margin: "0 0 20px 0",
+              }}
+            >
+              Seu feedback foi enviado com sucesso e ajudará na melhoria contínua do Toolbox.
+            </p>
+            <button
+              type="button"
+              className="modal__btn modal__btn--primary"
+              onClick={handleClose}
+              style={{ padding: "6px 20px" }}
+            >
+              Concluir
+            </button>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="modal__form"
+            style={{
+              padding: "14px 18px",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              flex: 1,
+            }}
+          >
+            {/* Alerta de erro */}
+            {errorMessage && (
               <div
                 style={{
-                  fontSize: "11px",
-                  color: "var(--md-sys-color-on-surface-variant, #9aa3b2)",
-                  background: "rgba(255, 255, 255, 0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(248, 113, 113, 0.12)",
+                  border: "1px solid var(--danger, #f87171)",
+                  color: "var(--danger, #f87171)",
                   padding: "6px 10px",
-                  borderRadius: "4px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: "12px",
+                }}
+                role="alert"
+              >
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {/* Categoria */}
+            <div className="modal__field" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label htmlFor="feedback-desktop-type" className="modal__label" style={{ fontSize: "11px" }}>
+                Tipo de feedback <span style={{ color: "var(--danger, #f87171)" }}>*</span>
+              </label>
+              <select
+                id="feedback-desktop-type"
+                value={type}
+                onChange={(e) => setType(e.target.value as FeedbackType)}
+                disabled={status === "sending"}
+                style={{
+                  width: "100%",
+                  padding: "7px 10px",
+                  background: "var(--bg-elev-2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  color: "var(--fg)",
+                  fontSize: "12px",
+                  fontFamily: "inherit",
                 }}
               >
-                🔒 <em>Não envie senhas ou informações confidenciais. Versão enviada: v{appVersion}</em>
-              </div>
+                <option value="suggestion">💡 Sugestão de melhoria</option>
+                <option value="bug">🐛 Reportar um bug ou problema</option>
+                <option value="question">❓ Dúvida sobre o uso</option>
+                <option value="praise">❤️ Elogio</option>
+                <option value="other">📝 Outro assunto</option>
+              </select>
+            </div>
 
-              {/* Rodapé / Ações */}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleClose}
-                  disabled={status === "sending"}
-                  style={{ padding: "8px 16px" }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={status === "sending" || message.trim().length < 10}
+            {/* Mensagem */}
+            <div className="modal__field" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label htmlFor="feedback-desktop-message" className="modal__label" style={{ fontSize: "11px" }}>
+                  Mensagem <span style={{ color: "var(--danger, #f87171)" }}>*</span>
+                </label>
+                <span
                   style={{
-                    padding: "8px 18px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
+                    fontSize: "10px",
+                    color: message.length > 5000 ? "var(--danger)" : "var(--fg-muted)",
                   }}
                 >
-                  {status === "sending" ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      <span>Enviando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send size={14} />
-                      <span>Enviar feedback</span>
-                    </>
-                  )}
-                </button>
+                  {message.length} / 5000
+                </span>
               </div>
-            </form>
-          )}
-        </div>
+              <textarea
+                id="feedback-desktop-message"
+                ref={textareaRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={status === "sending"}
+                placeholder="Descreva detalhadamente sua sugestão, dúvida ou o que aconteceu..."
+                rows={3}
+                required
+                minLength={10}
+                maxLength={5000}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "7px 10px",
+                  background: "var(--bg-elev-2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  color: "var(--fg)",
+                  fontSize: "12px",
+                  fontFamily: "inherit",
+                  resize: "vertical",
+                  minHeight: "65px",
+                  maxHeight: "130px",
+                }}
+              />
+            </div>
+
+            {/* E-mail (Opcional) */}
+            <div className="modal__field" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label htmlFor="feedback-desktop-email" className="modal__label" style={{ fontSize: "11px" }}>
+                E-mail <span style={{ color: "var(--fg-muted)", fontWeight: 400 }}>(opcional)</span>
+              </label>
+              <input
+                type="email"
+                id="feedback-desktop-email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === "sending"}
+                placeholder="seu.email@exemplo.com"
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "7px 10px",
+                  background: "var(--bg-elev-2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  color: "var(--fg)",
+                  fontSize: "12px",
+                }}
+              />
+              <span style={{ fontSize: "10px", color: "var(--fg-muted)" }}>
+                Informe seu e-mail caso deseje receber um retorno da equipe.
+              </span>
+            </div>
+
+            {/* Honeypot invisível */}
+            <div style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, overflow: "hidden" }}>
+              <label htmlFor="website_url_hp_desktop">Não preencher</label>
+              <input
+                type="text"
+                id="website_url_hp_desktop"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
+            {/* Nota de Privacidade */}
+            <div
+              style={{
+                fontSize: "10px",
+                color: "var(--fg-muted)",
+                background: "var(--bg-elev-2)",
+                padding: "5px 8px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              🔒 <em>Não envie senhas ou dados confidenciais. App: v{appVersion}</em>
+            </div>
+
+            {/* Rodapé / Ações */}
+            <footer
+              className="modal__footer"
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "8px",
+                paddingTop: "6px",
+                marginTop: "auto",
+                borderTop: "1px solid var(--border)",
+              }}
+            >
+              <button
+                type="button"
+                className="modal__btn modal__btn--ghost"
+                onClick={handleClose}
+                disabled={status === "sending"}
+                style={{ padding: "6px 14px", fontSize: "12px" }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="modal__btn modal__btn--primary"
+                disabled={status === "sending" || message.trim().length < 10}
+                style={{
+                  padding: "6px 16px",
+                  fontSize: "12px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {status === "sending" ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    <span>Enviando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={13} />
+                    <span>Enviar feedback</span>
+                  </>
+                )}
+              </button>
+            </footer>
+          </form>
+        )}
       </div>
     </div>
   );

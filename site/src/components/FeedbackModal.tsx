@@ -243,7 +243,7 @@ export default function FeedbackModal({
                     onChange={(e) => setMessage(e.target.value)}
                     disabled={status === 'sending'}
                     placeholder="Descreva detalhadamente sua sugestão, dúvida ou o que aconteceu..."
-                    rows={4}
+                    rows={3}
                     required
                     minLength={10}
                     maxLength={5000}
@@ -393,6 +393,9 @@ export default function FeedbackModal({
           border-radius: var(--radius);
           width: 100%;
           max-width: 480px;
+          max-height: min(90vh, 540px);
+          display: flex;
+          flex-direction: column;
           box-shadow: var(--shadow);
           overflow: hidden;
           animation: feedbackSlideUp 0.18s ease-out;
@@ -401,7 +404,7 @@ export default function FeedbackModal({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 14px 18px;
+          padding: 12px 18px;
           border-bottom: 1px solid var(--border);
         }
         .feedback-close-btn {
@@ -418,15 +421,17 @@ export default function FeedbackModal({
           background: color-mix(in srgb, var(--border) 50%, transparent);
         }
         .feedback-form {
-          padding: 18px;
+          padding: 14px 18px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 10px;
+          overflow-y: auto;
+          flex: 1;
         }
         .feedback-field {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
         .feedback-label {
           font-size: 12px;
@@ -455,7 +460,8 @@ export default function FeedbackModal({
         }
         .feedback-textarea {
           resize: vertical;
-          min-height: 90px;
+          min-height: 65px;
+          max-height: 130px;
         }
         .feedback-hint {
           font-size: 11px;
