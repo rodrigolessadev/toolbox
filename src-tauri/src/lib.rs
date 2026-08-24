@@ -246,6 +246,7 @@ pub fn run() {
             marketplace::list_installed_plugins,
             runtimes::check_runtime_status,
             runtimes::check_all_runtimes,
+            logger::log_event,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
