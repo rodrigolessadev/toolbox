@@ -1,3 +1,20 @@
+## v1.22.0 - 2026-08-24
+
+## Toolbox — v1.22.0 (2026-08-24)
+<details>
+<summary>Ver detalhes da versão</summary>
+
+### 💬 Sistema Unificado de Feedback com Supabase (#65, #66, #67)
+- **Modal de Feedback no App Desktop (#67):** Adicionado modal nativo com Design Tokens Material 3, detecção automática da versão em execução (`app_version`), botão de atalho rápido no cabeçalho e opção dedicada na aba de Configurações.
+- **Feedback no Portal Web (#66):** Integrado componente React no portal de documentação (`toolbox-nine-phi.vercel.app`) com atalhos no cabeçalho e rodapé.
+- **Proteção Anti-Spam & Validações:** Suporte a campo Honeypot invisível contra robôs, contador de caracteres em tempo real (10 a 5.000 caracteres) e suporte ao fechamento com a tecla ESC.
+- **Infraestrutura Supabase & RLS (#65):** Migration SQL oficial com políticas de Row Level Security (RLS) que garantem inserções anônimas protegidas sem exposição de leitura ou edição pública.
+
+### 🛡️ Testes & Qualidade
+- 30 testes unitários em Rust e builds de produção do Desktop e da documentação Astro 100% aprovados.
+
+</details>
+
 ## v1.21.2 - 2026-08-24
 
 ## Toolbox — v1.21.2 (2026-08-24)
