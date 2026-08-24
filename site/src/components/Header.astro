@@ -1,6 +1,7 @@
 ---
 import { SITE, NAV } from '../lib/site';
 import ThemeToggle from './ThemeToggle';
+import FeedbackModal from './FeedbackModal';
 ---
 
 <header class="site-header">
@@ -20,6 +21,7 @@ import ThemeToggle from './ThemeToggle';
           {item.label}
         </a>
       ))}
+      <FeedbackModal client:load buttonLabel="Feedback" variant="nav" />
       <ThemeToggle client:load />
     </nav>
   </div>
