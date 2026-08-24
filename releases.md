@@ -1,3 +1,23 @@
+## v1.21.1 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.21.1/Toolbox_1.21.1_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## Toolbox — v1.21.1 (2026-08-21)
+<details>
+<summary>Ver detalhes da versão</summary>
+
+### ⚙️ Automação de Build & Runtime Embutido (#60)
+- **Instalador Autossuficiente:** O processo de build agora baixa, configura e embute automaticamente a distribuição oficial do **Python 3.12** e as dependências essenciais (`pywebview`, `boto3`, `requests`).
+- **Execução Sem Pré-requisitos:** Computadores sem Python instalado no Windows agora conseguem executar plugins Python e Webview diretamente após a instalação do Toolbox.
+- **Preparação Automática (`npm run prepare:runtime`):** Rotina integrada no fluxo de compilação do instalador Tauri.
+
+### 🛡️ Testes & Governança
+- 30 testes unitários em Rust e compilação de frontend 100% aprovados.
+
+</details>
+
+</details>
+
 ## v1.21.0 - 2026-08-21 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.21.0/Toolbox_1.21.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
