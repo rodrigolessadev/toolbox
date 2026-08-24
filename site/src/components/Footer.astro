@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../lib/site';
+import FeedbackModal from './FeedbackModal';
 const year = new Date().getFullYear();
 ---
 
@@ -12,6 +13,7 @@ const year = new Date().getFullYear();
       <a href={SITE.github} target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="/changelog">Changelog</a>
       <a href="/docs/architecture">Documentação</a>
+      <FeedbackModal client:load buttonLabel="Enviar feedback" variant="link" />
     </div>
     <div class="footer-credits">
       © {year} {SITE.author} · MIT License
