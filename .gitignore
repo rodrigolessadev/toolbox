@@ -71,3 +71,8 @@ opencode.jsonc
 
 # Added by code-review-graph
 .code-review-graph/
+.vercel
+.env
+.env.local
+.env.*.local
+!.env.example
