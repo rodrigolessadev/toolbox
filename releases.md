@@ -2,9 +2,7 @@
 <details>
 <summary>Ver detalhes da versao</summary>
 
-### 🐛 Correção de Layout no Feedback (#71)
-- **Responsividade e Scroll:** Ajustado o dimensionamento do modal de feedback com `max-height` dinâmico e scroll interno, evitando cortes visuais em qualquer resolução.
-- **Alinhamento ao Design System:** Estrutura padronizada com tokens Material 3 e fechamento aprimorado.
+- Melhorias gerais e correções de desempenho.
 
 </details>
 

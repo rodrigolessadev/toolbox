@@ -1,8 +1,7 @@
 ## v1.22.1 - 2026-08-24
 
-### 🐛 Correção de Layout no Feedback (#71)
-- **Responsividade e Scroll:** Ajustado o dimensionamento do modal de feedback com `max-height` dinâmico e scroll interno, evitando cortes visuais em qualquer resolução.
-- **Alinhamento ao Design System:** Estrutura padronizada com tokens Material 3 e fechamento aprimorado.
+- Melhorias gerais e correções de desempenho.
+
 
 ## v1.22.0 - 2026-08-24
 
