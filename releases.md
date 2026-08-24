@@ -1,3 +1,13 @@
+## v1.22.1 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.1/Toolbox_1.22.1_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🐛 Correção de Layout no Feedback (#71)
+- **Responsividade e Scroll:** Ajustado o dimensionamento do modal de feedback com `max-height` dinâmico e scroll interno, evitando cortes visuais em qualquer resolução.
+- **Alinhamento ao Design System:** Estrutura padronizada com tokens Material 3 e fechamento aprimorado.
+
+</details>
+
 ## v1.22.0 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.0/Toolbox_1.22.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
