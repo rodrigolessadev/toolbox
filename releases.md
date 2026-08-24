@@ -3,12 +3,16 @@
 <summary>Ver detalhes da versao</summary>
 
 ### 💬 Estabilização do Feedback, React Portal & Logs Estruturados (#73, #75, #76)
-- **Renderização via React Portal (#73, #74):** Teletransporte do `FeedbackModal` diretamente para `document.body` com estado `mounted` seguro para SSR, eliminando o corte visual superior causado pelo `backdrop-filter` do cabeçalho.
-- **Fallbacks Nativos do Supabase (#75):** Injeção de configurações padrão para a chave pública anônima no cliente TypeScript, garantindo funcionamento instantâneo no portal web (Vercel) e no app desktop.
-- **Logs Estruturados no `toolbox.log` (#76, #77):** Novo comando Tauri `log_event` em Rust para registro detalhado de todas as etapas de envio de feedbacks (início, validações, latência em ms e respostas do Supabase) no arquivo de log nativo `logs/toolbox.log`.
+
+- **Renderização via React Portal (#73, #74):** Teletransporte do `FeedbackModal` diretamente para o `document.body` com controle de ciclo de vida seguro para SSR (`mounted`). Isso elimina o corte visual superior na tela causado pelo `backdrop-filter` do cabeçalho, garantindo centralização perfeita tanto no Portal Web (`toolbox-nine-phi.vercel.app`) quanto no Aplicativo Desktop.
+- **Fallbacks Nativos do Supabase (#75):** Injeção de configurações padrão para a chave pública anônima no cliente TypeScript, assegurando funcionamento instantâneo e envio de feedbacks sem depender de variáveis manuais em runtime.
+- **Logs Estruturados no `toolbox.log` (#76, #77):** Novo comando Tauri `log_event` em Rust para registro detalhado de todas as etapas de envio de feedbacks (início, validações, medição de latência em milissegundos e respostas do Supabase) no arquivo nativo `logs/toolbox.log`.
+
+---
 
 ### 🛡️ Testes & Governança
-- Verificação de tipos TypeScript, compilação Rust (`cargo check`) e builds de produção da documentação Astro e do aplicativo Desktop 100% aprovados.
+- **Compilação Rust:** `cargo check` aprovado com 100% de sucesso.
+- **Compilação TypeScript / Frontend:** `npm run build` do Desktop e da documentação Astro validados sem erros.
 
 </details>
 
