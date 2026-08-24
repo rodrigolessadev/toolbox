@@ -1,3 +1,18 @@
+## v1.21.2 - 2026-08-24
+
+## Toolbox — v1.21.2 (2026-08-24)
+<details>
+<summary>Ver detalhes da versão</summary>
+
+### 🐛 Correção de Empacotamento de Recursos (#62)
+- **Runtime Completo Embutido:** Ajustado o pattern de empacotamento do Tauri para inclusão recursiva profunda (`resources/runtime/**/*`), garantindo que todos os binários do Python e dependências essenciais (`pywebview`, `boto3`, `requests`) sejam incluídos no instalador `.exe` e `.msi`.
+- **Instalador Autônomo:** Garantida a execução de plugins em qualquer ambiente Windows sem necessidade de pré-instalação manual do Python.
+
+### 🛡️ Testes & Qualidade
+- 30 testes unitários em Rust e compilação de frontend 100% aprovados.
+
+</details>
+
 ## v1.21.1 - 2026-08-24
 
 ## Toolbox — v1.21.1 (2026-08-21)
