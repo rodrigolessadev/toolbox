@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sun, Moon, Plus, ShoppingBag, Settings, History, X } from "lucide-react";
+import { Sun, Moon, Plus, ShoppingBag, Settings, History, X, MessageSquarePlus } from "lucide-react";
 import { listen } from "@tauri-apps/api/event";
 import { api, CommandEntry } from "./lib/api";
 import { useCommands } from "./hooks/useCommands";
@@ -11,6 +11,7 @@ import { HistoryPanel } from "./components/HistoryPanel";
 import { AddCommandModal } from "./components/AddCommandModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { MarketplaceModal } from "./components/MarketplaceModal";
+import { FeedbackModal } from "./components/FeedbackModal";
 import { StractJsonModal } from "./components/StractJsonModal";
 import { ConverterDataModal } from "./components/ConverterDataModal";
 import { GeradorMarcacoesModal } from "./components/GeradorMarcacoesModal";
@@ -78,6 +79,7 @@ export default function App() {
   const [showAdd, setShowAdd]                   = useState(false);
   const [showSettings, setShowSettings]         = useState(false);
   const [showMarketplace, setShowMarketplace]   = useState(false);
+  const [showFeedback, setShowFeedback]         = useState(false);
   const [showStractJson, setShowStractJson]     = useState(false);
   const [showConverterData, setShowConverterData] = useState(false);
   const [showGeradorMarcacoes, setShowGeradorMarcacoes] = useState(false);
@@ -432,6 +434,16 @@ export default function App() {
 
           <button
             type="button"
+            className="app__icon-btn"
+            onClick={() => setShowFeedback(true)}
+            title="Enviar feedback"
+            aria-label="Enviar feedback"
+          >
+            <MessageSquarePlus size={15} strokeWidth={2} aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
             className={`app__icon-btn${tab === "history" ? " app__icon-btn--active" : ""}`}
             onClick={() => setTab(tab === "history" ? "all" : "history")}
             title="Histórico"
@@ -588,6 +600,14 @@ export default function App() {
         updating={updating}
         theme={theme}
         onThemeChange={setTheme}
+        onOpenFeedback={() => setShowFeedback(true)}
+      />
+
+      <FeedbackModal
+        open={showFeedback}
+        onClose={() => setShowFeedback(false)}
+        onSuccess={(m) => push(m, "success")}
+        onError={(m) => push(m, "error")}
       />
  
       <MarketplaceModal

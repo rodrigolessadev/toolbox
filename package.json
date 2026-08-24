@@ -16,6 +16,7 @@
     "theme:sync": "node scripts/build-tokens.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-dialog": "^2.0.1",
     "@tauri-apps/plugin-fs": "^2.0.3",

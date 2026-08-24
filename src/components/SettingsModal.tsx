@@ -18,6 +18,7 @@ interface Props {
   updating?: boolean;
   theme?: Theme;
   onThemeChange?: (theme: Theme) => void;
+  onOpenFeedback?: () => void;
 }
 
 export function SettingsModal({
@@ -34,6 +35,7 @@ export function SettingsModal({
   updating,
   theme: propTheme,
   onThemeChange,
+  onOpenFeedback,
 }: Props) {
   const [theme, setTheme] = useState<Theme>(propTheme || "dark");
 
@@ -349,6 +351,30 @@ export function SettingsModal({
               </label>
             </div>
             <small className="modal__hint">A importação substitui todos os comandos existentes.</small>
+          </section>
+
+          {/* Feedback */}
+          <section className="settings__section">
+            <h3 className="settings__title">Feedback & Sugestões</h3>
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Tem alguma sugestão ou encontrou um problema?</strong>
+                <span className="settings__desc" style={{ fontSize: "11px", color: "var(--md-sys-color-on-surface-variant, #888)" }}>
+                  Envie sua mensagem diretamente para a equipe de desenvolvimento.
+                </span>
+              </div>
+              <button
+                type="button"
+                className="modal__browse-btn"
+                onClick={() => {
+                  onClose();
+                  onOpenFeedback?.();
+                }}
+                title="Abrir formulário de feedback"
+              >
+                Enviar Feedback
+              </button>
+            </div>
           </section>
 
           <footer className="modal__footer">
