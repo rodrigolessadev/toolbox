@@ -171,4 +171,8 @@ export const api = {
   removePlugin: (pluginId: string) =>
     invoke<string>("remove_plugin", { pluginId }),
   listInstalledPlugins: () => invoke<InstalledPlugin[]>("list_installed_plugins"),
+
+  // ── Logger ──
+  logEvent: (level: string, target: string, message: string) =>
+    invoke<void>("log_event", { level, target, message }),
 };

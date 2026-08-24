@@ -54,3 +54,17 @@ impl log::Log for FileLogger {
 
     fn flush(&self) {}
 }
+
+/// Comando Tauri para registrar eventos diretamente do frontend no arquivo toolbox.log.
+#[tauri::command]
+pub fn log_event(level: String, target: String, message: String) {
+    let lvl = match level.to_lowercase().as_str() {
+        "error" => Level::Error,
+        "warn" | "warning" => Level::Warn,
+        "debug" => Level::Debug,
+        "trace" => Level::Trace,
+        _ => Level::Info,
+    };
+    write_line(lvl, &target, &message);
+}
+
