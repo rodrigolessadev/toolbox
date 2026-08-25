@@ -52,6 +52,7 @@ SETUP.md
 .kiro/*
 .release_plugin_state/*
 graphify-out/*
+graphify-out/
 .agents/*
 .geminiignore
 .claude/*
