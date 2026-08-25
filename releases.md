@@ -1,3 +1,20 @@
+## v1.22.3 - 2026-08-25 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.3/Toolbox_1.22.3_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🐛 Padronização da Execução de Plugins em Janelas Independentes (#78, #79)
+
+- **Abertura Dedicada de Plugins (#78):** Removida a interceptação interna legada que forçava a execução dos comandos `converter-data`, `stract-json`, `gerador-marcacoes` e `gerador-afd` em modais React. Agora todos os plugins executam em suas janelas externas e isoladas (pywebview).
+- **Limpeza de Código e Otimização do Bundle:** Removidos componentes modais duplicados e estados não utilizados, simplificando a árvore de renderização do `App.tsx` e reduzindo o peso do bundle frontend.
+- **Histórico & Atalhos:** Preservado o registro no histórico de comandos e o fluxo de teclado/navegação sem interceptações espúrias.
+
+---
+
+### 🛡️ Testes & Governança
+- **Compilação Frontend / TypeScript:** `npm run build` e compilação de tokens Material Design 3 validados sem erros.
+
+</details>
+
 ## v1.22.2 - 2026-08-24 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.2/Toolbox_1.22.2_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
