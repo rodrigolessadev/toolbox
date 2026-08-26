@@ -73,15 +73,32 @@ fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> 
 fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     let path = entry.path.clone().ok_or("Aplicativo sem caminho")?;
     let run_as_admin = entry.run_as_admin.unwrap_or(false);
+    let ext = std::path::Path::new(&path)
+        .extension()
+        .and_then(|s| s.to_str())
+        .unwrap_or("")
+        .to_lowercase();
 
     if run_as_admin {
         #[cfg(target_os = "windows")]
         {
-            return run_application_as_admin(&path, entry.args.as_deref());
+            return run_application_as_admin(&path, &ext, entry.args.as_deref());
         }
     }
 
-    let mut cmd = Command::new(&path);
+    let mut cmd = match ext.as_str() {
+        "ps1" => {
+            let mut c = Command::new("powershell.exe");
+            c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", &path]);
+            c
+        }
+        "bat" | "cmd" => {
+            let mut c = Command::new("cmd.exe");
+            c.args(["/c", &path]);
+            c
+        }
+        _ => Command::new(&path),
+    };
 
     // Argumentos extras, se houver (igual ao campo "Destino" do atalho do Windows)
     if let Some(raw_args) = &entry.args {
@@ -95,16 +112,22 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     }
 
     cmd.spawn()
-        .map_err(|e| format!("Falha ao iniciar aplicativo: {}", e))?;
+        .map_err(|e| format!("Falha ao iniciar aplicativo/script: {}", e))?;
+
+    let desc = match ext.as_str() {
+        "ps1" => "Script PowerShell iniciado",
+        "bat" | "cmd" => "Script em lote iniciado",
+        _ => "Aplicativo iniciado",
+    };
 
     Ok(RunResult {
         ok: true,
-        message: Some(format!("Aplicativo iniciado: {}", path)),
+        message: Some(format!("{}: {}", desc, path)),
     })
 }
 
 #[cfg(target_os = "windows")]
-fn run_application_as_admin(path: &str, raw_args: Option<&str>) -> Result<RunResult, String> {
+fn run_application_as_admin(path: &str, ext: &str, raw_args: Option<&str>) -> Result<RunResult, String> {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use windows::core::PCWSTR;
@@ -113,22 +136,53 @@ fn run_application_as_admin(path: &str, raw_args: Option<&str>) -> Result<RunRes
     use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
     let op: Vec<u16> = OsStr::new("runas").encode_wide().chain(std::iter::once(0)).collect();
-    let file: Vec<u16> = OsStr::new(path).encode_wide().chain(std::iter::once(0)).collect();
 
-    let args_wide: Option<Vec<u16>> = raw_args.and_then(|a| {
-        let trimmed = a.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(OsStr::new(trimmed).encode_wide().chain(std::iter::once(0)).collect())
+    let (file_str, formatted_args) = match ext {
+        "ps1" => {
+            let mut a = format!("-NoProfile -ExecutionPolicy Bypass -File \"{}\"", path);
+            if let Some(extra) = raw_args {
+                let trimmed = extra.trim();
+                if !trimmed.is_empty() {
+                    a.push(' ');
+                    a.push_str(trimmed);
+                }
+            }
+            ("powershell.exe".to_string(), Some(a))
         }
+        "bat" | "cmd" => {
+            let mut a = format!("/c \"{}\"", path);
+            if let Some(extra) = raw_args {
+                let trimmed = extra.trim();
+                if !trimmed.is_empty() {
+                    a.push(' ');
+                    a.push_str(trimmed);
+                }
+            }
+            ("cmd.exe".to_string(), Some(a))
+        }
+        _ => {
+            let a = raw_args.and_then(|extra| {
+                let trimmed = extra.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                }
+            });
+            (path.to_string(), a)
+        }
+    };
+
+    let file_wide: Vec<u16> = OsStr::new(&file_str).encode_wide().chain(std::iter::once(0)).collect();
+    let args_wide: Option<Vec<u16>> = formatted_args.map(|a| {
+        OsStr::new(&a).encode_wide().chain(std::iter::once(0)).collect()
     });
 
     let res = unsafe {
         ShellExecuteW(
             HWND(std::ptr::null_mut()),
             PCWSTR(op.as_ptr()),
-            PCWSTR(file.as_ptr()),
+            PCWSTR(file_wide.as_ptr()),
             args_wide.as_ref().map_or(PCWSTR::null(), |a| PCWSTR(a.as_ptr())),
             PCWSTR::null(),
             SW_SHOWNORMAL,
@@ -137,12 +191,17 @@ fn run_application_as_admin(path: &str, raw_args: Option<&str>) -> Result<RunRes
 
     let code = res.0 as usize;
     if code > 32 {
+        let desc = match ext {
+            "ps1" => "Script PowerShell iniciado como Administrador",
+            "bat" | "cmd" => "Script em lote iniciado como Administrador",
+            _ => "Aplicativo iniciado como Administrador",
+        };
         Ok(RunResult {
             ok: true,
-            message: Some(format!("Aplicativo iniciado como Administrador: {}", path)),
+            message: Some(format!("{}: {}", desc, path)),
         })
     } else {
-        Err(format!("Falha ao iniciar aplicativo como Administrador (código Win32: {})", code))
+        Err(format!("Falha ao iniciar como Administrador (código Win32: {})", code))
     }
 }
 

@@ -207,13 +207,24 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
       const { open: dlg } = await import("@tauri-apps/plugin-dialog");
       const r = await dlg({
         multiple: false,
-        title: "Selecione o executável",
-        filters: [{ name: "Executáveis", extensions: ["exe", "bat", "cmd"] }, { name: "Todos", extensions: ["*"] }],
+        title: "Selecione o executável ou script",
+        filters: [
+          { name: "Executáveis e Scripts (*.exe, *.bat, *.cmd, *.ps1, *.lnk)", extensions: ["exe", "bat", "cmd", "ps1", "lnk"] },
+          { name: "Scripts PowerShell (*.ps1)", extensions: ["ps1"] },
+          { name: "Scripts em Lote (*.bat, *.cmd)", extensions: ["bat", "cmd"] },
+          { name: "Binários Executáveis (*.exe, *.lnk)", extensions: ["exe", "lnk"] },
+          { name: "Todos os Arquivos (*.*)", extensions: ["*"] },
+        ],
       });
       if (typeof r === "string") setPath(r);
     } catch (e) {
       onError?.("Não foi possível abrir o seletor de arquivos: " + (e instanceof Error ? e.message : String(e)));
     }
+  };
+
+  const isScriptPath = (p: string) => {
+    const l = p.toLowerCase();
+    return l.endsWith(".ps1") || l.endsWith(".bat") || l.endsWith(".cmd");
   };
 
   return (
@@ -253,7 +264,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
               className="modal__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="ex: cpf, google, word"
+              placeholder="ex: cpf, google, backup-db"
               autoFocus
               required
             />
@@ -310,18 +321,18 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </div>
           )}
 
-          {/* Aplicativo: executável + argumentos (estilo "Destino" do atalho Windows) */}
+          {/* Aplicativo: executável ou script + argumentos */}
           {tab === "application" && (
             <>
               <div className="modal__field">
-                <label className="modal__label">Executável</label>
+                <label className="modal__label">Executável ou Script (.exe, .bat, .cmd, .ps1)</label>
                 <div className="modal__row">
                   <input
                     type="text"
                     className="modal__input"
                     value={path}
                     onChange={(e) => setPath(e.target.value)}
-                    placeholder='C:\Program Files\App\app.exe'
+                    placeholder='C:\Scripts\rotina.ps1 ou C:\Program Files\App\app.exe'
                     required
                   />
                   <div className="modal__icon-preview" aria-live="polite">
@@ -329,12 +340,19 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
                       ? <span className="modal__icon-spinner" />
                       : icon
                       ? <img src={icon} alt="" className="modal__icon-img" />
-                      : <span style={{ opacity: 0.3, fontSize: 18 }}>⚙️</span>}
+                      : <span style={{ opacity: 0.3, fontSize: 18 }}>{isScriptPath(path) ? "📜" : "⚙️"}</span>}
                   </div>
                   <button type="button" className="modal__browse-btn" onClick={browseExe} title="Selecionar arquivo">
                     📁
                   </button>
                 </div>
+                {isScriptPath(path) && (
+                  <small className="modal__hint" style={{ color: "var(--accent)" }}>
+                    {path.toLowerCase().endsWith(".ps1")
+                      ? "⚡ Script PowerShell detectado (executará via powershell.exe -ExecutionPolicy Bypass)"
+                      : "⚡ Script em lote detectado (executará via cmd.exe /c)"}
+                  </small>
+                )}
               </div>
 
               <div className="modal__field">
@@ -344,10 +362,10 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
                   className="modal__input"
                   value={args}
                   onChange={(e) => setArgs(e.target.value)}
-                  placeholder='--verbose --config "meu arquivo.cfg"'
+                  placeholder='-Parametro1 "valor" --verbose'
                 />
                 <small className="modal__hint">
-                  Equivalente ao campo <strong>Destino</strong> do atalho Windows. Use aspas para argumentos com espaços.
+                  Parâmetros repassados ao executável ou script. Use aspas para argumentos com espaços.
                 </small>
               </div>
 
