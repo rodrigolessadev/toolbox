@@ -70,6 +70,17 @@ export default {
         'm3-lg': 'var(--md-sys-shape-corner-lg)',
         'm3-xl': 'var(--md-sys-shape-corner-xl)',
         'm3-full': 'var(--md-sys-shape-corner-full)'
+      },
+      spacing: {
+        'm3-none': 'var(--md-sys-spacing-none)',
+        'm3-xs': 'var(--md-sys-spacing-xs)',
+        'm3-sm': 'var(--md-sys-spacing-sm)',
+        'm3-md': 'var(--md-sys-spacing-md)',
+        'm3-lg': 'var(--md-sys-spacing-lg)',
+        'm3-xl': 'var(--md-sys-spacing-xl)',
+        'm3-xxl': 'var(--md-sys-spacing-xxl)',
+        'm3-xxxl': 'var(--md-sys-spacing-xxxl)',
+        'm3-xxxxl': 'var(--md-sys-spacing-xxxxl)'
       }
     }
   }

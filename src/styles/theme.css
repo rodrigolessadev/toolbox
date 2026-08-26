@@ -160,7 +160,7 @@
 }
 
 /* ------------------------------------------------------------
-   3. Shape, Typography & Elevation M3
+   3. Shape, Spacing, Typography & Elevation M3
    ------------------------------------------------------------ */
 :root {
   --md-sys-shape-corner-none: 0px;
@@ -178,6 +178,27 @@
   --radius-lg:    var(--md-sys-shape-corner-lg);
   --radius-xl:    var(--md-sys-shape-corner-xl);
   --radius-full:  var(--md-sys-shape-corner-full);
+
+  /* Escala de Espaçamento M3 */
+  --md-sys-spacing-none: 0px;
+  --md-sys-spacing-xs: 4px;
+  --md-sys-spacing-sm: 8px;
+  --md-sys-spacing-md: 12px;
+  --md-sys-spacing-lg: 16px;
+  --md-sys-spacing-xl: 20px;
+  --md-sys-spacing-xxl: 24px;
+  --md-sys-spacing-xxxl: 32px;
+  --md-sys-spacing-xxxxl: 40px;
+
+  /* Aliases de Espaçamento */
+  --spacing-xs:    var(--md-sys-spacing-xs);
+  --spacing-sm:    var(--md-sys-spacing-sm);
+  --spacing-md:    var(--md-sys-spacing-md);
+  --spacing-lg:    var(--md-sys-spacing-lg);
+  --spacing-xl:    var(--md-sys-spacing-xl);
+  --spacing-xxl:   var(--md-sys-spacing-xxl);
+  --spacing-xxxl:  var(--md-sys-spacing-xxxl);
+  --spacing-xxxxl: var(--md-sys-spacing-xxxxl);
 
   /* Sombras Tonal Elevation */
   --md-sys-elevation-level0: none;

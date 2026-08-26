@@ -232,28 +232,43 @@ typography: {
 
 ---
 
-## 📏 Espaçamento
+## 📏 Espaçamento (Material Design 3)
 
-Escala 4px base:
+Escala proporcional baseada no Grid de 4px / 8px:
 
 ```typescript
 spacing: {
-  xs:     '4px',      // mínimo (gaps pequenos)
-  sm:     '8px',      // padding pequeno
-  md:     '12px',     // padding padrão
-  lg:     '16px',     // padding grande
-  xl:     '20px',     // espaçamento de section
-  xxl:    '24px',     // espaçamento maior
-  xxxl:   '32px',     // espaçamento grande
-  xxxxl:  '40px',     // espaçamento muito grande
+  none:   '0px',      // reset
+  xs:     '4px',      // mínimo (gaps pequenos, badges)
+  sm:     '8px',      // padding pequeno, gap ícone-texto
+  md:     '12px',     // padding padrão de inputs
+  lg:     '16px',     // padding padrão de cards e painéis
+  xl:     '20px',     // espaçamento de cabeçalhos e modais
+  xxl:    '24px',     // espaçamento maior de layout
+  xxxl:   '32px',     // espaçamento grande entre seções
+  xxxxl:  '40px',     // espaçamento muito grande / telas modais
 }
 ```
 
+### Variáveis CSS & Utilitários Tailwind
+
+| Token CSS | Alias | Tailwind | Valor |
+| :--- | :--- | :--- | :--- |
+| `--md-sys-spacing-none` | `--spacing-none` | `m3-none` | `0px` |
+| `--md-sys-spacing-xs` | `--spacing-xs` | `m3-xs` | `4px` |
+| `--md-sys-spacing-sm` | `--spacing-sm` | `m3-sm` | `8px` |
+| `--md-sys-spacing-md` | `--spacing-md` | `m3-md` | `12px` |
+| `--md-sys-spacing-lg` | `--spacing-lg` | `m3-lg` | `16px` |
+| `--md-sys-spacing-xl` | `--spacing-xl` | `m3-xl` | `20px` |
+| `--md-sys-spacing-xxl` | `--spacing-xxl` | `m3-xxl` | `24px` |
+| `--md-sys-spacing-xxxl` | `--spacing-xxxl` | `m3-xxxl` | `32px` |
+| `--md-sys-spacing-xxxxl` | `--spacing-xxxxl` | `m3-xxxxl` | `40px` |
+
 **Uso comum:**
-- Padding botões: `8px 12px`
-- Padding inputs: `10px 14px`
-- Margin entre sections: `16px 0`
-- Gap em flex: `8px` ou `12px`
+- Padding botões: `var(--md-sys-spacing-sm) var(--md-sys-spacing-lg)` (`8px 16px`)
+- Padding inputs: `10px 14px` ou `var(--md-sys-spacing-sm) var(--md-sys-spacing-md)`
+- Margin entre sections: `var(--md-sys-spacing-lg) 0` (`16px 0`)
+- Gap em flex/grid: `var(--md-sys-spacing-sm)` (`8px`) ou `var(--md-sys-spacing-md)` (`12px`)
 
 ---
 

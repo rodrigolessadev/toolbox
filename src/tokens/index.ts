@@ -56,6 +56,18 @@ export interface ShapeScale {
   full: string;
 }
 
+export interface SpacingScale {
+  none: string;
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+  xxxl: string;
+  xxxxl: string;
+}
+
 export interface TypeStyle {
   fontSize: string;
   lineHeight: string;
@@ -90,6 +102,7 @@ export interface M3Tokens {
     light: ColorRoles;
   };
   shape: ShapeScale;
+  spacing?: SpacingScale;
   typography: {
     fontFamily: {
       brand: string;
@@ -199,6 +212,17 @@ export const designTokens: M3Tokens = {
     "lg": "16px",
     "xl": "28px",
     "full": "9999px"
+  },
+  "spacing": {
+    "none": "0px",
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "20px",
+    "xxl": "24px",
+    "xxxl": "32px",
+    "xxxxl": "40px"
   },
   "typography": {
     "fontFamily": {
