@@ -1,3 +1,14 @@
+## v1.27.1 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.27.1/Toolbox_1.27.1_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🐛 Correções no Editor de Comandos & Seleção de Ícones
+- **Persistência de Ícones Personalizados:** Corrigida a perda de estado e reversão para o modo Emoji/Texto ao selecionar imagens locais no editor de comandos.
+- **Estabilização de Lifecycle do Modal:** Adicionada chave de ciclo de vida (`key`) e controle refinado de abertura no `AddCommandModal`, prevenindo resets de formulário disparados por perda/ganho de foco durante a abertura de diálogos nativos do sistema operacional.
+- **Proteção de Auto-detecção:** Os efeitos de auto-busca de favicon e extração de ícone executável agora respeitam seleções manuais e personalizadas do usuário.
+
+</details>
+
 ## v1.27.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.27.0/Toolbox_1.27.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
