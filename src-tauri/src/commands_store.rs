@@ -4,8 +4,20 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::State;
+use crate::paths;
 
 // ───────────────────────── Tipos ─────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupStatus {
+    pub enabled: bool,
+    pub backup_path: String,
+    pub destination_type: String,
+    pub last_backup_time: Option<String>,
+    pub file_size_bytes: Option<u64>,
+    pub backup_exists: bool,
+    pub backup_commands_count: usize,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -139,7 +151,15 @@ impl CommandStore {
         if let Some(parent) = self.file_path.parent() {
             fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        fs::write(&self.file_path, json).map_err(|e| e.to_string())?;
+        fs::write(&self.file_path, &json).map_err(|e| e.to_string())?;
+
+        // Shadow backup resiliente contínuo no diretório seguro
+        let bdir = paths::backup_dir();
+        if fs::create_dir_all(&bdir).is_ok() {
+            let backup_file = bdir.join("toolbox-commands-backup.json");
+            let _ = fs::write(backup_file, json);
+        }
+
         Ok(())
     }
 }
@@ -271,6 +291,93 @@ pub fn export_commands(store: State<'_, CommandStore>) -> Result<String, String>
     serde_json::to_string_pretty(&*guard).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub fn get_backup_status() -> Result<BackupStatus, String> {
+    let bdir = paths::backup_dir();
+    let backup_file = bdir.join("toolbox-commands-backup.json");
+    let dest_type = paths::get_destination_type(&bdir);
+
+    if backup_file.exists() {
+        let meta = fs::metadata(&backup_file).ok();
+        let size = meta.as_ref().map(|m| m.len());
+        let last_time = meta
+            .and_then(|m| m.modified().ok())
+            .map(|t| {
+                let dur = t.duration_since(std::time::UNIX_EPOCH).unwrap_or_default();
+                dur.as_secs().to_string()
+            });
+
+        let count = fs::read_to_string(&backup_file)
+            .ok()
+            .and_then(|s| serde_json::from_str::<CommandsFile>(&s).ok())
+            .map(|cf| cf.commands.len())
+            .unwrap_or(0);
+
+        Ok(BackupStatus {
+            enabled: true,
+            backup_path: backup_file.to_string_lossy().to_string(),
+            destination_type: dest_type,
+            last_backup_time: last_time,
+            file_size_bytes: size,
+            backup_exists: true,
+            backup_commands_count: count,
+        })
+    } else {
+        Ok(BackupStatus {
+            enabled: true,
+            backup_path: backup_file.to_string_lossy().to_string(),
+            destination_type: dest_type,
+            last_backup_time: None,
+            file_size_bytes: None,
+            backup_exists: false,
+            backup_commands_count: 0,
+        })
+    }
+}
+
+#[tauri::command]
+pub fn trigger_manual_backup(store: State<'_, CommandStore>) -> Result<BackupStatus, String> {
+    store.save()?;
+    get_backup_status()
+}
+
+#[tauri::command]
+pub fn restore_from_auto_backup(store: State<'_, CommandStore>) -> Result<CommandsFile, String> {
+    let bdir = paths::backup_dir();
+    let backup_file = bdir.join("toolbox-commands-backup.json");
+    if !backup_file.exists() {
+        return Err("Nenhum arquivo de backup encontrado no diretório seguro.".to_string());
+    }
+
+    let content = fs::read_to_string(&backup_file)
+        .map_err(|e| format!("Falha ao ler arquivo de backup: {e}"))?;
+    let parsed: CommandsFile = serde_json::from_str(&content)
+        .map_err(|e| format!("Arquivo de backup inválido: {e}"))?;
+
+    {
+        let mut guard = store.data.lock().map_err(|e| e.to_string())?;
+        guard.commands = parsed.commands;
+    }
+    store.save()?;
+    get_commands_file(store)
+}
+
+#[tauri::command]
+pub fn check_auto_backup_available(store: State<'_, CommandStore>) -> Result<Option<BackupStatus>, String> {
+    let guard = store.data.lock().map_err(|e| e.to_string())?;
+    if !guard.commands.is_empty() {
+        return Ok(None);
+    }
+    drop(guard);
+
+    let status = get_backup_status()?;
+    if status.backup_exists && status.backup_commands_count > 0 {
+        Ok(Some(status))
+    } else {
+        Ok(None)
+    }
+}
+
 // ──────────────────── Utilitários ─────────────────────────
 
 pub fn now() -> String {
@@ -342,5 +449,47 @@ mod tests {
         assert!(matches!(deserialized.kind, CommandType::Clipboard));
         assert_eq!(deserialized.text_content.as_deref(), Some("O graphify dos arquivos fica em C:\\tools\\scripts\\GIT\\graphify"));
         assert_eq!(deserialized.description.as_deref(), Some("Caminho do repositório Graphify"));
+    }
+
+    #[test]
+    fn test_backup_save_and_restore() {
+        let temp_dir = std::env::temp_dir().join(format!("toolbox_test_{}", now()));
+        let _ = fs::create_dir_all(&temp_dir);
+        let store_file = temp_dir.join("commands.json");
+
+        let store = CommandStore::new(store_file.clone());
+        {
+            let mut guard = store.data.lock().unwrap();
+            guard.commands.insert(
+                "my-cmd".into(),
+                CommandEntry {
+                    kind: CommandType::Link,
+                    path: None,
+                    args: None,
+                    run_as_admin: None,
+                    script_type: None,
+                    script_content: None,
+                    text_content: None,
+                    description: Some("Teste".into()),
+                    url: Some("https://example.com".into()),
+                    favorite: false,
+                    icon: None,
+                    created_at: Some("123".into()),
+                },
+            );
+        }
+        assert!(store.save().is_ok());
+        assert!(store_file.exists());
+
+        let bdir = paths::backup_dir();
+        let backup_file = bdir.join("toolbox-commands-backup.json");
+        assert!(backup_file.exists(), "Backup shadow deve ter sido gerado");
+
+        let status = get_backup_status().unwrap();
+        assert!(status.enabled);
+        assert!(status.backup_exists);
+        assert!(status.backup_commands_count >= 1);
+
+        let _ = fs::remove_dir_all(&temp_dir);
     }
 }

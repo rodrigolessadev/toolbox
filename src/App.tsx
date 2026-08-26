@@ -123,6 +123,39 @@ export default function App() {
   const [updating, setUpdating] = useState(false);
   const [pluginUpdatesCount, setPluginUpdatesCount] = useState(0);
 
+  // Banner e recuperação automática de backup
+  const [backupPrompt, setBackupPrompt] = useState<import("./lib/api").BackupStatus | null>(null);
+  const [restoringBackup, setRestoringBackup] = useState(false);
+
+  useEffect(() => {
+    if (Object.keys(commands).length === 0) {
+      api.checkAutoBackupAvailable().then((status) => {
+        if (status) setBackupPrompt(status);
+      }).catch(() => {});
+    } else {
+      setBackupPrompt(null);
+    }
+  }, [commands]);
+
+  const handleRestoreFromPrompt = async () => {
+    if (!backupPrompt) return;
+    setRestoringBackup(true);
+    try {
+      await api.restoreFromAutoBackup();
+      await reload();
+      setBackupPrompt(null);
+      push("Comandos restaurados com sucesso a partir do backup automático!", "success");
+    } catch (e) {
+      push(`Falha ao restaurar backup: ${e instanceof Error ? e.message : String(e)}`, "error");
+    } finally {
+      setRestoringBackup(false);
+    }
+  };
+
+  const handleDismissBackupPrompt = () => {
+    setBackupPrompt(null);
+  };
+
   const checkPluginUpdates = useCallback(async () => {
     try {
       const catalog = await api.fetchCatalog();
@@ -447,6 +480,34 @@ export default function App() {
               className="app__update-dismiss"
               onClick={() => setUpdateVersion(null)}
               aria-label="Fechar"
+            >
+              <X size={14} strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Banner de Recuperação de Backup Automático ── */}
+      {backupPrompt && (
+        <div className="app__update-banner" style={{ background: "rgba(59, 130, 246, 0.15)", borderBottom: "1px solid rgba(59, 130, 246, 0.35)", color: "var(--color-fg, #fff)" }}>
+          <span>
+            💾 Detectamos um backup automático com <strong>{backupPrompt.backup_commands_count} comando(s)</strong> ({backupPrompt.destination_type}). Deseja restaurar?
+          </span>
+          <div className="app__update-actions">
+            <button
+              type="button"
+              className="app__update-btn"
+              onClick={handleRestoreFromPrompt}
+              disabled={restoringBackup}
+            >
+              {restoringBackup ? "Restaurando..." : "Restaurar Comandos"}
+            </button>
+            <button
+              type="button"
+              className="app__update-dismiss"
+              onClick={handleDismissBackupPrompt}
+              title="Ignorar"
+              aria-label="Ignorar"
             >
               <X size={14} strokeWidth={2} aria-hidden="true" />
             </button>

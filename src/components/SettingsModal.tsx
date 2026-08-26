@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { RefreshCw } from "lucide-react";
-import { api, RuntimeInfo } from "../lib/api";
+import { api, RuntimeInfo, BackupStatus } from "../lib/api";
 import { Theme } from "../hooks/useTheme";
 
 interface Props {
@@ -47,6 +47,9 @@ export function SettingsModal({
   const [logsDir, setLogsDir] = useState<string>("");
   const [appVersion, setAppVersion] = useState<string>("");
   const [pythonRuntime, setPythonRuntime] = useState<RuntimeInfo | null>(null);
+  const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null);
+  const [backingUp, setBackingUp] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [working, setWorking] = useState(false);
@@ -59,13 +62,14 @@ export function SettingsModal({
     (async () => {
       try {
         setWorking(true);
-        const [dd, pd, ld, t, v, py] = await Promise.all([
+        const [dd, pd, ld, t, v, py, bs] = await Promise.all([
           api.getDataDir(),
           api.getPluginsDir(),
           api.getLogsDir(),
           api.getTheme().catch(() => "dark"),
           getVersion().catch(() => "1.0.0"),
           api.checkRuntimeStatus("python").catch(() => null),
+          api.getBackupStatus().catch(() => null),
         ]);
         if (cancelled) return;
         setDataDir(dd);
@@ -74,6 +78,7 @@ export function SettingsModal({
         if (!propTheme && (t === "light" || t === "dark" || t === "system")) setTheme(t as Theme);
         setAppVersion(v);
         if (py) setPythonRuntime(py);
+        if (bs) setBackupStatus(bs);
       } catch {
         if (!cancelled) onError?.("Falha ao carregar configurações.");
       } finally {
@@ -135,6 +140,44 @@ export function SettingsModal({
   const handleOpenLogsDir = async () => {
     if (onOpenLogsDir) await onOpenLogsDir();
     else try { await api.openPath(logsDir); } catch { onError?.("Falha ao abrir pasta."); }
+  };
+
+  const handleTriggerBackup = async () => {
+    setBackingUp(true);
+    try {
+      const res = await api.triggerManualBackup();
+      setBackupStatus(res);
+      onInfo?.("Backup realizado com sucesso!");
+    } catch (err) {
+      onError?.(`Falha ao gerar backup: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
+  const handleRestoreBackup = async () => {
+    if (!confirm("Deseja restaurar os comandos a partir do backup automático? Isso substituirá a lista atual.")) return;
+    setRestoring(true);
+    try {
+      await api.restoreFromAutoBackup();
+      await onImported?.();
+      const res = await api.getBackupStatus();
+      setBackupStatus(res);
+      onInfo?.("Comandos restaurados com sucesso a partir do backup!");
+    } catch (err) {
+      onError?.(`Falha ao restaurar backup: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const handleOpenBackupDir = async () => {
+    try {
+      const dir = await api.getBackupDir();
+      await api.openPath(dir);
+    } catch {
+      onError?.("Falha ao abrir pasta de backup.");
+    }
   };
 
   const handleExport = async () => {
@@ -333,12 +376,55 @@ export function SettingsModal({
             </div>
           </section>
 
-          {/* Backup */}
+          {/* Backup & Sincronização Automática */}
           <section className="settings__section">
-            <h3 className="settings__title">Backup</h3>
-            <div className="settings__actions">
+            <h3 className="settings__title">Backup & Sincronização Automática</h3>
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Sincronização em Nuvem / Resiliente ({backupStatus?.destination_type || "Local"})</strong>
+                <span className="settings__path" style={{ wordBreak: "break-all" }}>
+                  Destino: {backupStatus?.backup_path || "Detectando diretório seguro..."}
+                </span>
+                <span className="settings__path" style={{ marginTop: "2px", opacity: 0.85 }}>
+                  {backupStatus?.backup_exists && backupStatus.last_backup_time
+                    ? `Último backup: ${new Date(Number(backupStatus.last_backup_time) * 1000).toLocaleString()} • ${backupStatus.backup_commands_count} comando(s) • ${Math.round((backupStatus.file_size_bytes || 0) / 1024)} KB`
+                    : "Nenhum backup automático gerado ainda"}
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="modal__browse-btn"
+                  onClick={handleOpenBackupDir}
+                  title="Abrir pasta onde os backups são armazenados"
+                >
+                  Abrir Pasta
+                </button>
+                <button
+                  type="button"
+                  className="modal__browse-btn"
+                  onClick={handleTriggerBackup}
+                  disabled={backingUp}
+                  title="Forçar gravação de um backup agora"
+                >
+                  {backingUp ? "Gravando..." : "Fazer Backup"}
+                </button>
+                <button
+                  type="button"
+                  className="modal__browse-btn"
+                  style={{ borderColor: "var(--accent-primary, #3b82f6)", color: "var(--accent-primary, #3b82f6)" }}
+                  onClick={handleRestoreBackup}
+                  disabled={restoring || !backupStatus?.backup_exists}
+                  title="Restaurar comandos a partir do backup automático"
+                >
+                  {restoring ? "Restaurando..." : "Restaurar"}
+                </button>
+              </div>
+            </div>
+
+            <div className="settings__actions" style={{ marginTop: "8px" }}>
               <button type="button" onClick={handleExport} disabled={exporting}>
-                {exporting ? "Exportando..." : "Exportar comandos"}
+                {exporting ? "Exportando..." : "Exportar JSON Manual"}
               </button>
               <label className="settings__import">
                 <input
@@ -347,10 +433,10 @@ export function SettingsModal({
                   onChange={handleImport}
                   disabled={importing}
                 />
-                <span>{importing ? "Importando..." : "Importar comandos"}</span>
+                <span>{importing ? "Importando..." : "Importar JSON Manual"}</span>
               </label>
             </div>
-            <small className="modal__hint">A importação substitui todos os comandos existentes.</small>
+            <small className="modal__hint">O backup automático grava uma cópia espelho sempre que comandos são salvos ou antes de atualizações.</small>
           </section>
 
           {/* Feedback */}

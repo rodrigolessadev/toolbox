@@ -72,6 +72,15 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
 
     log::info!("Iniciando atualização para v{}", update.version);
 
+    // Snapshot pré-atualização para garantir que os dados não sejam perdidos no instalador
+    let data_dir = paths::data_dir(&app);
+    let backup_dir = paths::backup_dir();
+    let source = data_dir.join("commands.json");
+    if source.exists() {
+        let target = backup_dir.join(format!("commands_snapshot_pre_v{}.json", update.version));
+        let _ = std::fs::copy(&source, &target);
+    }
+
     #[cfg(windows)]
     {
         let bytes = update
@@ -221,6 +230,10 @@ pub fn run() {
             commands_store::toggle_favorite,
             commands_store::import_commands,
             commands_store::export_commands,
+            commands_store::get_backup_status,
+            commands_store::trigger_manual_backup,
+            commands_store::restore_from_auto_backup,
+            commands_store::check_auto_backup_available,
             check_update,
             install_update,
             executor::run_command,
@@ -233,6 +246,7 @@ pub fn run() {
             paths::get_data_dir,
             paths::get_plugins_dir,
             paths::get_logs_dir,
+            paths::get_backup_dir,
             paths::open_path,
             paths::hide_window,
             paths::show_window,
