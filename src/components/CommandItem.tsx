@@ -17,6 +17,7 @@ const TYPE_FALLBACK: Record<string, string> = {
   link:        "🔗",
   plugin:      "🧩",
   application: "⚙️",
+  script:      "📜",
 };
 
 function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: string }) {
@@ -28,6 +29,13 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
       return (
         <span className="command-item__icon" aria-hidden="true">
           <FallbackPluginIcon size={16} color="var(--accent)" strokeWidth={2} />
+        </span>
+      );
+    }
+    if (entry.type === "script") {
+      return (
+        <span className="command-item__icon" aria-hidden="true">
+          <Terminal size={16} color="var(--accent)" strokeWidth={2} />
         </span>
       );
     }
@@ -104,6 +112,7 @@ function kindLabel(entry: CommandEntry): string {
   if (entry.type === "link")        return entry.url  ?? "";
   if (entry.type === "plugin")      return entry.path ?? "";
   if (entry.type === "application") return entry.path ?? "";
+  if (entry.type === "script")      return entry.script_type === "batch" ? "Script Batch" : "Script PowerShell";
   return "";
 }
 
@@ -131,7 +140,7 @@ export function CommandItem({
 
         <span className="command-item__title">
           {name}
-          {entry.type === "application" && entry.run_as_admin && (
+          {(entry.type === "application" || entry.type === "script") && entry.run_as_admin && (
             <span
               className="command-item__admin-badge"
               title="Executa com privilégios de Administrador (UAC)"

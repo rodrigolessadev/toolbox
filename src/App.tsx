@@ -546,6 +546,8 @@ export default function App() {
           path: editingCommand.entry.path,
           args: editingCommand.entry.args,
           run_as_admin: editingCommand.entry.run_as_admin,
+          script_type: editingCommand.entry.script_type,
+          script_content: editingCommand.entry.script_content,
           icon: editingCommand.entry.icon ?? undefined,
           favorite: editingCommand.entry.favorite,
         } : undefined}

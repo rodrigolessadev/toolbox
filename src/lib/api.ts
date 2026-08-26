@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 // ───────────────────────── Tipos ─────────────────────────
 
-export type CommandType = "plugin" | "link" | "application";
+export type CommandType = "plugin" | "link" | "application" | "script";
 
 export interface CommandEntry {
   type: CommandType;
@@ -11,6 +11,10 @@ export interface CommandEntry {
   args?: string;
   /** Executar como Administrador no Windows (elevação UAC) */
   run_as_admin?: boolean;
+  /** Tipo de script ("powershell" | "batch") */
+  script_type?: "powershell" | "batch";
+  /** Conteúdo do script inline */
+  script_content?: string;
   url?: string;
   favorite: boolean;
   icon?: string | null;
@@ -34,7 +38,7 @@ export interface PluginInfo {
 
 export interface HistoryEntry {
   command: string;
-  command_type: "plugin" | "link" | "application";
+  command_type: "plugin" | "link" | "application" | "script";
   timestamp: string;
   success: boolean;
 }
@@ -47,6 +51,10 @@ export interface CreateCommandPayload {
   args?: string;
   /** Executar como Administrador no Windows (elevação UAC) */
   run_as_admin?: boolean;
+  /** Tipo de script ("powershell" | "batch") */
+  script_type?: "powershell" | "batch";
+  /** Conteúdo do script inline */
+  script_content?: string;
   url?: string;
   icon?: string | null;
   favorite?: boolean;

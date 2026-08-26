@@ -13,6 +13,7 @@ pub enum CommandType {
     Link,
     Plugin,
     Application,
+    Script,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +28,12 @@ pub struct CommandEntry {
     /// Executar como administrador no Windows (elevação UAC)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_as_admin: Option<bool>,
+    /// Tipo de script (ex: "powershell" | "batch")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_type: Option<String>,
+    /// Conteúdo do script inline
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub favorite: bool,
@@ -57,6 +64,10 @@ pub struct CreateCommandPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_as_admin: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
     pub favorite: bool,
@@ -75,6 +86,10 @@ pub struct UpdateCommandPayload {
     pub args: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_as_admin: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
@@ -145,6 +160,8 @@ pub fn create_command(
         path: payload.path,
         args: payload.args,
         run_as_admin: payload.run_as_admin,
+        script_type: payload.script_type,
+        script_content: payload.script_content,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
@@ -173,6 +190,8 @@ pub fn update_command(
         path: payload.path,
         args: payload.args,
         run_as_admin: payload.run_as_admin,
+        script_type: payload.script_type,
+        script_content: payload.script_content,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
@@ -242,4 +261,37 @@ pub fn now() -> String {
         .map(|d| d.as_secs())
         .unwrap_or(0);
     format!("{}", secs)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_script_command_serialization() {
+        let entry = CommandEntry {
+            kind: CommandType::Script,
+            path: None,
+            args: Some("-Param 123".into()),
+            run_as_admin: Some(true),
+            script_type: Some("powershell".into()),
+            script_content: Some("Write-Host 'Hello Toolbox'".into()),
+            url: None,
+            favorite: true,
+            icon: None,
+            created_at: Some("123456789".into()),
+        };
+
+        let json = serde_json::to_string(&entry).unwrap();
+        assert!(json.contains(r#""type":"script""#));
+        assert!(json.contains(r#""script_type":"powershell""#));
+        assert!(json.contains(r#""script_content":"Write-Host 'Hello Toolbox'""#));
+        assert!(json.contains(r#""run_as_admin":true"#));
+
+        let deserialized: CommandEntry = serde_json::from_str(&json).unwrap();
+        assert!(matches!(deserialized.kind, CommandType::Script));
+        assert_eq!(deserialized.script_type.as_deref(), Some("powershell"));
+        assert_eq!(deserialized.script_content.as_deref(), Some("Write-Host 'Hello Toolbox'"));
+        assert_eq!(deserialized.run_as_admin, Some(true));
+    }
 }
