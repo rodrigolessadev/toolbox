@@ -114,7 +114,7 @@ ${generateColorCss(data.color.light)}
 }
 
 /* ------------------------------------------------------------
-   3. Shape, Typography & Elevation M3
+   3. Shape, Spacing, Typography & Elevation M3
    ------------------------------------------------------------ */
 :root {
 `;
@@ -132,6 +132,28 @@ cssContent += `
   --radius-xl:    var(--md-sys-shape-corner-xl);
   --radius-full:  var(--md-sys-shape-corner-full);
 
+  /* Escala de Espaçamento M3 */
+`;
+
+if (data.spacing) {
+  for (const [key, value] of Object.entries(data.spacing)) {
+    cssContent += `  --md-sys-spacing-${key}: ${value};\n`;
+  }
+
+  cssContent += `
+  /* Aliases de Espaçamento */
+  --spacing-xs:    var(--md-sys-spacing-xs);
+  --spacing-sm:    var(--md-sys-spacing-sm);
+  --spacing-md:    var(--md-sys-spacing-md);
+  --spacing-lg:    var(--md-sys-spacing-lg);
+  --spacing-xl:    var(--md-sys-spacing-xl);
+  --spacing-xxl:   var(--md-sys-spacing-xxl);
+  --spacing-xxxl:  var(--md-sys-spacing-xxxl);
+  --spacing-xxxxl: var(--md-sys-spacing-xxxxl);
+`;
+}
+
+cssContent += `
   /* Sombras Tonal Elevation */
 `;
 
@@ -203,6 +225,18 @@ export interface ShapeScale {
   full: string;
 }
 
+export interface SpacingScale {
+  none: string;
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+  xxxl: string;
+  xxxxl: string;
+}
+
 export interface TypeStyle {
   fontSize: string;
   lineHeight: string;
@@ -237,6 +271,7 @@ export interface M3Tokens {
     light: ColorRoles;
   };
   shape: ShapeScale;
+  spacing?: SpacingScale;
   typography: {
     fontFamily: {
       brand: string;
