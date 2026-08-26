@@ -603,6 +603,7 @@ export default function App() {
 
       {/* ── Modais ── */}
       <AddCommandModal
+        key={editingCommand ? `edit-${editingCommand.name}` : (showAdd ? "create" : "closed")}
         open={showAdd || Boolean(editingCommand)}
         mode={editingCommand ? "edit" : "create"}
         initialCommand={editingCommand ? {
