@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, CommandType } from "../lib/api";
 import { LucideIconPicker } from "./LucideIconPicker";
 import { resolveLucideIcon, isImageIcon } from "../lib/icons";
@@ -59,6 +59,9 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   const [submitting,    setSubmitting]    = useState(false);
   const [plugins,       setPlugins]       = useState<import("../lib/api").PluginInfo[]>([]);
 
+  const prevOpenRef = useRef(false);
+  const prevCommandNameRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     if (open && tab === "plugin") {
       api.listPlugins().then(setPlugins).catch(() => setPlugins([]));
@@ -79,35 +82,46 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     }
   }, [tab, path, plugins, icon]);
 
-  // Reset ao abrir / carregar dados de edição
+  // Reset e inicialização controlada ao abrir / trocar de comando
   useEffect(() => {
-    if (!open) return;
-
-    const initial = initialCommand;
-    const initialIcon = initial?.icon ?? "";
-    setTab(initial?.type ?? "link");
-    setName(initial?.name ?? "");
-    setUrl(initial?.url ?? "");
-    setPath(initial?.path ?? "");
-    setArgs(initial?.args ?? "");
-    setRunAsAdmin(initial?.run_as_admin ?? false);
-    setScriptType(initial?.script_type ?? "powershell");
-    setScriptContent(initial?.script_content ?? "");
-    setTextContent(initial?.text_content ?? "");
-    setDescription(initial?.description ?? "");
-    setIcon(initialIcon);
-
-    if (initialIcon.startsWith("data:") || initialIcon.startsWith("http")) {
-      setIconMode("custom");
-    } else if (resolveLucideIcon(initialIcon)) {
-      setIconMode("lucide");
-    } else {
-      setIconMode(initial?.type === "plugin" ? "lucide" : "emoji");
+    if (!open) {
+      prevOpenRef.current = false;
+      return;
     }
 
-    setFavorite(initial?.favorite ?? false);
-    setIconLoading(false);
-    setSubmitting(false);
+    const isNewlyOpened = !prevOpenRef.current;
+    const isDifferentCommand = initialCommand?.name !== prevCommandNameRef.current;
+
+    if (isNewlyOpened || isDifferentCommand) {
+      prevOpenRef.current = true;
+      prevCommandNameRef.current = initialCommand?.name;
+
+      const initial = initialCommand;
+      const initialIcon = initial?.icon ?? "";
+      setTab(initial?.type ?? "link");
+      setName(initial?.name ?? "");
+      setUrl(initial?.url ?? "");
+      setPath(initial?.path ?? "");
+      setArgs(initial?.args ?? "");
+      setRunAsAdmin(initial?.run_as_admin ?? false);
+      setScriptType(initial?.script_type ?? "powershell");
+      setScriptContent(initial?.script_content ?? "");
+      setTextContent(initial?.text_content ?? "");
+      setDescription(initial?.description ?? "");
+      setIcon(initialIcon);
+
+      if (initialIcon.startsWith("data:") || initialIcon.startsWith("http")) {
+        setIconMode("custom");
+      } else if (resolveLucideIcon(initialIcon)) {
+        setIconMode("lucide");
+      } else {
+        setIconMode(initial?.type === "plugin" ? "lucide" : "emoji");
+      }
+
+      setFavorite(initial?.favorite ?? false);
+      setIconLoading(false);
+      setSubmitting(false);
+    }
   }, [open, initialCommand]);
 
   const handleBrowseCustomIcon = async () => {
@@ -121,9 +135,17 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           { name: "Todos os Arquivos (*.*)", extensions: ["*"] },
         ],
       });
+      let filePath: string | null = null;
       if (typeof selected === "string") {
+        filePath = selected;
+      } else if (Array.isArray(selected) && (selected as unknown[]).length > 0) {
+        const first = (selected as unknown[])[0];
+        filePath = typeof first === "string" ? first : (first as { path?: string })?.path || null;
+      }
+
+      if (typeof filePath === "string" && filePath.trim()) {
         setIconLoading(true);
-        const dataUrl = await api.importCustomIcon(selected);
+        const dataUrl = await api.importCustomIcon(filePath);
         setIcon(dataUrl);
         setIconMode("custom");
         onInfo?.("Ícone importado e salvo no Toolbox com sucesso!");
@@ -138,27 +160,35 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   // Auto-busca favicon ao digitar URL
   useEffect(() => {
     if (tab !== "link" || !open || !url || url.length < 8) {
-      setIcon("");
+      return;
+    }
+    // Não sobrescrever se o usuário estiver no modo customizado ou Lucide
+    if (iconMode === "custom" || iconMode === "lucide") {
       return;
     }
     setIconLoading(true);
     const timer = setTimeout(async () => {
       try {
         const dataUrl = await api.fetchFavicon(url);
-        setIcon(dataUrl);
+        if (dataUrl) {
+          setIcon(dataUrl);
+        }
       } catch {
-        setIcon("");
+        // silencia se falhar
       } finally {
         setIconLoading(false);
       }
     }, 600);
     return () => clearTimeout(timer);
-  }, [url, tab, open]);
+  }, [url, tab, open, iconMode]);
 
   // Auto-extrai ícone do .exe ao digitar o caminho
   useEffect(() => {
     if (tab !== "application" || !open || !path || path.length < 4) {
-      if (tab === "application") setIcon("");
+      return;
+    }
+    // Não sobrescrever se o usuário estiver no modo customizado ou Lucide
+    if (iconMode === "custom" || iconMode === "lucide") {
       return;
     }
     const lower = path.toLowerCase();
@@ -168,15 +198,17 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     const timer = setTimeout(async () => {
       try {
         const dataUrl = await api.extractExeIcon(path);
-        setIcon(dataUrl);
+        if (dataUrl) {
+          setIcon(dataUrl);
+        }
       } catch {
-        setIcon(""); // silencia — usa fallback ⚙️
+        // silencia — usa fallback
       } finally {
         setIconLoading(false);
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [path, tab, open]);
+  }, [path, tab, open, iconMode]);
 
   // Fecha com ESC
   useEffect(() => {
