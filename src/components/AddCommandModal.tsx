@@ -11,6 +11,7 @@ interface Props {
     url?: string;
     path?: string;
     args?: string;
+    run_as_admin?: boolean;
     icon?: string;
     favorite?: boolean;
   };
@@ -36,6 +37,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   const [url,        setUrl]        = useState("");
   const [path,       setPath]       = useState("");
   const [args,       setArgs]       = useState("");
+  const [runAsAdmin, setRunAsAdmin] = useState(false);
   const [icon,       setIcon]       = useState("");
   const [favorite,   setFavorite]   = useState(false);
   const [iconLoading, setIconLoading] = useState(false);
@@ -72,6 +74,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     setUrl(initial?.url ?? "");
     setPath(initial?.path ?? "");
     setArgs(initial?.args ?? "");
+    setRunAsAdmin(initial?.run_as_admin ?? false);
     setIcon(initial?.icon ?? "");
     setFavorite(initial?.favorite ?? false);
     setIconLoading(false);
@@ -152,6 +155,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           url: tab === "link" ? url.trim() : undefined,
           path: tab !== "link" ? path.trim() : undefined,
           args: tab === "application" && args.trim() ? args.trim() : undefined,
+          run_as_admin: tab === "application" ? runAsAdmin : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -164,6 +168,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           url: tab === "link" ? url.trim() : undefined,
           path: tab !== "link" ? path.trim() : undefined,
           args: tab === "application" && args.trim() ? args.trim() : undefined,
+          run_as_admin: tab === "application" ? runAsAdmin : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -345,6 +350,20 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
                   Equivalente ao campo <strong>Destino</strong> do atalho Windows. Use aspas para argumentos com espaços.
                 </small>
               </div>
+
+              <label className="modal__checkbox">
+                <input
+                  type="checkbox"
+                  checked={runAsAdmin}
+                  onChange={(e) => setRunAsAdmin(e.target.checked)}
+                />
+                <span>
+                  <strong>Executar como Administrador</strong>
+                  <small style={{ display: "block", opacity: 0.65, fontSize: "11px", marginTop: 2 }}>
+                    Solicita confirmação de elevação de privilégios (UAC) do Windows ao iniciar.
+                  </small>
+                </span>
+              </label>
             </>
           )}
 

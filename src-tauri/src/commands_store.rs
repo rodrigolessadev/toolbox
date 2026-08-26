@@ -24,6 +24,9 @@ pub struct CommandEntry {
     /// Argumentos extras para aplicativos (ex: "--verbose --config=foo.cfg")
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<String>,
+    /// Executar como administrador no Windows (elevação UAC)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_as_admin: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub favorite: bool,
@@ -52,6 +55,8 @@ pub struct CreateCommandPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_as_admin: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
     pub favorite: bool,
@@ -68,6 +73,8 @@ pub struct UpdateCommandPayload {
     pub path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_as_admin: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
@@ -137,6 +144,7 @@ pub fn create_command(
         kind: payload.kind,
         path: payload.path,
         args: payload.args,
+        run_as_admin: payload.run_as_admin,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
@@ -164,6 +172,7 @@ pub fn update_command(
         kind: payload.kind,
         path: payload.path,
         args: payload.args,
+        run_as_admin: payload.run_as_admin,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
