@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { Shield, Terminal } from "lucide-react";
 import { CommandEntry } from "../lib/api";
 import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 
@@ -30,6 +30,16 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
           <FallbackPluginIcon size={16} color="var(--accent)" strokeWidth={2} />
         </span>
       );
+    }
+    if (entry.type === "application" && entry.path) {
+      const p = entry.path.toLowerCase();
+      if (p.endsWith(".ps1") || p.endsWith(".bat") || p.endsWith(".cmd")) {
+        return (
+          <span className="command-item__icon" aria-hidden="true">
+            <Terminal size={16} color="var(--accent)" strokeWidth={2} />
+          </span>
+        );
+      }
     }
     return (
       <span className="command-item__icon" aria-hidden="true">
