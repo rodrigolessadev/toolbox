@@ -1,3 +1,10 @@
+## v1.26.0 - 2026-08-26
+
+### 🛡️ Segurança & Resiliência de Dados
+- **Backup & Sincronização Automática de Comandos:** Todos os seus comandos agora contam com shadow backup automático salvo fora do AppData (priorizando pastas sincronizadas como o OneDrive e Documentos), protegendo suas configurações contra limpezas de temporários ou reinstalações do Windows.
+- **Snapshot de Segurança Pré-Atualização:** Antes de atualizar para uma nova versão, o Toolbox grava um snapshot de segurança dos seus dados.
+- **Restauração Inteligente em 1 Clique:** Detecção automática de backups existentes ao iniciar com uma base limpa e novo painel de controle de backup na tela de Configurações.
+
 ## v1.25.0 - 2026-08-26
 
 ### 🚀 Novidades & Funcionalidades
