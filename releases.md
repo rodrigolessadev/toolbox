@@ -1,3 +1,14 @@
+## v1.27.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.27.0/Toolbox_1.27.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🎨 Customização de Ícones & Comandos
+- **Importação de Ícones Locais:** Agora você pode personalizar qualquer comando (links, aplicativos, scripts, snippets e plugins) importando suas próprias imagens (`.png`, `.ico`, `.svg`, `.jpg`, `.webp`).
+- **Persistência Segura e Resiliente:** Os arquivos de ícones importados são armazenados internamente na pasta do Toolbox, evitando que o ícone quebre se o arquivo de origem for movido ou excluído.
+- **Seletor Universal de Ícones:** Alterne facilmente entre emojis/texto, a biblioteca completa de ícones Lucide ou arquivos de imagem do seu computador diretamente no modal de criação e edição.
+
+</details>
+
 ## v1.26.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.26.0/Toolbox_1.26.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
