@@ -1,3 +1,22 @@
+## v1.23.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.23.0/Toolbox_1.23.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## 🚀 Toolbox Desktop v1.23.0
+
+### ✨ Novidades e Recursos (Features)
+- **Execução Nativa de Scripts PowerShell e Batch:**
+  - Suporte ao cadastro e disparo direto de scripts PowerShell (`.ps1`) e arquivos de lote (`.bat`, `.cmd`) na aba de Aplicativos.
+  - Execução segura e transparente invocando `powershell.exe` (com `-NoProfile` e `Bypass`) e `cmd.exe` (`/c`).
+  - Suporte a argumentos extras e opção de elevação de privilégios como Administrador (UAC) para scripts.
+  - Identificação visual e ícones dedicados de Terminal para scripts na listagem de comandos.
+
+### 🔗 Issues & PRs Relacionados
+- Closes #81
+- PR: #83
+
+</details>
+
 ## v1.22.3 - 2026-08-25 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.22.3/Toolbox_1.22.3_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
