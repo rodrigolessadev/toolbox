@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 // ───────────────────────── Tipos ─────────────────────────
 
-export type CommandType = "plugin" | "link" | "application" | "script";
+export type CommandType = "plugin" | "link" | "application" | "script" | "clipboard";
 
 export interface CommandEntry {
   type: CommandType;
@@ -15,6 +15,10 @@ export interface CommandEntry {
   script_type?: "powershell" | "batch";
   /** Conteúdo do script inline */
   script_content?: string;
+  /** Conteúdo de texto para Área de Transferência (Clipboard / Snippets) */
+  text_content?: string;
+  /** Descrição ou observação opcional do comando */
+  description?: string;
   url?: string;
   favorite: boolean;
   icon?: string | null;
@@ -38,7 +42,7 @@ export interface PluginInfo {
 
 export interface HistoryEntry {
   command: string;
-  command_type: "plugin" | "link" | "application" | "script";
+  command_type: "plugin" | "link" | "application" | "script" | "clipboard";
   timestamp: string;
   success: boolean;
 }
@@ -55,6 +59,10 @@ export interface CreateCommandPayload {
   script_type?: "powershell" | "batch";
   /** Conteúdo do script inline */
   script_content?: string;
+  /** Conteúdo de texto para Área de Transferência (Clipboard / Snippets) */
+  text_content?: string;
+  /** Descrição ou observação opcional do comando */
+  description?: string;
   url?: string;
   icon?: string | null;
   favorite?: boolean;

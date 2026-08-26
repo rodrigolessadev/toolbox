@@ -53,11 +53,67 @@ pub fn run_command(
         CommandType::Application => run_application(&entry),
         CommandType::Plugin => run_plugin(&app, &name, &entry),
         CommandType::Script => run_script(&app, &name, &entry),
+        CommandType::Clipboard => run_clipboard(&name, &entry),
     };
 
     let success = result.is_ok();
     record_history(&history, &name, &entry.kind, success);
     result
+}
+
+#[cfg(target_os = "windows")]
+pub fn set_clipboard_text(text: &str) -> Result<(), String> {
+    use windows::Win32::Foundation::{HANDLE, HWND};
+    use windows::Win32::System::DataExchange::{CloseClipboard, EmptyClipboard, OpenClipboard, SetClipboardData};
+    use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_MOVEABLE};
+
+    let utf16: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
+    let byte_len = utf16.len() * std::mem::size_of::<u16>();
+
+    unsafe {
+        OpenClipboard(HWND(std::ptr::null_mut())).map_err(|e| format!("Não foi possível abrir a Área de Transferência: {}", e))?;
+        let _ = EmptyClipboard();
+
+        let h_global = GlobalAlloc(GMEM_MOVEABLE, byte_len).map_err(|e| format!("Falha ao alocar memória: {}", e))?;
+        let ptr = GlobalLock(h_global);
+        if ptr.is_null() {
+            let _ = CloseClipboard();
+            return Err("Falha ao bloquear memória para a Área de Transferência".into());
+        }
+
+        std::ptr::copy_nonoverlapping(utf16.as_ptr() as *const u8, ptr as *mut u8, byte_len);
+        let _ = GlobalUnlock(h_global);
+
+        // CF_UNICODETEXT = 13
+        let res = SetClipboardData(13, HANDLE(h_global.0));
+        let _ = CloseClipboard();
+
+        res.map_err(|e| format!("Falha ao definir dados na Área de Transferência: {}", e))?;
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn set_clipboard_text(_text: &str) -> Result<(), String> {
+    Ok(())
+}
+
+fn run_clipboard(name: &str, entry: &CommandEntry) -> Result<RunResult, String> {
+    let content = entry
+        .text_content
+        .as_deref()
+        .ok_or("Comando sem conteúdo de texto definido")?;
+
+    if content.trim().is_empty() {
+        return Err("O conteúdo para a Área de Transferência está vazio".to_string());
+    }
+
+    set_clipboard_text(content)?;
+
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("\"{}\" copiado para a Área de Transferência!", name)),
+    })
 }
 
 fn run_script(_app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {

@@ -14,6 +14,7 @@ pub enum CommandType {
     Plugin,
     Application,
     Script,
+    Clipboard,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,6 +35,12 @@ pub struct CommandEntry {
     /// Conteúdo do script inline
     #[serde(skip_serializing_if = "Option::is_none")]
     pub script_content: Option<String>,
+    /// Conteúdo de texto para Área de Transferência (Clipboard / Snippets)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text_content: Option<String>,
+    /// Descrição ou observação opcional do comando
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub favorite: bool,
@@ -68,6 +75,10 @@ pub struct CreateCommandPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub script_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub text_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
     pub favorite: bool,
@@ -90,6 +101,10 @@ pub struct UpdateCommandPayload {
     pub script_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub script_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     pub icon: Option<String>,
@@ -162,6 +177,8 @@ pub fn create_command(
         run_as_admin: payload.run_as_admin,
         script_type: payload.script_type,
         script_content: payload.script_content,
+        text_content: payload.text_content,
+        description: payload.description,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
@@ -192,6 +209,8 @@ pub fn update_command(
         run_as_admin: payload.run_as_admin,
         script_type: payload.script_type,
         script_content: payload.script_content,
+        text_content: payload.text_content,
+        description: payload.description,
         url: payload.url,
         icon: payload.icon,
         favorite: payload.favorite,
@@ -276,6 +295,8 @@ mod tests {
             run_as_admin: Some(true),
             script_type: Some("powershell".into()),
             script_content: Some("Write-Host 'Hello Toolbox'".into()),
+            text_content: None,
+            description: None,
             url: None,
             favorite: true,
             icon: None,
@@ -293,5 +314,33 @@ mod tests {
         assert_eq!(deserialized.script_type.as_deref(), Some("powershell"));
         assert_eq!(deserialized.script_content.as_deref(), Some("Write-Host 'Hello Toolbox'"));
         assert_eq!(deserialized.run_as_admin, Some(true));
+    }
+
+    #[test]
+    fn test_clipboard_command_serialization() {
+        let entry = CommandEntry {
+            kind: CommandType::Clipboard,
+            path: None,
+            args: None,
+            run_as_admin: None,
+            script_type: None,
+            script_content: None,
+            text_content: Some("O graphify dos arquivos fica em C:\\tools\\scripts\\GIT\\graphify".into()),
+            description: Some("Caminho do repositório Graphify".into()),
+            url: None,
+            favorite: true,
+            icon: None,
+            created_at: Some("123456789".into()),
+        };
+
+        let json = serde_json::to_string(&entry).unwrap();
+        assert!(json.contains(r#""type":"clipboard""#));
+        assert!(json.contains("graphify"));
+        assert!(json.contains("Caminho do reposit\\u00f3rio Graphify") || json.contains("Caminho do repositório Graphify") || json.contains("description"));
+
+        let deserialized: CommandEntry = serde_json::from_str(&json).unwrap();
+        assert!(matches!(deserialized.kind, CommandType::Clipboard));
+        assert_eq!(deserialized.text_content.as_deref(), Some("O graphify dos arquivos fica em C:\\tools\\scripts\\GIT\\graphify"));
+        assert_eq!(deserialized.description.as_deref(), Some("Caminho do repositório Graphify"));
     }
 }

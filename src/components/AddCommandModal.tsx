@@ -14,6 +14,8 @@ interface Props {
     run_as_admin?: boolean;
     script_type?: "powershell" | "batch";
     script_content?: string;
+    text_content?: string;
+    description?: string;
     icon?: string;
     favorite?: boolean;
   };
@@ -30,6 +32,7 @@ type Tab = CommandType;
 const TABS: { id: Tab; label: string }[] = [
   { id: "link",        label: "Link"       },
   { id: "application", label: "Aplicativo" },
+  { id: "clipboard",   label: "Snippet"    },
   { id: "script",      label: "Script"     },
   { id: "plugin",      label: "Plugin"     },
 ];
@@ -45,6 +48,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   const [runAsAdmin,    setRunAsAdmin]    = useState(false);
   const [scriptType,    setScriptType]    = useState<"powershell" | "batch">("powershell");
   const [scriptContent, setScriptContent] = useState("");
+  const [textContent,   setTextContent]   = useState("");
+  const [description,   setDescription]   = useState("");
   const [icon,          setIcon]          = useState("");
   const [favorite,      setFavorite]      = useState(false);
   const [iconLoading,   setIconLoading]   = useState(false);
@@ -84,6 +89,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     setRunAsAdmin(initial?.run_as_admin ?? false);
     setScriptType(initial?.script_type ?? "powershell");
     setScriptContent(initial?.script_content ?? "");
+    setTextContent(initial?.text_content ?? "");
+    setDescription(initial?.description ?? "");
     setIcon(initial?.icon ?? "");
     setFavorite(initial?.favorite ?? false);
     setIconLoading(false);
@@ -153,6 +160,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
       ? url.trim().length > 0
       : tab === "script"
       ? scriptContent.trim().length > 0 && !isScriptTooLong
+      : tab === "clipboard"
+      ? textContent.trim().length > 0
       : path.trim().length > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,6 +180,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           run_as_admin: (tab === "application" || tab === "script") ? runAsAdmin : undefined,
           script_type: tab === "script" ? scriptType : undefined,
           script_content: tab === "script" ? scriptContent : undefined,
+          text_content: tab === "clipboard" ? textContent : undefined,
+          description: tab === "clipboard" && description.trim() ? description.trim() : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -186,6 +197,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           run_as_admin: (tab === "application" || tab === "script") ? runAsAdmin : undefined,
           script_type: tab === "script" ? scriptType : undefined,
           script_content: tab === "script" ? scriptContent : undefined,
+          text_content: tab === "clipboard" ? textContent : undefined,
+          description: tab === "clipboard" && description.trim() ? description.trim() : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -281,13 +294,13 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
 
           {/* Nome */}
           <div className="modal__field">
-            <label className="modal__label">Nome do Comando</label>
+            <label className="modal__label">Nome / Gatilho do Comando</label>
             <input
               type="text"
               className="modal__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="ex: cpf, google, backup-db"
+              placeholder="ex: graphify, pix, modelo-email"
               autoFocus
               required
             />
@@ -408,6 +421,35 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </>
           )}
 
+          {/* Snippet / Clipboard: texto para a Área de Transferência */}
+          {tab === "clipboard" && (
+            <>
+              <div className="modal__field">
+                <label className="modal__label">Conteúdo do Texto (será copiado ao acionar)</label>
+                <textarea
+                  className="modal__textarea"
+                  value={textContent}
+                  onChange={(e) => setTextContent(e.target.value)}
+                  placeholder="Cole ou digite aqui o texto, caminho, comando ou snippet a ser copiado..."
+                  rows={6}
+                  spellCheck={false}
+                  required
+                />
+              </div>
+
+              <div className="modal__field">
+                <label className="modal__label">Descrição / Observação <span style={{ opacity: 0.5, fontWeight: 400 }}>(opcional)</span></label>
+                <input
+                  type="text"
+                  className="modal__input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="ex: Caminho do repositório Graphify"
+                />
+              </div>
+            </>
+          )}
+
           {/* Script: código inline (PowerShell ou Batch) */}
           {tab === "script" && (
             <>
@@ -481,7 +523,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </>
           )}
 
-          {/* Ícone: Lucide picker para plugin, emoji para application e script */}
+          {/* Ícone: Lucide picker para plugin, emoji para application, script e clipboard */}
           {tab === "plugin" && (
             <div className="modal__field">
               <label className="modal__label">Ícone (Lucide)</label>
@@ -499,7 +541,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </div>
           )}
 
-          {(tab === "application" || tab === "script") && (
+          {(tab === "application" || tab === "script" || tab === "clipboard") && (
             <div className="modal__field">
               <label className="modal__label">Ícone (emoji ou texto curto)</label>
               <input
@@ -507,11 +549,13 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
                 className="modal__input"
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
-                placeholder={tab === "script" ? "📜" : "⚙️"}
+                placeholder={tab === "clipboard" ? "📋" : tab === "script" ? "📜" : "⚙️"}
                 maxLength={8}
               />
               <small className="modal__hint">
-                {tab === "script"
+                {tab === "clipboard"
+                  ? "Deixe em branco para usar o ícone padrão de prancheta."
+                  : tab === "script"
                   ? "Deixe em branco para usar o ícone padrão de terminal."
                   : "Deixe em branco para usar o ícone extraído do executável."}
               </small>

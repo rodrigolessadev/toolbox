@@ -15,7 +15,7 @@ import { FeedbackModal } from "./components/FeedbackModal";
 import "./styles/global.css";
 
 type ToastKind = "success" | "error" | "info";
-type Tab = "all" | "favorites" | "plugin" | "link" | "application" | "history";
+type Tab = "all" | "favorites" | "plugin" | "link" | "application" | "clipboard" | "script" | "history";
 
 interface Toast {
   id: number;
@@ -29,6 +29,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "plugin",      label: "Plugins" },
   { id: "link",        label: "Links" },
   { id: "application", label: "Apps" },
+  { id: "clipboard",   label: "Snippets" },
+  { id: "script",      label: "Scripts" },
   { id: "history",     label: "Histórico" },
 ];
 
@@ -40,6 +42,8 @@ function scoreCommand(name: string, entry: CommandEntry, query: string): number 
   const url = (entry.url || "").toLowerCase();
   const path = (entry.path || "").toLowerCase();
   const args = (entry.args || "").toLowerCase();
+  const text = (entry.text_content || "").toLowerCase();
+  const desc = (entry.description || "").toLowerCase();
 
   // 1. Match exato no nome do comando
   if (n === q) return 1000;
@@ -55,14 +59,15 @@ function scoreCommand(name: string, entry: CommandEntry, query: string): number 
   // 4. Nome contem a substring
   if (n.includes(q)) return 500;
 
-  // 5. Argumentos do comando contem a query
-  if (args.includes(q)) return 300;
+  // 5. Argumentos ou Descrição do comando contem a query
+  if (args.includes(q) || desc.includes(q)) return 300;
 
-  // 6. Path do executavel/plugin contem a query
+  // 6. Path do executavel/plugin ou conteúdo de texto contem a query
   if (path.includes(q)) {
     if (path.endsWith(q) || path.includes(`/${q}`) || path.includes(`\\${q}`)) return 250;
     return 200;
   }
+  if (text.includes(q)) return 200;
 
   // 7. URL contem a query (menor prioridade)
   if (url.includes(q)) return 100;
@@ -548,6 +553,8 @@ export default function App() {
           run_as_admin: editingCommand.entry.run_as_admin,
           script_type: editingCommand.entry.script_type,
           script_content: editingCommand.entry.script_content,
+          text_content: editingCommand.entry.text_content,
+          description: editingCommand.entry.description,
           icon: editingCommand.entry.icon ?? undefined,
           favorite: editingCommand.entry.favorite,
         } : undefined}

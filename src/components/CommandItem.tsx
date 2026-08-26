@@ -1,4 +1,4 @@
-import { Shield, Terminal } from "lucide-react";
+import { Clipboard, Shield, Terminal } from "lucide-react";
 import { CommandEntry } from "../lib/api";
 import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 
@@ -18,6 +18,7 @@ const TYPE_FALLBACK: Record<string, string> = {
   plugin:      "🧩",
   application: "⚙️",
   script:      "📜",
+  clipboard:   "📋",
 };
 
 function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: string }) {
@@ -29,6 +30,13 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
       return (
         <span className="command-item__icon" aria-hidden="true">
           <FallbackPluginIcon size={16} color="var(--accent)" strokeWidth={2} />
+        </span>
+      );
+    }
+    if (entry.type === "clipboard") {
+      return (
+        <span className="command-item__icon" aria-hidden="true">
+          <Clipboard size={16} color="var(--accent)" strokeWidth={2} />
         </span>
       );
     }
@@ -113,6 +121,11 @@ function kindLabel(entry: CommandEntry): string {
   if (entry.type === "plugin")      return entry.path ?? "";
   if (entry.type === "application") return entry.path ?? "";
   if (entry.type === "script")      return entry.script_type === "batch" ? "Script Batch" : "Script PowerShell";
+  if (entry.type === "clipboard") {
+    if (entry.description) return entry.description;
+    const text = (entry.text_content || "").replace(/\s+/g, " ").trim();
+    return text.length > 60 ? text.slice(0, 57) + "..." : text;
+  }
   return "";
 }
 
