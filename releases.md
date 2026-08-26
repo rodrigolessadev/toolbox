@@ -1,3 +1,24 @@
+## v1.27.2 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.27.2/Toolbox_1.27.2_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+## v1.28.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.28.0/Toolbox_1.28.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🎨 Design System & Espaçamento Material Design 3 (#94)
+- **Escala Oficial de Espaçamento M3:** Formalização dos tokens semânticos baseados no Grid de 4px / 8px (`--md-sys-spacing-none` até `--md-sys-spacing-xxxxl`) em `tokens.json` e folhas de estilo globais.
+- **Utilitários no Tailwind CSS:** Integração de classes utilitárias de espaçamento (`m3-none`, `m3-xs`, `m3-sm`, `m3-md`, `m3-lg`, `m3-xl`, `m3-xxl`, `m3-xxxl`, `m3-xxxxl`) para simplificar o alinhamento de paddings, margins e gaps nos componentes.
+- **Governança e Sincronização:** Sincronização automatizada de variáveis CSS com templates web e suíte de testes unitários dedicada no ecossistema.
+
+### 🔗 Issues & PRs Relacionados
+- Closes #94
+- PR: #95
+
+</details>
+
+</details>
+
 ## v1.27.1 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.27.1/Toolbox_1.27.1_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
