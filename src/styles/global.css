@@ -678,6 +678,7 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .badge--plugin      { background: rgba(106,163,255,.18); color: var(--accent);  }
 .badge--link        { background: rgba(76,195,138,.18);  color: var(--success); }
 .badge--application { background: rgba(245,165,36,.18);  color: var(--warning); }
+.badge--script      { background: rgba(168,85,247,.18);  color: #c084fc; }
 
 /* ===========================================================
    History panel
@@ -1055,6 +1056,58 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .modal__input::placeholder { color: var(--fg-muted); opacity: .7; }
+
+.modal__textarea {
+  padding: 10px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  color: var(--fg);
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+  min-height: 150px;
+  width: 100%;
+  transition: border-color var(--tr), box-shadow var(--tr);
+}
+.modal__textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.modal__textarea::placeholder { color: var(--fg-muted); opacity: .6; }
+
+.modal__script-type-toggle {
+  display: flex;
+  gap: 8px;
+}
+.modal__script-type-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.modal__script-type-btn:hover {
+  background: var(--border);
+  color: var(--fg);
+}
+.modal__script-type-btn--active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
 
 .modal__row {
   display: flex;

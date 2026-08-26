@@ -52,11 +52,98 @@ pub fn run_command(
         CommandType::Link => run_link(&app, &entry),
         CommandType::Application => run_application(&entry),
         CommandType::Plugin => run_plugin(&app, &name, &entry),
+        CommandType::Script => run_script(&app, &name, &entry),
     };
 
     let success = result.is_ok();
     record_history(&history, &name, &entry.kind, success);
     result
+}
+
+fn run_script(_app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {
+    let script_content = entry
+        .script_content
+        .as_deref()
+        .ok_or("Script sem conteúdo")?;
+
+    if script_content.trim().is_empty() {
+        return Err("O conteúdo do script está vazio".to_string());
+    }
+
+    let script_type = entry
+        .script_type
+        .as_deref()
+        .unwrap_or("powershell")
+        .to_lowercase();
+
+    let ext = match script_type.as_str() {
+        "batch" | "bat" | "cmd" => "bat",
+        _ => "ps1",
+    };
+
+    // Diretório temporário para scripts do Toolbox (%TEMP%/toolbox/scripts)
+    let scripts_dir = std::env::temp_dir().join("toolbox").join("scripts");
+    std::fs::create_dir_all(&scripts_dir)
+        .map_err(|e| format!("Falha ao criar diretório temporário de scripts: {}", e))?;
+
+    // Nome de arquivo seguro baseado no nome do comando
+    let safe_name: String = name
+        .chars()
+        .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+        .collect();
+
+    let file_name = format!("{}.{}", safe_name, ext);
+    let file_path = scripts_dir.join(&file_name);
+
+    std::fs::write(&file_path, script_content)
+        .map_err(|e| format!("Falha ao salvar script temporário: {}", e))?;
+
+    let path_str = file_path
+        .to_str()
+        .ok_or("Caminho do script inválido")?
+        .to_string();
+
+    let run_as_admin = entry.run_as_admin.unwrap_or(false);
+
+    if run_as_admin {
+        #[cfg(target_os = "windows")]
+        {
+            return run_application_as_admin(&path_str, ext, entry.args.as_deref());
+        }
+    }
+
+    let mut cmd = match ext {
+        "ps1" => {
+            let mut c = Command::new("powershell.exe");
+            c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", &path_str]);
+            c
+        }
+        "bat" => {
+            let mut c = Command::new("cmd.exe");
+            c.args(["/c", &path_str]);
+            c
+        }
+        _ => Command::new(&path_str),
+    };
+
+    if let Some(raw_args) = &entry.args {
+        let trimmed = raw_args.trim();
+        if !trimmed.is_empty() {
+            for arg in split_args(trimmed) {
+                cmd.arg(arg);
+            }
+        }
+    }
+
+    cmd.spawn()
+        .map_err(|e| format!("Falha ao executar script: {}", e))?;
+
+    let type_label = if ext == "ps1" { "PowerShell" } else { "Batch" };
+
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("Script {} ({}) executado com sucesso", name, type_label)),
+    })
 }
 
 fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> {

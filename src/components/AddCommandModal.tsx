@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
+import { api, CommandType } from "../lib/api";
 import { LucideIconPicker } from "./LucideIconPicker";
 
 interface Props {
@@ -7,11 +7,13 @@ interface Props {
   mode?: "create" | "edit";
   initialCommand?: {
     name: string;
-    type: "plugin" | "link" | "application";
+    type: CommandType;
     url?: string;
     path?: string;
     args?: string;
     run_as_admin?: boolean;
+    script_type?: "powershell" | "batch";
+    script_content?: string;
     icon?: string;
     favorite?: boolean;
   };
@@ -23,26 +25,31 @@ interface Props {
   onInfo?: (message: string) => void;
 }
 
-type Tab = "plugin" | "link" | "application";
+type Tab = CommandType;
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "link",        label: "Link"       },
   { id: "application", label: "Aplicativo" },
+  { id: "script",      label: "Script"     },
   { id: "plugin",      label: "Plugin"     },
 ];
 
+const MAX_SCRIPT_LINES = 150;
+
 export function AddCommandModal({ open, mode = "create", initialCommand, onClose, onCreated, onUpdated, onOpenPluginFolder, onError, onInfo }: Props) {
-  const [tab,        setTab]        = useState<Tab>("link");
-  const [name,       setName]       = useState("");
-  const [url,        setUrl]        = useState("");
-  const [path,       setPath]       = useState("");
-  const [args,       setArgs]       = useState("");
-  const [runAsAdmin, setRunAsAdmin] = useState(false);
-  const [icon,       setIcon]       = useState("");
-  const [favorite,   setFavorite]   = useState(false);
-  const [iconLoading, setIconLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [plugins, setPlugins] = useState<import("../lib/api").PluginInfo[]>([]);
+  const [tab,           setTab]           = useState<Tab>("link");
+  const [name,          setName]          = useState("");
+  const [url,           setUrl]           = useState("");
+  const [path,          setPath]          = useState("");
+  const [args,          setArgs]          = useState("");
+  const [runAsAdmin,    setRunAsAdmin]    = useState(false);
+  const [scriptType,    setScriptType]    = useState<"powershell" | "batch">("powershell");
+  const [scriptContent, setScriptContent] = useState("");
+  const [icon,          setIcon]          = useState("");
+  const [favorite,      setFavorite]      = useState(false);
+  const [iconLoading,   setIconLoading]   = useState(false);
+  const [submitting,    setSubmitting]    = useState(false);
+  const [plugins,       setPlugins]       = useState<import("../lib/api").PluginInfo[]>([]);
 
   useEffect(() => {
     if (open && tab === "plugin") {
@@ -75,6 +82,8 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     setPath(initial?.path ?? "");
     setArgs(initial?.args ?? "");
     setRunAsAdmin(initial?.run_as_admin ?? false);
+    setScriptType(initial?.script_type ?? "powershell");
+    setScriptContent(initial?.script_content ?? "");
     setIcon(initial?.icon ?? "");
     setFavorite(initial?.favorite ?? false);
     setIconLoading(false);
@@ -107,7 +116,6 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
       if (tab === "application") setIcon("");
       return;
     }
-    // Só tenta se termina com extensão executável
     const lower = path.toLowerCase();
     if (!lower.endsWith(".exe") && !lower.endsWith(".dll")) return;
 
@@ -135,11 +143,16 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
 
   if (!open) return null;
 
+  const scriptLineCount = scriptContent ? scriptContent.split(/\r?\n/).length : 0;
+  const isScriptTooLong = scriptLineCount > MAX_SCRIPT_LINES;
+
   const pluginPlaceholder = tab === "plugin" ? "meu-plugin" : "";
   const canSubmit =
     name.trim().length > 0 &&
     (tab === "link"
       ? url.trim().length > 0
+      : tab === "script"
+      ? scriptContent.trim().length > 0 && !isScriptTooLong
       : path.trim().length > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,9 +166,11 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           name: name.trim(),
           type: tab,
           url: tab === "link" ? url.trim() : undefined,
-          path: tab !== "link" ? path.trim() : undefined,
-          args: tab === "application" && args.trim() ? args.trim() : undefined,
-          run_as_admin: tab === "application" ? runAsAdmin : undefined,
+          path: (tab === "plugin" || tab === "application") ? path.trim() : undefined,
+          args: (tab === "application" || tab === "script") && args.trim() ? args.trim() : undefined,
+          run_as_admin: (tab === "application" || tab === "script") ? runAsAdmin : undefined,
+          script_type: tab === "script" ? scriptType : undefined,
+          script_content: tab === "script" ? scriptContent : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -166,9 +181,11 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
           name: name.trim(),
           type: tab,
           url: tab === "link" ? url.trim() : undefined,
-          path: tab !== "link" ? path.trim() : undefined,
-          args: tab === "application" && args.trim() ? args.trim() : undefined,
-          run_as_admin: tab === "application" ? runAsAdmin : undefined,
+          path: (tab === "plugin" || tab === "application") ? path.trim() : undefined,
+          args: (tab === "application" || tab === "script") && args.trim() ? args.trim() : undefined,
+          run_as_admin: (tab === "application" || tab === "script") ? runAsAdmin : undefined,
+          script_type: tab === "script" ? scriptType : undefined,
+          script_content: tab === "script" ? scriptContent : undefined,
           icon: icon || undefined,
           favorite,
         });
@@ -246,7 +263,13 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
               role="tab"
               aria-selected={tab === t.id}
               className={`modal__tab${tab === t.id ? " modal__tab--active" : ""}`}
-              onClick={() => { setTab(t.id); setPath(""); setUrl(""); setArgs(""); setIcon(""); }}
+              onClick={() => {
+                setTab(t.id);
+                setPath("");
+                setUrl("");
+                setArgs("");
+                setIcon("");
+              }}
             >
               {t.label}
             </button>
@@ -385,7 +408,80 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </>
           )}
 
-          {/* Ícone: Lucide picker para plugin, emoji para application */}
+          {/* Script: código inline (PowerShell ou Batch) */}
+          {tab === "script" && (
+            <>
+              <div className="modal__field">
+                <label className="modal__label">Tipo de Interpretador</label>
+                <div className="modal__script-type-toggle">
+                  <button
+                    type="button"
+                    className={`modal__script-type-btn${scriptType === "powershell" ? " modal__script-type-btn--active" : ""}`}
+                    onClick={() => setScriptType("powershell")}
+                  >
+                    ⚡ PowerShell (.ps1)
+                  </button>
+                  <button
+                    type="button"
+                    className={`modal__script-type-btn${scriptType === "batch" ? " modal__script-type-btn--active" : ""}`}
+                    onClick={() => setScriptType("batch")}
+                  >
+                    ⚙️ Batch (.bat)
+                  </button>
+                </div>
+              </div>
+
+              <div className="modal__field">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label className="modal__label">Código do Script</label>
+                  <span style={{ fontSize: "11px", color: isScriptTooLong ? "var(--danger)" : "var(--fg-muted)", fontWeight: isScriptTooLong ? 700 : 400 }}>
+                    {scriptLineCount} / {MAX_SCRIPT_LINES} linhas
+                  </span>
+                </div>
+                <textarea
+                  className="modal__textarea"
+                  value={scriptContent}
+                  onChange={(e) => setScriptContent(e.target.value)}
+                  placeholder={scriptType === "powershell" ? "# Digite seu script PowerShell aqui...\nWrite-Host 'Olá do Toolbox!'" : "REM Digite seu script Batch aqui...\necho Olá do Toolbox!"}
+                  rows={8}
+                  spellCheck={false}
+                  required
+                />
+                {isScriptTooLong && (
+                  <small className="modal__hint" style={{ color: "var(--danger)" }}>
+                    O script excedeu o limite máximo de {MAX_SCRIPT_LINES} linhas.
+                  </small>
+                )}
+              </div>
+
+              <div className="modal__field">
+                <label className="modal__label">Argumentos <span style={{ opacity: 0.5, fontWeight: 400 }}>(opcional)</span></label>
+                <input
+                  type="text"
+                  className="modal__input"
+                  value={args}
+                  onChange={(e) => setArgs(e.target.value)}
+                  placeholder='-Parametro1 "valor" --verbose'
+                />
+              </div>
+
+              <label className="modal__checkbox">
+                <input
+                  type="checkbox"
+                  checked={runAsAdmin}
+                  onChange={(e) => setRunAsAdmin(e.target.checked)}
+                />
+                <span>
+                  <strong>Executar como Administrador</strong>
+                  <small style={{ display: "block", opacity: 0.65, fontSize: "11px", marginTop: 2 }}>
+                    Solicita confirmação de elevação de privilégios (UAC) do Windows ao executar o script.
+                  </small>
+                </span>
+              </label>
+            </>
+          )}
+
+          {/* Ícone: Lucide picker para plugin, emoji para application e script */}
           {tab === "plugin" && (
             <div className="modal__field">
               <label className="modal__label">Ícone (Lucide)</label>
@@ -403,7 +499,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </div>
           )}
 
-          {tab === "application" && (
+          {(tab === "application" || tab === "script") && (
             <div className="modal__field">
               <label className="modal__label">Ícone (emoji ou texto curto)</label>
               <input
@@ -411,10 +507,14 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
                 className="modal__input"
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
-                placeholder="⚙️"
+                placeholder={tab === "script" ? "📜" : "⚙️"}
                 maxLength={8}
               />
-              <small className="modal__hint">Deixe em branco para usar o ícone extraído do executável.</small>
+              <small className="modal__hint">
+                {tab === "script"
+                  ? "Deixe em branco para usar o ícone padrão de terminal."
+                  : "Deixe em branco para usar o ícone extraído do executável."}
+              </small>
             </div>
           )}
 
