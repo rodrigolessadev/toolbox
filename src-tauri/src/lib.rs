@@ -3,6 +3,7 @@ mod exe_icon;
 mod executor;
 mod favicon;
 mod history;
+mod icon_importer;
 mod logger;
 mod marketplace;
 mod paths;
@@ -179,6 +180,10 @@ pub fn run() {
             let data_dir = paths::data_dir(app.handle());
             std::fs::create_dir_all(&data_dir).ok();
 
+            // Garante que o diretório de ícones personalizados existe
+            let icons_dir = paths::icons_dir(app.handle());
+            std::fs::create_dir_all(&icons_dir).ok();
+
             // Caminhos dos arquivos de dados
             let commands_path = data_dir.join("commands.json");
             let history_dir = data_dir.join("data");
@@ -243,9 +248,11 @@ pub fn run() {
             history::clear_history,
             favicon::fetch_favicon,
             exe_icon::extract_exe_icon,
+            icon_importer::import_custom_icon,
             paths::get_data_dir,
             paths::get_plugins_dir,
             paths::get_logs_dir,
+            paths::get_icons_dir,
             paths::get_backup_dir,
             paths::open_path,
             paths::hide_window,
