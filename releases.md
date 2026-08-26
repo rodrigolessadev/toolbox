@@ -1,3 +1,14 @@
+## v1.24.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.24.0/Toolbox_1.24.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🚀 Novidades & Funcionalidades
+- **Scripts Inline:** Agora é possível cadastrar e rodar pequenos scripts e automações diretamente pelo Toolbox sem a necessidade de criar arquivos avulsos no disco.
+- **Suporte a PowerShell e Batch:** Escolha entre PowerShell (.ps1) e Batch (.bat) com editor integrado e limite de segurança de até 150 linhas.
+- **Elevação de Privilégios (UAC):** Opção para executar os scripts cadastrados no modo Administrador.
+
+</details>
+
 ## v1.23.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.23.0/Toolbox_1.23.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>

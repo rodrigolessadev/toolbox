@@ -1,3 +1,10 @@
+## v1.24.0 - 2026-08-26
+
+### 🚀 Novidades & Funcionalidades
+- **Scripts Inline:** Agora é possível cadastrar e rodar pequenos scripts e automações diretamente pelo Toolbox sem a necessidade de criar arquivos avulsos no disco.
+- **Suporte a PowerShell e Batch:** Escolha entre PowerShell (.ps1) e Batch (.bat) com editor integrado e limite de segurança de até 150 linhas.
+- **Elevação de Privilégios (UAC):** Opção para executar os scripts cadastrados no modo Administrador.
+
 ## v1.23.0 - 2026-08-26
 
 ## 🚀 Toolbox Desktop v1.23.0
