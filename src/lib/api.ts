@@ -130,6 +130,16 @@ export interface RuntimeInfo {
   path?: string | null;
 }
 
+export interface BackupStatus {
+  enabled: boolean;
+  backup_path: string;
+  destination_type: string;
+  last_backup_time?: string | null;
+  file_size_bytes?: number | null;
+  backup_exists: boolean;
+  backup_commands_count: number;
+}
+
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
@@ -149,6 +159,13 @@ export const api = {
   importCommands: (json: string) =>
     invoke<CommandsFile>("import_commands", { json }),
   exportCommands: () => invoke<string>("export_commands"),
+
+  // ── Backup & Sincronização ──
+  getBackupDir: () => invoke<string>("get_backup_dir"),
+  getBackupStatus: () => invoke<BackupStatus>("get_backup_status"),
+  triggerManualBackup: () => invoke<BackupStatus>("trigger_manual_backup"),
+  restoreFromAutoBackup: () => invoke<CommandsFile>("restore_from_auto_backup"),
+  checkAutoBackupAvailable: () => invoke<BackupStatus | null>("check_auto_backup_available"),
 
   listPlugins: () => invoke<PluginInfo[]>("list_plugins"),
   openPluginFolder: (path: string) =>
