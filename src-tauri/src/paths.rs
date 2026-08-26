@@ -16,6 +16,24 @@ pub fn logs_dir(app: &AppHandle) -> PathBuf {
     data_dir(app).join("logs")
 }
 
+pub fn icons_dir(app: &AppHandle) -> PathBuf {
+    data_dir(app).join("icons")
+}
+
+pub fn now() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    format!("{}", secs)
+}
+
+#[tauri::command]
+pub fn get_icons_dir(app: AppHandle) -> Result<String, String> {
+    Ok(icons_dir(&app).to_string_lossy().to_string())
+}
+
 /// Resolve o diretório seguro de backup do usuário (fora do AppData)
 pub fn backup_dir() -> PathBuf {
     // 1. OneDrive (sincronização automática para a nuvem pessoal do usuário)

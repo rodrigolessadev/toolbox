@@ -200,6 +200,9 @@ export const api = {
   minimizeWindow: () => invoke<void>("minimize_window"),
   fetchFavicon: (url: string) => invoke<string>("fetch_favicon", { url }),
   extractExeIcon: (path: string) => invoke<string>("extract_exe_icon", { path }),
+  importCustomIcon: (sourcePath: string) =>
+    invoke<string>("import_custom_icon", { sourcePath }),
+  getIconsDir: () => invoke<string>("get_icons_dir"),
 
   // ── Marketplace ──
   fetchCatalog: () => invoke<MarketplaceEntry[]>("fetch_catalog"),

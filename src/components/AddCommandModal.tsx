@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, CommandType } from "../lib/api";
 import { LucideIconPicker } from "./LucideIconPicker";
+import { resolveLucideIcon, isImageIcon } from "../lib/icons";
 
 interface Props {
   open: boolean;
@@ -28,6 +29,7 @@ interface Props {
 }
 
 type Tab = CommandType;
+type IconMode = "emoji" | "lucide" | "custom";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "link",        label: "Link"       },
@@ -51,6 +53,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
   const [textContent,   setTextContent]   = useState("");
   const [description,   setDescription]   = useState("");
   const [icon,          setIcon]          = useState("");
+  const [iconMode,      setIconMode]      = useState<IconMode>("emoji");
   const [favorite,      setFavorite]      = useState(false);
   const [iconLoading,   setIconLoading]   = useState(false);
   const [submitting,    setSubmitting]    = useState(false);
@@ -81,6 +84,7 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     if (!open) return;
 
     const initial = initialCommand;
+    const initialIcon = initial?.icon ?? "";
     setTab(initial?.type ?? "link");
     setName(initial?.name ?? "");
     setUrl(initial?.url ?? "");
@@ -91,11 +95,45 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
     setScriptContent(initial?.script_content ?? "");
     setTextContent(initial?.text_content ?? "");
     setDescription(initial?.description ?? "");
-    setIcon(initial?.icon ?? "");
+    setIcon(initialIcon);
+
+    if (initialIcon.startsWith("data:") || initialIcon.startsWith("http")) {
+      setIconMode("custom");
+    } else if (resolveLucideIcon(initialIcon)) {
+      setIconMode("lucide");
+    } else {
+      setIconMode(initial?.type === "plugin" ? "lucide" : "emoji");
+    }
+
     setFavorite(initial?.favorite ?? false);
     setIconLoading(false);
     setSubmitting(false);
   }, [open, initialCommand]);
+
+  const handleBrowseCustomIcon = async () => {
+    try {
+      const { open: dlg } = await import("@tauri-apps/plugin-dialog");
+      const selected = await dlg({
+        multiple: false,
+        title: "Selecionar Ícone ou Imagem",
+        filters: [
+          { name: "Imagens (*.png, *.ico, *.svg, *.jpg, *.webp)", extensions: ["png", "ico", "svg", "jpg", "jpeg", "webp"] },
+          { name: "Todos os Arquivos (*.*)", extensions: ["*"] },
+        ],
+      });
+      if (typeof selected === "string") {
+        setIconLoading(true);
+        const dataUrl = await api.importCustomIcon(selected);
+        setIcon(dataUrl);
+        setIconMode("custom");
+        onInfo?.("Ícone importado e salvo no Toolbox com sucesso!");
+      }
+    } catch (err) {
+      onError?.("Falha ao importar ícone: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIconLoading(false);
+    }
+  };
 
   // Auto-busca favicon ao digitar URL
   useEffect(() => {
@@ -523,44 +561,132 @@ export function AddCommandModal({ open, mode = "create", initialCommand, onClose
             </>
           )}
 
-          {/* Ícone: Lucide picker para plugin, emoji para application, script e clipboard */}
-          {tab === "plugin" && (
-            <div className="modal__field">
-              <label className="modal__label">Ícone (Lucide)</label>
-              <LucideIconPicker
-                value={icon}
-                onSelect={(dataUrl) => setIcon(dataUrl)}
-              />
-              <small className="modal__hint">
-                Busque em{" "}
-                <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="lucide-picker__link">
-                  lucide.dev/icons
-                </a>
-                {" "}— ex: puzzle, terminal, cpu, zap
-              </small>
+          {/* Seção Universal de Ícone do Comando */}
+          <div className="modal__field">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <label className="modal__label">Ícone do Comando</label>
+              {icon && (
+                <button
+                  type="button"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--danger, #ef4444)",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                  onClick={() => setIcon("")}
+                  title="Remover personalização de ícone"
+                >
+                  ✕ Remover Ícone
+                </button>
+              )}
             </div>
-          )}
 
-          {(tab === "application" || tab === "script" || tab === "clipboard") && (
-            <div className="modal__field">
-              <label className="modal__label">Ícone (emoji ou texto curto)</label>
-              <input
-                type="text"
-                className="modal__input"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                placeholder={tab === "clipboard" ? "📋" : tab === "script" ? "📜" : "⚙️"}
-                maxLength={8}
-              />
-              <small className="modal__hint">
-                {tab === "clipboard"
-                  ? "Deixe em branco para usar o ícone padrão de prancheta."
-                  : tab === "script"
-                  ? "Deixe em branco para usar o ícone padrão de terminal."
-                  : "Deixe em branco para usar o ícone extraído do executável."}
-              </small>
+            {/* Abas do Tipo de Ícone */}
+            <div className="modal__script-type-toggle" style={{ marginBottom: 8 }}>
+              <button
+                type="button"
+                className={`modal__script-type-btn${iconMode === "emoji" ? " modal__script-type-btn--active" : ""}`}
+                onClick={() => setIconMode("emoji")}
+              >
+                😀 Emoji / Texto
+              </button>
+              <button
+                type="button"
+                className={`modal__script-type-btn${iconMode === "lucide" ? " modal__script-type-btn--active" : ""}`}
+                onClick={() => setIconMode("lucide")}
+              >
+                ✨ Ícones Lucide
+              </button>
+              <button
+                type="button"
+                className={`modal__script-type-btn${iconMode === "custom" ? " modal__script-type-btn--active" : ""}`}
+                onClick={() => setIconMode("custom")}
+              >
+                🖼️ Imagem / Arquivo Local
+              </button>
             </div>
-          )}
+
+            {/* Modo Emoji / Texto */}
+            {iconMode === "emoji" && (
+              <div>
+                <input
+                  type="text"
+                  className="modal__input"
+                  value={isImageIcon(icon) ? "" : icon}
+                  onChange={(e) => setIcon(e.target.value)}
+                  placeholder={tab === "clipboard" ? "📋" : tab === "script" ? "📜" : tab === "link" ? "🔗" : "⚙️"}
+                  maxLength={8}
+                />
+                <small className="modal__hint">
+                  Digite um emoji ou sigla curta (até 8 caracteres). Deixe em branco para usar o ícone padrão.
+                </small>
+              </div>
+            )}
+
+            {/* Modo Lucide */}
+            {iconMode === "lucide" && (
+              <div>
+                <LucideIconPicker
+                  value={isImageIcon(icon) ? "" : icon}
+                  onSelect={(iconName) => setIcon(iconName)}
+                />
+                <small className="modal__hint">
+                  Busque em{" "}
+                  <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="lucide-picker__link">
+                    lucide.dev/icons
+                  </a>
+                  {" "}— ex: workflow, terminal, database, zap, puzzle
+                </small>
+              </div>
+            )}
+
+            {/* Modo Imagem / Arquivo Local */}
+            {iconMode === "custom" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className="modal__browse-btn"
+                    onClick={handleBrowseCustomIcon}
+                    disabled={iconLoading}
+                    style={{ flex: 1, height: "36px" }}
+                  >
+                    {iconLoading ? "Importando ícone..." : "Selecionar Arquivo de Imagem..."}
+                  </button>
+                </div>
+
+                {icon && isImageIcon(icon) && (
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 12px",
+                    background: "var(--bg-input, rgba(255,255,255,0.05))",
+                    borderRadius: "6px",
+                    border: "1px solid var(--border)"
+                  }}>
+                    <img
+                      src={icon}
+                      alt="Preview"
+                      style={{ width: 28, height: 28, objectFit: "contain", borderRadius: 4 }}
+                    />
+                    <span style={{ fontSize: "12px", color: "var(--fg)" }}>
+                      Ícone personalizado carregado com sucesso
+                    </span>
+                  </div>
+                )}
+
+                <small className="modal__hint">
+                  Suporta PNG, ICO, SVG, JPG e WEBP (máx. 5 MB). O arquivo é salvo localmente no Toolbox e não quebra se o original for movido ou apagado.
+                </small>
+              </div>
+            )}
+          </div>
 
           {/* Favorito */}
           <label className="modal__checkbox">
