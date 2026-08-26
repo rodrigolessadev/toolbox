@@ -72,6 +72,14 @@ fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> 
 
 fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     let path = entry.path.clone().ok_or("Aplicativo sem caminho")?;
+    let run_as_admin = entry.run_as_admin.unwrap_or(false);
+
+    if run_as_admin {
+        #[cfg(target_os = "windows")]
+        {
+            return run_application_as_admin(&path, entry.args.as_deref());
+        }
+    }
 
     let mut cmd = Command::new(&path);
 
@@ -93,6 +101,49 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
         ok: true,
         message: Some(format!("Aplicativo iniciado: {}", path)),
     })
+}
+
+#[cfg(target_os = "windows")]
+fn run_application_as_admin(path: &str, raw_args: Option<&str>) -> Result<RunResult, String> {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::PCWSTR;
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::Shell::ShellExecuteW;
+    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+    let op: Vec<u16> = OsStr::new("runas").encode_wide().chain(std::iter::once(0)).collect();
+    let file: Vec<u16> = OsStr::new(path).encode_wide().chain(std::iter::once(0)).collect();
+
+    let args_wide: Option<Vec<u16>> = raw_args.and_then(|a| {
+        let trimmed = a.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(OsStr::new(trimmed).encode_wide().chain(std::iter::once(0)).collect())
+        }
+    });
+
+    let res = unsafe {
+        ShellExecuteW(
+            HWND(std::ptr::null_mut()),
+            PCWSTR(op.as_ptr()),
+            PCWSTR(file.as_ptr()),
+            args_wide.as_ref().map_or(PCWSTR::null(), |a| PCWSTR(a.as_ptr())),
+            PCWSTR::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+
+    let code = res.0 as usize;
+    if code > 32 {
+        Ok(RunResult {
+            ok: true,
+            message: Some(format!("Aplicativo iniciado como Administrador: {}", path)),
+        })
+    } else {
+        Err(format!("Falha ao iniciar aplicativo como Administrador (código Win32: {})", code))
+    }
 }
 
 /// Divide uma string de argumentos respeitando aspas simples e duplas,

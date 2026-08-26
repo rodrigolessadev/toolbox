@@ -1,3 +1,4 @@
+import { Shield } from "lucide-react";
 import { CommandEntry } from "../lib/api";
 import { resolveLucideIcon, isImageIcon, FallbackPluginIcon } from "../lib/icons";
 
@@ -118,7 +119,25 @@ export function CommandItem({
       <div className="command-item__main">
         <IconCell entry={entry} pluginIcon={pluginIcon} />
 
-        <span className="command-item__title">{name}</span>
+        <span className="command-item__title">
+          {name}
+          {entry.type === "application" && entry.run_as_admin && (
+            <span
+              className="command-item__admin-badge"
+              title="Executa com privilégios de Administrador (UAC)"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                marginLeft: 6,
+                verticalAlign: "middle",
+                color: "var(--warning, #f59e0b)",
+                opacity: 0.9,
+              }}
+            >
+              <Shield size={12} strokeWidth={2.5} />
+            </span>
+          )}
+        </span>
 
         {subtitle && subtitle !== name && (
           <span className="command-item__subtitle">{subtitle}</span>

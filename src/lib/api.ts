@@ -9,6 +9,8 @@ export interface CommandEntry {
   path?: string;
   /** Argumentos extras para aplicativos (ex: "--verbose --config=foo.cfg") */
   args?: string;
+  /** Executar como Administrador no Windows (elevação UAC) */
+  run_as_admin?: boolean;
   url?: string;
   favorite: boolean;
   icon?: string | null;
@@ -43,6 +45,8 @@ export interface CreateCommandPayload {
   path?: string;
   /** Argumentos extras para aplicativos */
   args?: string;
+  /** Executar como Administrador no Windows (elevação UAC) */
+  run_as_admin?: boolean;
   url?: string;
   icon?: string | null;
   favorite?: boolean;
