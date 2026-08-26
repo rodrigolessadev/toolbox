@@ -1,3 +1,10 @@
+## v1.25.0 - 2026-08-26
+
+### 🚀 Novidades & Funcionalidades
+- **Snippets e Quick Copy:** Cadastre comandos personalizados com textos, caminhos ou trechos de código frequentes para copiar instantaneamente para a Área de Transferência com um clique ou pressionando `Enter` na busca.
+- **Aba Snippets:** Nova aba dedicada na navegação principal (ao lado de Apps) para organizar, filtrar e gerenciar seus trechos de texto.
+- **Busca Aprimorada:** O buscador rápido agora também localiza snippets pelo conteúdo e observações.
+
 ## v1.24.0 - 2026-08-26
 
 ### 🚀 Novidades & Funcionalidades
