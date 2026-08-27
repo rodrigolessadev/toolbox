@@ -7,6 +7,7 @@ mod history;
 mod icon_importer;
 mod logger;
 mod marketplace;
+pub mod migration;
 mod paths;
 pub mod plugin;
 pub mod protocol;
@@ -191,14 +192,19 @@ pub fn run() {
             std::fs::create_dir_all(&history_dir).ok();
             let history_path = history_dir.join("history.json");
 
-            // Inicializa banco de dados SQLite central
+            // Inicializa banco de dados SQLite central e executa auto-migração de dados legados
             let db_path = data_dir.join("toolbox.db");
             if let Ok(db_manager) = db::DatabaseManager::new(db_path) {
+                let _ = migration::migrate_legacy_files_if_needed(&db_manager, &data_dir);
+                let command_store = CommandStore::new(commands_path);
+                let _ = command_store.sync_from_db(&db_manager);
+                app.manage(command_store);
                 app.manage(db_manager);
+            } else {
+                app.manage(CommandStore::new(commands_path));
             }
 
-            // Registra os stores como estado gerenciado
-            app.manage(CommandStore::new(commands_path));
+            // Registra HistoryStore como fallback gerenciado
             app.manage(HistoryStore::new(history_path));
 
             // Atalho global: Ctrl+Space traz a janela para o primeiro plano

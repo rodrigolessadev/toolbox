@@ -98,6 +98,7 @@ impl DatabaseManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rusqlite::params;
 
     fn create_test_db() -> DatabaseManager {
         let temp_dir = std::env::temp_dir().join(format!("toolbox_test_{}", paths_now()));

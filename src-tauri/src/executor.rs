@@ -7,6 +7,7 @@ use tauri::{AppHandle, State};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::commands_store::{CommandEntry, CommandStore, CommandType};
+use crate::db::DatabaseManager;
 use crate::history::{HistoryEntry, HistoryStore};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +30,7 @@ pub struct PluginInfo {
 pub fn run_command(
     name: String,
     app: AppHandle,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
     history: State<'_, HistoryStore>,
 ) -> Result<RunResult, String> {
@@ -57,6 +59,7 @@ pub fn run_command(
     };
 
     let success = result.is_ok();
+    let _ = crate::history::record_history_entry(&db, &name, &entry.kind, success, None);
     record_history(&history, &name, &entry.kind, success);
     result
 }
