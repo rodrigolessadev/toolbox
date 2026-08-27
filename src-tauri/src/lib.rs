@@ -1,4 +1,5 @@
 mod commands_store;
+pub mod db;
 mod exe_icon;
 mod executor;
 mod favicon;
@@ -189,6 +190,12 @@ pub fn run() {
             let history_dir = data_dir.join("data");
             std::fs::create_dir_all(&history_dir).ok();
             let history_path = history_dir.join("history.json");
+
+            // Inicializa banco de dados SQLite central
+            let db_path = data_dir.join("toolbox.db");
+            if let Ok(db_manager) = db::DatabaseManager::new(db_path) {
+                app.manage(db_manager);
+            }
 
             // Registra os stores como estado gerenciado
             app.manage(CommandStore::new(commands_path));
