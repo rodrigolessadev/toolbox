@@ -1,3 +1,19 @@
+## v1.30.0 - 2026-08-27 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.30.0/Toolbox_1.30.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 📝 Rotação Diária de Logs & Retenção de 7 Dias (#98)
+- **Nomenclatura Diária Padronizada:** Os logs do aplicativo passam a ser gerados no formato `toolbox-DD-MM-YYYY.log` (ex: `toolbox-27-08-2026.log`), facilitando a rastreabilidade por data.
+- **Rotação Contínua e Automática:** O sistema detecta a transição de dias em tempo real e redireciona os registros para o arquivo do novo dia sem necessidade de reiniciar a aplicação.
+- **Política de Retenção e Expurgos (7 Dias):** Rotina de limpeza automática executada na inicialização e na virada do dia, excluindo logs que completarem 1 semana (7 dias) de existência.
+- **Testes Automatizados:** 44 testes unitários em Rust e build do frontend TypeScript executados com 100% de aprovação.
+
+### 🔗 Issues & PRs Relacionados
+- Closes #98
+- PR: #101
+
+</details>
+
 ## v1.29.0 - 2026-08-27 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.29.0/Toolbox_1.29.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
