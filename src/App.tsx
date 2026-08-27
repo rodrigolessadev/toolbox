@@ -210,8 +210,29 @@ export default function App() {
     }
   }, [push]);
 
-    // ── Lista filtrada e ordenada por relevância + tab ───────────
-  const filtered = useMemo<[string, CommandEntry][]>(() => {
+  const [systemCommands, setSystemCommands] = useState<import("./lib/api").SystemCommandItem[]>([]);
+  const [enableSystemCommands, setEnableSystemCommands] = useState<boolean>(() => {
+    const saved = localStorage.getItem("toolbox_enable_system_commands");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  const handleToggleEnableSystemCommands = useCallback((enabled: boolean) => {
+    setEnableSystemCommands(enabled);
+    localStorage.setItem("toolbox_enable_system_commands", String(enabled));
+  }, []);
+
+  useEffect(() => {
+    if (enableSystemCommands) {
+      api.listSystemCommands().then((list) => {
+        if (Array.isArray(list)) setSystemCommands(list);
+      }).catch((e) => {
+        console.warn("Falha ao carregar comandos do sistema:", e);
+      });
+    }
+  }, [enableSystemCommands]);
+
+  // ── Lista filtrada e ordenada por relevância + tab ───────────
+  const filtered = useMemo<import("./components/CommandList").ListItemTuple[]>(() => {
     const q = query.trim().toLowerCase();
     let all = Object.entries(commands);
 
@@ -219,44 +240,109 @@ export default function App() {
     else if (tab !== "all")                 all = all.filter(([, e]) => e.type === tab);
 
     if (!q) {
-      return all.sort(([nameA, entryA], [nameB, entryB]) => {
+      const sorted = all.sort(([nameA, entryA], [nameB, entryB]) => {
         if (entryA.favorite && !entryB.favorite) return -1;
         if (!entryA.favorite && entryB.favorite) return 1;
         return nameA.localeCompare(nameB);
       });
+      return sorted.map(([name, entry]) => [name, entry, false]);
     }
 
-    const scored = all
+    const scored: { item: import("./components/CommandList").ListItemTuple; score: number; isSystem: boolean }[] = all
       .map(([name, entry]) => ({
-        item: [name, entry] as [string, CommandEntry],
+        item: [name, entry, false] as import("./components/CommandList").ListItemTuple,
         score: scoreCommand(name, entry, q),
+        isSystem: false,
       }))
       .filter(({ score }) => score >= 0);
 
+    // Se a descoberta de comandos do sistema estiver ativa e na aba geral/aplicativos
+    if (enableSystemCommands && (tab === "all" || tab === "application")) {
+      const existingNames = new Set(all.map(([n]) => n.toLowerCase()));
+      const firstWord = q.split(/\s+/)[0];
+
+      for (const sys of systemCommands) {
+        const sysNameLower = sys.name.toLowerCase();
+        if (existingNames.has(sysNameLower)) continue;
+
+        let sysScore = -1;
+        if (sysNameLower === q || sysNameLower === firstWord) {
+          sysScore = 450;
+        } else if (sysNameLower.startsWith(q) || sysNameLower.startsWith(firstWord)) {
+          sysScore = 380 - Math.min(80, sysNameLower.length - q.length);
+        } else if (sysNameLower.includes(q)) {
+          sysScore = 250;
+        } else if (sys.description && sys.description.toLowerCase().includes(q)) {
+          sysScore = 180;
+        }
+
+        if (sysScore > 0) {
+          const entry: CommandEntry = {
+            type: "application",
+            path: sys.path,
+            description: sys.description || "Comando do Sistema",
+            icon: sys.is_elevated_required ? "shield" : "terminal",
+            favorite: false,
+            run_as_admin: sys.is_elevated_required,
+          };
+          scored.push({
+            item: [sys.name, entry, true],
+            score: sysScore,
+            isSystem: true,
+          });
+        }
+      }
+    }
+
     scored.sort((a, b) => {
+      // 1. Comandos cadastrados pelo usuário sempre têm precedência sobre comandos do sistema
+      if (a.isSystem !== b.isSystem) {
+        return a.isSystem ? 1 : -1;
+      }
+      // 2. Maior pontuação de busca
       if (b.score !== a.score) return b.score - a.score;
+      // 3. Favoritos primeiro
       if (a.item[1].favorite && !b.item[1].favorite) return -1;
       if (!a.item[1].favorite && b.item[1].favorite) return 1;
+      // 4. Ordem alfabética
       return a.item[0].localeCompare(b.item[0]);
     });
 
     return scored.map(({ item }) => item);
-  }, [commands, query, tab]);
+  }, [commands, query, tab, enableSystemCommands, systemCommands]);
 
   useEffect(() => {
     setActiveIndex((i) => (i >= filtered.length ? Math.max(0, filtered.length - 1) : i));
   }, [filtered.length]);
 
   // ───── execute ─────
-  const execute = useCallback(async (name: string) => {
+  const execute = useCallback(async (name: string, options?: { run_as_admin?: boolean; args?: string }) => {
     try {
-      const result = await api.runCommand(name);
-      push(result.message ?? `Comando "${name}" executado.`, result.ok ? "success" : "error");
+      let targetName = name;
+      let effectiveArgs = options?.args;
+      const qTrim = query.trim();
+      if (!effectiveArgs && qTrim.includes(" ")) {
+        const parts = qTrim.split(/\s+/);
+        if (parts[0].toLowerCase() === name.toLowerCase()) {
+          effectiveArgs = qTrim.substring(parts[0].length).trim();
+        }
+      }
+
+      const result = await api.runCommand(targetName, {
+        run_as_admin: options?.run_as_admin,
+        args: effectiveArgs,
+      });
+
+      if (result.ok) {
+        push(result.message ?? `Comando "${name}" executado.`, "success");
+      } else if (result.message) {
+        push(result.message, "info");
+      }
       await reloadHistory();
     } catch (e) {
       push(`Falha ao executar "${name}": ${e instanceof Error ? e.message : String(e)}`, "error");
     }
-  }, [reloadHistory, push]);
+  }, [query, reloadHistory, push]);
 
   // ───── Teclado ─────
   useEffect(() => {
@@ -297,7 +383,8 @@ export default function App() {
       } else if (e.key === "Enter") {
         if (filtered.length > 0 && activeIndex >= 0 && activeIndex < filtered.length) {
           e.preventDefault();
-          execute(filtered[activeIndex][0]);
+          const runAsAdmin = Boolean(e.ctrlKey);
+          execute(filtered[activeIndex][0], { run_as_admin: runAsAdmin });
         }
       } else if (e.key === "n" || e.key === "N") {
         e.preventDefault();
@@ -315,9 +402,14 @@ export default function App() {
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (tab === "history") return;
+      const runAsAdmin = Boolean(e.ctrlKey);
       if (filtered.length > 0 && activeIndex >= 0 && activeIndex < filtered.length) {
         e.preventDefault();
-        execute(filtered[activeIndex][0]);
+        execute(filtered[activeIndex][0], { run_as_admin: runAsAdmin });
+        setQuery("");
+      } else if (query.trim()) {
+        e.preventDefault();
+        execute(query.trim(), { run_as_admin: runAsAdmin });
         setQuery("");
       }
     } else if (e.key === "ArrowDown") {
@@ -601,6 +693,22 @@ export default function App() {
         )}
       </main>
 
+      {/* ── Barra de Atalhos / Dicas de Ação (Action Hints) ── */}
+      <footer className="app__action-hints" aria-label="Atalhos de teclado disponíveis">
+        <div className="app__action-hint">
+          <kbd className="app__kbd">↵ Enter</kbd>
+          <span>Abrir</span>
+        </div>
+        <div className="app__action-hint">
+          <kbd className="app__kbd">Ctrl + Shift + Enter</kbd>
+          <span>Executar como Admin</span>
+        </div>
+        <div className="app__action-hint">
+          <kbd className="app__kbd">Esc</kbd>
+          <span>Fechar</span>
+        </div>
+      </footer>
+
       {/* ── Modais ── */}
       <AddCommandModal
         key={editingCommand ? `edit-${editingCommand.name}` : (showAdd ? "create" : "closed")}
@@ -643,6 +751,8 @@ export default function App() {
         theme={theme}
         onThemeChange={setTheme}
         onOpenFeedback={() => setShowFeedback(true)}
+        enableSystemCommands={enableSystemCommands}
+        onToggleEnableSystemCommands={handleToggleEnableSystemCommands}
       />
 
       <FeedbackModal

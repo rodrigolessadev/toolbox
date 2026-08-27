@@ -1432,7 +1432,7 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .modal__hint--warn { color: var(--warning); font-style: normal; }
 
 /* ===========================================================
-   kbd
+   kbd & Action Hints Footer
    =========================================================== */
 kbd {
   background: var(--bg-elev-2);
@@ -1441,4 +1441,36 @@ kbd {
   border-radius: 4px;
   font-family: "Cascadia Code", monospace;
   font-size: 11px;
+}
+
+.app__action-hints {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 6px 14px;
+  background: var(--bg-elev-1);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--fg-muted);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.app__action-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app__kbd {
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-weight: 500;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }

@@ -12,6 +12,7 @@ mod paths;
 pub mod plugin;
 pub mod protocol;
 pub mod runtimes;
+pub mod system_commands;
 
 
 use commands_store::CommandStore;
@@ -207,6 +208,9 @@ pub fn run() {
             // Registra HistoryStore como fallback gerenciado
             app.manage(HistoryStore::new(history_path));
 
+            // Registra Cache de Comandos do Sistema
+            app.manage(system_commands::SystemCommandCache::new());
+
             // Atalho global: Ctrl+Space traz a janela para o primeiro plano
             let shortcut = Shortcut::new(
                 Some(Modifiers::CONTROL),
@@ -257,6 +261,7 @@ pub fn run() {
             executor::run_command,
             executor::list_plugins,
             executor::open_plugin_folder,
+            system_commands::list_system_commands,
             history::list_history,
             history::clear_history,
             favicon::fetch_favicon,
