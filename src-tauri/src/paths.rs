@@ -121,8 +121,27 @@ pub fn show_window(window: Window) -> Result<(), String> {
     Ok(())
 }
 
+use crate::db::DatabaseManager;
+use rusqlite::params;
+
 #[tauri::command]
 pub fn get_theme(app: AppHandle) -> Result<String, String> {
+    if let Some(db) = app.try_state::<DatabaseManager>() {
+        if let Ok(conn) = db.get_connection() {
+            let res: rusqlite::Result<String> = conn.query_row(
+                "SELECT value FROM settings WHERE key = 'theme'",
+                [],
+                |row| row.get(0),
+            );
+            if let Ok(val) = res {
+                let trimmed = val.trim().to_string();
+                if trimmed == "light" || trimmed == "dark" || trimmed == "system" {
+                    return Ok(trimmed);
+                }
+            }
+        }
+    }
+
     let theme_file = data_dir(&app).join("theme.txt");
     if let Ok(content) = std::fs::read_to_string(theme_file) {
         let trimmed = content.trim().to_string();
@@ -135,6 +154,15 @@ pub fn get_theme(app: AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 pub fn set_theme(theme: String, app: AppHandle) -> Result<(), String> {
+    if let Some(db) = app.try_state::<DatabaseManager>() {
+        if let Ok(conn) = db.get_connection() {
+            let _ = conn.execute(
+                "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('theme', ?, datetime('now'))",
+                params![theme],
+            );
+        }
+    }
+
     let dir = data_dir(&app);
     std::fs::create_dir_all(&dir).ok();
     let theme_file = dir.join("theme.txt");

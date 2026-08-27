@@ -129,7 +129,65 @@ pub struct ToggleFavoritePayload {
     pub favorite: bool,
 }
 
-// ───────────────────────── Store ──────────────────────────
+// ───────────────────────── Store & SQLite ──────────────────────────
+
+use crate::db::DatabaseManager;
+use rusqlite::params;
+
+pub fn get_commands_file_from_db(db: &DatabaseManager) -> Result<CommandsFile, String> {
+    let conn = db.get_connection()?;
+    let mut stmt = conn.prepare("
+        SELECT name, type, path, args, run_as_admin, script_type, script_content, 
+               text_content, description, url, icon, favorite, created_at
+        FROM commands
+        ORDER BY name ASC
+    ").map_err(|e| e.to_string())?;
+
+    let rows = stmt.query_map([], |row| {
+        let name: String = row.get(0)?;
+        let type_str: String = row.get(1)?;
+        let kind = match type_str.as_str() {
+            "plugin" => CommandType::Plugin,
+            "application" => CommandType::Application,
+            "script" => CommandType::Script,
+            "clipboard" => CommandType::Clipboard,
+            _ => CommandType::Link,
+        };
+        let path: Option<String> = row.get(2)?;
+        let args: Option<String> = row.get(3)?;
+        let run_as_admin_i: Option<i32> = row.get(4)?;
+        let script_type: Option<String> = row.get(5)?;
+        let script_content: Option<String> = row.get(6)?;
+        let text_content: Option<String> = row.get(7)?;
+        let description: Option<String> = row.get(8)?;
+        let url: Option<String> = row.get(9)?;
+        let icon: Option<String> = row.get(10)?;
+        let fav_i: i32 = row.get(11).unwrap_or(0);
+        let created_at: Option<String> = row.get(12)?;
+
+        Ok((name, CommandEntry {
+            kind,
+            path,
+            args,
+            run_as_admin: run_as_admin_i.map(|v| v != 0),
+            script_type,
+            script_content,
+            text_content,
+            description,
+            url,
+            icon,
+            favorite: fav_i != 0,
+            created_at,
+        }))
+    }).map_err(|e| e.to_string())?;
+
+    let mut commands = BTreeMap::new();
+    for row in rows {
+        let (name, entry) = row.map_err(|e| e.to_string())?;
+        commands.insert(name, entry);
+    }
+    Ok(CommandsFile { commands })
+}
 
 pub struct CommandStore {
     pub file_path: PathBuf,
@@ -162,6 +220,16 @@ impl CommandStore {
 
         Ok(())
     }
+
+    pub fn sync_from_db(&self, db: &DatabaseManager) -> Result<CommandsFile, String> {
+        let file = get_commands_file_from_db(db)?;
+        {
+            let mut guard = self.data.lock().map_err(|e| e.to_string())?;
+            *guard = file.clone();
+        }
+        let _ = self.save();
+        Ok(file)
+    }
 }
 
 fn load_from_disk(path: &PathBuf) -> Option<CommandsFile> {
@@ -172,123 +240,217 @@ fn load_from_disk(path: &PathBuf) -> Option<CommandsFile> {
 // ─────────────────── Comandos Tauri ───────────────────────
 
 #[tauri::command]
-pub fn list_commands(store: State<'_, CommandStore>) -> Result<CommandsMap, String> {
-    let guard = store.data.lock().map_err(|e| e.to_string())?;
-    Ok(guard.commands.clone())
+pub fn list_commands(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<CommandsMap, String> {
+    match get_commands_file_from_db(&db) {
+        Ok(file) => {
+            // Atualiza cache em memória
+            if let Ok(mut guard) = store.data.lock() {
+                *guard = file.clone();
+            }
+            Ok(file.commands)
+        }
+        Err(_) => {
+            let guard = store.data.lock().map_err(|e| e.to_string())?;
+            Ok(guard.commands.clone())
+        }
+    }
 }
 
 #[tauri::command]
-pub fn get_commands_file(store: State<'_, CommandStore>) -> Result<CommandsFile, String> {
-    let guard = store.data.lock().map_err(|e| e.to_string())?;
-    Ok(guard.clone())
+pub fn get_commands_file(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<CommandsFile, String> {
+    match get_commands_file_from_db(&db) {
+        Ok(file) => {
+            if let Ok(mut guard) = store.data.lock() {
+                *guard = file.clone();
+            }
+            Ok(file)
+        }
+        Err(_) => {
+            let guard = store.data.lock().map_err(|e| e.to_string())?;
+            Ok(guard.clone())
+        }
+    }
 }
 
 #[tauri::command]
 pub fn create_command(
     payload: CreateCommandPayload,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
 ) -> Result<CommandsFile, String> {
-    let mut guard = store.data.lock().map_err(|e| e.to_string())?;
-
-    let entry = CommandEntry {
-        kind: payload.kind,
-        path: payload.path,
-        args: payload.args,
-        run_as_admin: payload.run_as_admin,
-        script_type: payload.script_type,
-        script_content: payload.script_content,
-        text_content: payload.text_content,
-        description: payload.description,
-        url: payload.url,
-        icon: payload.icon,
-        favorite: payload.favorite,
-        created_at: Some(now()),
+    let conn = db.get_connection()?;
+    let kind_str = match payload.kind {
+        CommandType::Link => "link",
+        CommandType::Plugin => "plugin",
+        CommandType::Application => "application",
+        CommandType::Script => "script",
+        CommandType::Clipboard => "clipboard",
     };
-    guard.commands.insert(payload.name, entry);
-    drop(guard);
 
-    store.save()?;
-    get_commands_file(store)
+    conn.execute(
+        "INSERT INTO commands (
+            name, type, path, args, run_as_admin, script_type, script_content,
+            text_content, description, url, icon, favorite, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+        params![
+            payload.name,
+            kind_str,
+            payload.path,
+            payload.args,
+            payload.run_as_admin.unwrap_or(false) as i32,
+            payload.script_type,
+            payload.script_content,
+            payload.text_content,
+            payload.description,
+            payload.url,
+            payload.icon,
+            payload.favorite as i32,
+        ],
+    ).map_err(|e| format!("Erro ao criar comando '{name}': {e}", name = payload.name))?;
+
+    store.sync_from_db(&db)
 }
 
 #[tauri::command]
 pub fn update_command(
     payload: UpdateCommandPayload,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
 ) -> Result<CommandsFile, String> {
-    let mut guard = store.data.lock().map_err(|e| e.to_string())?;
+    let mut conn = db.get_connection()?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
 
     if payload.old_name != payload.name {
-        guard.commands.remove(&payload.old_name);
+        tx.execute("DELETE FROM commands WHERE name = ?", params![payload.old_name])
+            .map_err(|e| e.to_string())?;
     }
 
-    let entry = CommandEntry {
-        kind: payload.kind,
-        path: payload.path,
-        args: payload.args,
-        run_as_admin: payload.run_as_admin,
-        script_type: payload.script_type,
-        script_content: payload.script_content,
-        text_content: payload.text_content,
-        description: payload.description,
-        url: payload.url,
-        icon: payload.icon,
-        favorite: payload.favorite,
-        created_at: Some(now()),
+    let kind_str = match payload.kind {
+        CommandType::Link => "link",
+        CommandType::Plugin => "plugin",
+        CommandType::Application => "application",
+        CommandType::Script => "script",
+        CommandType::Clipboard => "clipboard",
     };
-    guard.commands.insert(payload.name, entry);
-    drop(guard);
 
-    store.save()?;
-    get_commands_file(store)
+    tx.execute(
+        "INSERT OR REPLACE INTO commands (
+            name, type, path, args, run_as_admin, script_type, script_content,
+            text_content, description, url, icon, favorite, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))",
+        params![
+            payload.name,
+            kind_str,
+            payload.path,
+            payload.args,
+            payload.run_as_admin.unwrap_or(false) as i32,
+            payload.script_type,
+            payload.script_content,
+            payload.text_content,
+            payload.description,
+            payload.url,
+            payload.icon,
+            payload.favorite as i32,
+        ],
+    ).map_err(|e| e.to_string())?;
+
+    tx.commit().map_err(|e| e.to_string())?;
+    store.sync_from_db(&db)
 }
 
 #[tauri::command]
 pub fn delete_command(
     name: String,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
 ) -> Result<CommandsFile, String> {
-    let mut guard = store.data.lock().map_err(|e| e.to_string())?;
-    guard.commands.remove(&name);
-    drop(guard);
+    let conn = db.get_connection()?;
+    conn.execute("DELETE FROM commands WHERE name = ?", params![name])
+        .map_err(|e| e.to_string())?;
 
-    store.save()?;
-    get_commands_file(store)
+    store.sync_from_db(&db)
 }
 
 #[tauri::command]
 pub fn toggle_favorite(
     payload: ToggleFavoritePayload,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
 ) -> Result<CommandsFile, String> {
-    let mut guard = store.data.lock().map_err(|e| e.to_string())?;
-    if let Some(entry) = guard.commands.get_mut(&payload.name) {
-        entry.favorite = payload.favorite;
-    }
-    drop(guard);
+    let conn = db.get_connection()?;
+    conn.execute(
+        "UPDATE commands SET favorite = ?, updated_at = datetime('now') WHERE name = ?",
+        params![payload.favorite as i32, payload.name],
+    ).map_err(|e| e.to_string())?;
 
-    store.save()?;
-    get_commands_file(store)
+    store.sync_from_db(&db)
 }
 
 #[tauri::command]
 pub fn import_commands(
     json: String,
+    db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
 ) -> Result<CommandsFile, String> {
     let parsed: CommandsFile = serde_json::from_str(&json).map_err(|e| e.to_string())?;
-    {
-        let mut guard = store.data.lock().map_err(|e| e.to_string())?;
-        guard.commands = parsed.commands;
+    let mut conn = db.get_connection()?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    for (name, entry) in parsed.commands {
+        let kind_str = match entry.kind {
+            CommandType::Link => "link",
+            CommandType::Plugin => "plugin",
+            CommandType::Application => "application",
+            CommandType::Script => "script",
+            CommandType::Clipboard => "clipboard",
+        };
+
+        tx.execute(
+            "INSERT OR REPLACE INTO commands (
+                name, type, path, args, run_as_admin, script_type, script_content,
+                text_content, description, url, icon, favorite, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')), datetime('now'))",
+            params![
+                name,
+                kind_str,
+                entry.path,
+                entry.args,
+                entry.run_as_admin.unwrap_or(false) as i32,
+                entry.script_type,
+                entry.script_content,
+                entry.text_content,
+                entry.description,
+                entry.url,
+                entry.icon,
+                entry.favorite as i32,
+                entry.created_at,
+            ],
+        ).map_err(|e| e.to_string())?;
     }
-    store.save()?;
-    get_commands_file(store)
+
+    tx.commit().map_err(|e| e.to_string())?;
+    store.sync_from_db(&db)
 }
 
 #[tauri::command]
-pub fn export_commands(store: State<'_, CommandStore>) -> Result<String, String> {
-    let guard = store.data.lock().map_err(|e| e.to_string())?;
-    serde_json::to_string_pretty(&*guard).map_err(|e| e.to_string())
+pub fn export_commands(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<String, String> {
+    let file = match get_commands_file_from_db(&db) {
+        Ok(f) => f,
+        Err(_) => {
+            let guard = store.data.lock().map_err(|e| e.to_string())?;
+            guard.clone()
+        }
+    };
+    serde_json::to_string_pretty(&file).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -336,13 +498,19 @@ pub fn get_backup_status() -> Result<BackupStatus, String> {
 }
 
 #[tauri::command]
-pub fn trigger_manual_backup(store: State<'_, CommandStore>) -> Result<BackupStatus, String> {
-    store.save()?;
+pub fn trigger_manual_backup(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<BackupStatus, String> {
+    store.sync_from_db(&db)?;
     get_backup_status()
 }
 
 #[tauri::command]
-pub fn restore_from_auto_backup(store: State<'_, CommandStore>) -> Result<CommandsFile, String> {
+pub fn restore_from_auto_backup(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<CommandsFile, String> {
     let bdir = paths::backup_dir();
     let backup_file = bdir.join("toolbox-commands-backup.json");
     if !backup_file.exists() {
@@ -351,24 +519,18 @@ pub fn restore_from_auto_backup(store: State<'_, CommandStore>) -> Result<Comman
 
     let content = fs::read_to_string(&backup_file)
         .map_err(|e| format!("Falha ao ler arquivo de backup: {e}"))?;
-    let parsed: CommandsFile = serde_json::from_str(&content)
-        .map_err(|e| format!("Arquivo de backup inválido: {e}"))?;
-
-    {
-        let mut guard = store.data.lock().map_err(|e| e.to_string())?;
-        guard.commands = parsed.commands;
-    }
-    store.save()?;
-    get_commands_file(store)
+    import_commands(content, db, store)
 }
 
 #[tauri::command]
-pub fn check_auto_backup_available(store: State<'_, CommandStore>) -> Result<Option<BackupStatus>, String> {
-    let guard = store.data.lock().map_err(|e| e.to_string())?;
-    if !guard.commands.is_empty() {
+pub fn check_auto_backup_available(
+    db: State<'_, DatabaseManager>,
+    store: State<'_, CommandStore>,
+) -> Result<Option<BackupStatus>, String> {
+    let file = get_commands_file(db, store)?;
+    if !file.commands.is_empty() {
         return Ok(None);
     }
-    drop(guard);
 
     let status = get_backup_status()?;
     if status.backup_exists && status.backup_commands_count > 0 {
