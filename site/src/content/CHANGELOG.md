@@ -1,3 +1,16 @@
+## v1.29.0 - 2026-08-27
+
+### 🗄️ Auto-Migração Transparente & Persistência Relacional SQLite (#97)
+- **Auto-Migração no Startup:** O Toolbox agora migra automaticamente no primeiro startup os dados de `commands.json`, `data/history.json` e `theme.txt` para o banco de dados `toolbox.db` (SQLite) em uma transação atômica e segura.
+- **Backup de Segurança Automático:** O arquivo `commands.json` legado é preservado como cópia de backup `commands.json.migrated.bak`, garantindo risco zero de perda de dados.
+- **Refatoração dos Handlers IPC:** Handlers do Tauri (`commands_store`, `history`, `paths`, `executor`) agora lêem e persistem diretamente no SQLite via `DatabaseManager`, mantendo shadow backup resiliente em segundo plano.
+- **Interoperabilidade Preservada:** Os recursos de *Exportar Comandos* e *Importar Comandos* continuam aceitando e gerando JSON no formato amigável do Toolbox.
+- **Testes Automatizados:** 41 testes unitários em Rust e build completo do frontend TypeScript validados com 100% de sucesso.
+
+### 🔗 Issues & PRs Relacionados
+- Closes #97
+- PR: #100
+
 ## v1.27.2 - 2026-08-26
 
 ## v1.28.0 - 2026-08-26 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.28.0/Toolbox_1.28.0_x64-setup.exe)
