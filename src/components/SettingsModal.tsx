@@ -61,6 +61,7 @@ export function SettingsModal({
   const [working, setWorking] = useState(false);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [lastCheckedText, setLastCheckedText] = useState<string | null>(null);
+  const [reindexingSystemCommands, setReindexingSystemCommands] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -217,8 +218,6 @@ export function SettingsModal({
       event.target.value = "";
     }
   };
-
-  const [reindexingSystemCommands, setReindexingSystemCommands] = useState(false);
 
   const handleRefreshSystemCommands = async () => {
     setReindexingSystemCommands(true);
