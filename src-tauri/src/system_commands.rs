@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::RwLock;
-use std::time::Instant;
+use crate::db::DatabaseManager;
+use tauri::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SystemCommandItem {
@@ -10,49 +10,6 @@ pub struct SystemCommandItem {
     pub path: String,
     pub description: Option<String>,
     pub is_elevated_required: bool,
-}
-
-pub struct SystemCommandCache {
-    items: RwLock<Vec<SystemCommandItem>>,
-    last_scan: RwLock<Option<Instant>>,
-}
-
-impl Default for SystemCommandCache {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl SystemCommandCache {
-    pub fn new() -> Self {
-        Self {
-            items: RwLock::new(Vec::new()),
-            last_scan: RwLock::new(None),
-        }
-    }
-
-    pub fn get_items(&self) -> Vec<SystemCommandItem> {
-        let should_scan = {
-            let last = self.last_scan.read().unwrap();
-            match *last {
-                None => true,
-                Some(inst) => inst.elapsed().as_secs() > 120, // 2 minutos de cache
-            }
-        };
-
-        if should_scan {
-            let scanned = scan_system_commands();
-            if let Ok(mut items_lock) = self.items.write() {
-                *items_lock = scanned.clone();
-            }
-            if let Ok(mut last_lock) = self.last_scan.write() {
-                *last_lock = Some(Instant::now());
-            }
-            scanned
-        } else {
-            self.items.read().map(|g| g.clone()).unwrap_or_default()
-        }
-    }
 }
 
 /// Separa linha de comando em (nome_do_executável, argumentos_opcionais)
@@ -137,143 +94,232 @@ pub fn describe_system_command(name: &str, ext: &str) -> String {
             "mstsc" => "Conexão de Área de Trabalho Remota".to_string(),
             "dxdiag" => "Ferramenta de Diagnóstico do DirectX".to_string(),
             "msconfig" => "Configuração do Sistema".to_string(),
+            "services" => "Serviços do Windows".to_string(),
+            "devmgmt" => "Gerenciador de Dispositivos".to_string(),
+            "diskmgmt" => "Gerenciamento de Disco".to_string(),
+            "eventvwr" => "Visualizador de Eventos".to_string(),
+            "perfmon" => "Monitor de Desempenho".to_string(),
+            "resmon" => "Monitor de Recursos".to_string(),
             _ => "Utilitário do Sistema".to_string(),
         },
     }
 }
 
-/// Diretórios padrão de busca de comandos no Windows
-pub fn get_search_directories() -> Vec<PathBuf> {
+/// Lista de utilitários essenciais nativos do Windows
+pub fn get_builtin_system_commands() -> Vec<SystemCommandItem> {
+    let essentials = [
+        ("wt", "wt.exe", "Windows Terminal", false),
+        ("cmd", "cmd.exe", "Prompt de Comando", false),
+        ("powershell", "powershell.exe", "Windows PowerShell", false),
+        ("pwsh", "pwsh.exe", "PowerShell Core", false),
+        ("calc", "calc.exe", "Calculadora do Windows", false),
+        ("notepad", "notepad.exe", "Bloco de Notas", false),
+        ("mspaint", "mspaint.exe", "Paint", false),
+        ("explorer", "explorer.exe", "Explorador de Arquivos", false),
+        ("control", "control.exe", "Painel de Controle", false),
+        ("mstsc", "mstsc.exe", "Conexão de Área de Trabalho Remota", false),
+        ("dxdiag", "dxdiag.exe", "Diagnóstico do DirectX", false),
+        ("msconfig", "msconfig.exe", "Configuração do Sistema", true),
+        ("taskmgr", "taskmgr.exe", "Gerenciador de Tarefas", true),
+        ("regedit", "regedit.exe", "Editor do Registro", true),
+        ("services.msc", "services.msc", "Serviços do Windows", true),
+        ("devmgmt.msc", "devmgmt.msc", "Gerenciador de Dispositivos", true),
+        ("diskmgmt.msc", "diskmgmt.msc", "Gerenciamento de Disco", true),
+        ("eventvwr.msc", "eventvwr.msc", "Visualizador de Eventos", true),
+        ("compmgmt.msc", "compmgmt.msc", "Gerenciamento do Computador", true),
+        ("perfmon.msc", "perfmon.msc", "Monitor de Desempenho", true),
+        ("resmon.exe", "resmon.exe", "Monitor de Recursos", true),
+        ("cleanmgr.exe", "cleanmgr.exe", "Limpeza de Disco", true),
+    ];
+
+    essentials
+        .iter()
+        .map(|(name, path, desc, elevated)| SystemCommandItem {
+            name: name.to_string(),
+            path: path.to_string(),
+            description: Some(desc.to_string()),
+            is_elevated_required: *elevated,
+        })
+        .collect()
+}
+
+/// Lê aplicativos registrados na chave App Paths do Registro do Windows
+#[cfg(windows)]
+pub fn scan_registry_app_paths() -> Vec<SystemCommandItem> {
+    use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+    use winreg::RegKey;
+
+    let mut items = Vec::new();
+    let hives = [
+        (HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"),
+        (HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"),
+    ];
+
+    for (hive, subkey) in hives {
+        let root = RegKey::predef(hive);
+        let app_paths_key = match root.open_subkey(subkey) {
+            Ok(k) => k,
+            Err(_) => continue,
+        };
+
+        for key_name in app_paths_key.enum_keys().flatten() {
+            let key = match app_paths_key.open_subkey(&key_name) {
+                Ok(k) => k,
+                Err(_) => continue,
+            };
+
+            let default_val: String = match key.get_value("") {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+
+            let raw_path = default_val.trim().trim_matches('"');
+            if raw_path.is_empty() {
+                continue;
+            }
+
+            let path_obj = Path::new(raw_path);
+            let name = key_name
+                .trim_end_matches(".exe")
+                .trim_end_matches(".EXE")
+                .to_string();
+
+            if name.is_empty() {
+                continue;
+            }
+
+            let is_elevated = is_known_elevated_utility(&name);
+            let desc = format!("Aplicativo do Sistema ({})", name);
+
+            items.push(SystemCommandItem {
+                name,
+                path: path_obj.to_string_lossy().to_string(),
+                description: Some(desc),
+                is_elevated_required: is_elevated,
+            });
+        }
+    }
+
+    items
+}
+
+#[cfg(not(windows))]
+pub fn scan_registry_app_paths() -> Vec<SystemCommandItem> {
+    Vec::new()
+}
+
+/// Varre atalhos do Menu Iniciar (.lnk)
+pub fn scan_start_menu_shortcuts() -> Vec<SystemCommandItem> {
+    let mut items = Vec::new();
     let mut dirs = Vec::new();
 
-    // 1. Variável de ambiente PATH
-    if let Some(path_var) = std::env::var_os("PATH") {
-        for p in std::env::split_paths(&path_var) {
-            if p.is_dir() && !dirs.contains(&p) {
-                dirs.push(p);
+    if let Some(app_data) = std::env::var_os("APPDATA") {
+        dirs.push(PathBuf::from(app_data).join(r"Microsoft\Windows\Start Menu\Programs"));
+    }
+
+    if let Some(prog_data) = std::env::var_os("ProgramData") {
+        dirs.push(PathBuf::from(prog_data).join(r"Microsoft\Windows\Start Menu\Programs"));
+    }
+
+    for base_dir in dirs {
+        if !base_dir.is_dir() {
+            continue;
+        }
+
+        let mut stack = vec![base_dir];
+        while let Some(current_dir) = stack.pop() {
+            let entries = match std::fs::read_dir(&current_dir) {
+                Ok(e) => e,
+                Err(_) => continue,
+            };
+
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path.is_file() {
+                    if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+                        if ext.eq_ignore_ascii_case("lnk") {
+                            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                                let stem_clean = stem.trim().to_string();
+                                if !stem_clean.is_empty() && !stem_clean.starts_with("Uninstall") {
+                                    items.push(SystemCommandItem {
+                                        name: stem_clean.clone(),
+                                        path: path.to_string_lossy().to_string(),
+                                        description: Some(format!("Atalho do Menu Iniciar ({})", stem_clean)),
+                                        is_elevated_required: false,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    // 2. WindowsApps (App Execution Aliases, ex: wt.exe, winget.exe)
+    items
+}
+
+/// Varre diretórios de execução do WindowsApps (aliases leves)
+pub fn scan_windows_apps_aliases() -> Vec<SystemCommandItem> {
+    let mut items = Vec::new();
     if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
         let win_apps = PathBuf::from(local_app_data)
             .join("Microsoft")
             .join("WindowsApps");
-        if win_apps.is_dir() && !dirs.contains(&win_apps) {
-            dirs.push(win_apps);
-        }
-    }
 
-    // 3. Pastas essenciais do Windows
-    if let Some(win_dir) = std::env::var_os("SystemRoot") {
-        let win_path = PathBuf::from(win_dir);
-        let sys32 = win_path.join("System32");
-        let sys_wbem = sys32.join("wbem");
-        let sys_wow = win_path.join("SysWOW64");
-
-        for p in [sys32, win_path, sys_wbem, sys_wow] {
-            if p.is_dir() && !dirs.contains(&p) {
-                dirs.push(p);
-            }
-        }
-    }
-
-    dirs
-}
-
-/// Extensões executáveis suportadas pelo sistema
-pub fn get_supported_extensions() -> HashSet<String> {
-    let mut exts = HashSet::new();
-
-    if let Some(pathext) = std::env::var_os("PATHEXT") {
-        for ext in pathext.to_string_lossy().split(';') {
-            let clean = ext.trim().trim_start_matches('.').to_lowercase();
-            if !clean.is_empty() {
-                exts.insert(clean);
-            }
-        }
-    }
-
-    // Adiciona extensões complementares essenciais
-    for ext in ["exe", "cmd", "bat", "msc", "cpl", "ps1"] {
-        exts.insert(ext.to_string());
-    }
-
-    exts
-}
-
-/// Executa varredura de comandos do sistema operacional
-pub fn scan_system_commands() -> Vec<SystemCommandItem> {
-    let dirs = get_search_directories();
-    let supported_exts = get_supported_extensions();
-    let mut command_map: BTreeMap<String, SystemCommandItem> = BTreeMap::new();
-
-    for dir in dirs {
-        let entries = match std::fs::read_dir(&dir) {
-            Ok(e) => e,
-            Err(_) => continue,
-        };
-
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if !path.is_file() {
-                continue;
-            }
-
-            let ext = match path.extension().and_then(|s| s.to_str()) {
-                Some(e) => e.to_lowercase(),
-                None => continue,
-            };
-
-            if !supported_exts.contains(&ext) {
-                continue;
-            }
-
-            let file_stem = match path.file_stem().and_then(|s| s.to_str()) {
-                Some(s) => s.to_string(),
-                None => continue,
-            };
-
-            let file_name = match path.file_name().and_then(|s| s.to_str()) {
-                Some(s) => s.to_string(),
-                None => continue,
-            };
-
-            let is_elevated = is_known_elevated_utility(&file_stem);
-            let desc = describe_system_command(&file_stem, &ext);
-            let path_str = path.to_string_lossy().to_string();
-
-            // Indexa pelo nome base (ex: 'wt', 'calc', 'notepad')
-            let key_stem = file_stem.to_lowercase();
-            if !command_map.contains_key(&key_stem) {
-                command_map.insert(
-                    key_stem.clone(),
-                    SystemCommandItem {
-                        name: file_stem.clone(),
-                        path: path_str.clone(),
-                        description: Some(desc.clone()),
-                        is_elevated_required: is_elevated,
-                    },
-                );
-            }
-
-            // Para consoles .msc ou painéis .cpl, indexa também com a extensão (ex: 'services.msc')
-            if ext == "msc" || ext == "cpl" {
-                let key_full = file_name.to_lowercase();
-                if !command_map.contains_key(&key_full) {
-                    command_map.insert(
-                        key_full,
-                        SystemCommandItem {
-                            name: file_name,
-                            path: path_str,
-                            description: Some(desc),
-                            is_elevated_required: is_elevated,
-                        },
-                    );
+        if win_apps.is_dir() {
+            if let Ok(entries) = std::fs::read_dir(win_apps) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+                            if ext.eq_ignore_ascii_case("exe") {
+                                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                                    let stem_clean = stem.to_string();
+                                    items.push(SystemCommandItem {
+                                        name: stem_clean.clone(),
+                                        path: path.to_string_lossy().to_string(),
+                                        description: Some(format!("Aplicativo Windows ({})", stem_clean)),
+                                        is_elevated_required: false,
+                                    });
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+    items
+}
+
+/// Executa a varredura nativa e otimizada combinando todas as fontes ultrarrápidas
+pub fn scan_optimized_system_commands() -> Vec<SystemCommandItem> {
+    let mut command_map: BTreeMap<String, SystemCommandItem> = BTreeMap::new();
+
+    // 1. Utilitários Essenciais Built-in (Maior confiabilidade)
+    for item in get_builtin_system_commands() {
+        command_map.insert(item.name.to_lowercase(), item);
+    }
+
+    // 2. Registro do Windows (App Paths)
+    for item in scan_registry_app_paths() {
+        let key = item.name.to_lowercase();
+        command_map.entry(key).or_insert(item);
+    }
+
+    // 3. WindowsApps Execution Aliases (wt, winget, python, etc.)
+    for item in scan_windows_apps_aliases() {
+        let key = item.name.to_lowercase();
+        command_map.entry(key).or_insert(item);
+    }
+
+    // 4. Atalhos do Menu Iniciar
+    for item in scan_start_menu_shortcuts() {
+        let key = item.name.to_lowercase();
+        command_map.entry(key).or_insert(item);
     }
 
     command_map.into_values().collect()
@@ -291,25 +337,16 @@ pub fn resolve_system_command(query: &str) -> Option<(PathBuf, Option<String>)> 
         return Some((p.to_path_buf(), args));
     }
 
-    let dirs = get_search_directories();
-    let supported_exts = get_supported_extensions();
-
-    // Caso o usuário já tenha fornecido a extensão (ex: 'services.msc' ou 'wt.exe')
-    if p.extension().is_some() {
-        for dir in &dirs {
+    // Procura no PATH se disponível
+    if let Some(path_var) = std::env::var_os("PATH") {
+        for dir in std::env::split_paths(&path_var) {
             let candidate = dir.join(&cmd_name);
             if candidate.is_file() {
                 return Some((candidate, args));
             }
-        }
-    }
-
-    // Procura adicionando as extensões suportadas
-    for dir in &dirs {
-        for ext in &supported_exts {
-            let candidate = dir.join(format!("{}.{}", cmd_name, ext));
-            if candidate.is_file() {
-                return Some((candidate, args));
+            let candidate_exe = dir.join(format!("{}.exe", cmd_name));
+            if candidate_exe.is_file() {
+                return Some((candidate_exe, args));
             }
         }
     }
@@ -317,11 +354,35 @@ pub fn resolve_system_command(query: &str) -> Option<(PathBuf, Option<String>)> 
     None
 }
 
+/// Consulta os comandos do sistema a partir do banco de dados SQLite central
 #[tauri::command]
 pub fn list_system_commands(
-    cache: tauri::State<'_, SystemCommandCache>,
-) -> Vec<SystemCommandItem> {
-    cache.get_items()
+    db: State<'_, DatabaseManager>,
+) -> Result<Vec<SystemCommandItem>, String> {
+    let list = db.get_cached_system_commands()?;
+    if list.is_empty() {
+        // Se o banco estiver vazio na primeira chamada, executa o scan e persiste
+        let scanned = scan_optimized_system_commands();
+        let _ = db.save_system_commands(&scanned);
+        Ok(scanned)
+    } else {
+        Ok(list)
+    }
+}
+
+/// Dispara a reindexação em background dos comandos do sistema e atualiza o SQLite
+#[tauri::command]
+pub async fn refresh_system_commands(
+    db: State<'_, DatabaseManager>,
+) -> Result<usize, String> {
+    let db_clone = (*db).clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let items = scan_optimized_system_commands();
+        db_clone.save_system_commands(&items)?;
+        Ok(items.len())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[cfg(test)]
@@ -370,12 +431,19 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_initialization_and_get() {
-        let cache = SystemCommandCache::new();
-        let items = cache.get_items();
-        // Em ambiente Windows deve encontrar executáveis no PATH/System32
-        if cfg!(target_os = "windows") {
-            assert!(!items.is_empty());
-        }
+    fn test_builtin_system_commands() {
+        let builtins = get_builtin_system_commands();
+        assert!(!builtins.is_empty());
+        assert!(builtins.iter().any(|item| item.name == "notepad"));
+        assert!(builtins.iter().any(|item| item.name == "calc"));
+        assert!(builtins.iter().any(|item| item.name == "wt"));
+        assert!(builtins.iter().any(|item| item.name == "regedit" && item.is_elevated_required));
+    }
+
+    #[test]
+    fn test_scan_optimized_system_commands() {
+        let items = scan_optimized_system_commands();
+        assert!(!items.is_empty());
+        assert!(items.iter().any(|item| item.name.to_lowercase() == "notepad"));
     }
 }

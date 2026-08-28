@@ -753,6 +753,16 @@ export default function App() {
         onOpenFeedback={() => setShowFeedback(true)}
         enableSystemCommands={enableSystemCommands}
         onToggleEnableSystemCommands={handleToggleEnableSystemCommands}
+        onSystemCommandsRefreshed={async () => {
+          if (enableSystemCommands) {
+            try {
+              const list = await api.listSystemCommands();
+              if (Array.isArray(list)) setSystemCommands(list);
+            } catch (e) {
+              console.warn("Falha ao recarregar comandos do sistema:", e);
+            }
+          }
+        }}
       />
 
       <FeedbackModal

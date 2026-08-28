@@ -200,6 +200,20 @@ pub fn run() {
                 let command_store = CommandStore::new(commands_path);
                 let _ = command_store.sync_from_db(&db_manager);
                 app.manage(command_store);
+                
+                // Pré-carrega/atualiza cache de comandos do sistema em background se estiver vazio
+                let db_clone = db_manager.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Ok(count) = db_clone.count_cached_system_commands() {
+                        if count == 0 {
+                            let _ = tauri::async_runtime::spawn_blocking(move || {
+                                let items = system_commands::scan_optimized_system_commands();
+                                let _ = db_clone.save_system_commands(&items);
+                            }).await;
+                        }
+                    }
+                });
+
                 app.manage(db_manager);
             } else {
                 app.manage(CommandStore::new(commands_path));
@@ -207,9 +221,6 @@ pub fn run() {
 
             // Registra HistoryStore como fallback gerenciado
             app.manage(HistoryStore::new(history_path));
-
-            // Registra Cache de Comandos do Sistema
-            app.manage(system_commands::SystemCommandCache::new());
 
             // Atalho global: Ctrl+Space traz a janela para o primeiro plano
             let shortcut = Shortcut::new(
@@ -262,6 +273,7 @@ pub fn run() {
             executor::list_plugins,
             executor::open_plugin_folder,
             system_commands::list_system_commands,
+            system_commands::refresh_system_commands,
             history::list_history,
             history::clear_history,
             favicon::fetch_favicon,

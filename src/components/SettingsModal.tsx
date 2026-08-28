@@ -21,6 +21,7 @@ interface Props {
   onOpenFeedback?: () => void;
   enableSystemCommands?: boolean;
   onToggleEnableSystemCommands?: (enabled: boolean) => void;
+  onSystemCommandsRefreshed?: () => Promise<void> | void;
 }
 
 export function SettingsModal({
@@ -40,6 +41,7 @@ export function SettingsModal({
   onOpenFeedback,
   enableSystemCommands,
   onToggleEnableSystemCommands,
+  onSystemCommandsRefreshed,
 }: Props) {
   const [theme, setTheme] = useState<Theme>(propTheme || "dark");
 
@@ -216,6 +218,21 @@ export function SettingsModal({
     }
   };
 
+  const [reindexingSystemCommands, setReindexingSystemCommands] = useState(false);
+
+  const handleRefreshSystemCommands = async () => {
+    setReindexingSystemCommands(true);
+    try {
+      const count = await api.refreshSystemCommands();
+      await onSystemCommandsRefreshed?.();
+      onInfo?.(`${count} comandos do sistema indexados e salvos com sucesso.`);
+    } catch (err) {
+      onError?.(`Falha ao reindexar comandos do sistema: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setReindexingSystemCommands(false);
+    }
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -340,14 +357,27 @@ export function SettingsModal({
                   Permite buscar e executar dinamicamente utilitários e consoles do sistema (ex: wt, services.msc, calc, notepad).
                 </span>
               </div>
-              <label className="checkbox-label" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                <input
-                  type="checkbox"
-                  checked={enableSystemCommands ?? true}
-                  onChange={(e) => onToggleEnableSystemCommands?.(e.target.checked)}
-                  style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "var(--accent, #3b82f6)" }}
-                />
-              </label>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="modal__browse-btn"
+                  onClick={handleRefreshSystemCommands}
+                  disabled={reindexingSystemCommands || !enableSystemCommands}
+                  title="Reindexar comandos nativos e aplicativos do sistema"
+                  style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 10px" }}
+                >
+                  <RefreshCw size={12} className={reindexingSystemCommands ? "spin" : ""} />
+                  <span>{reindexingSystemCommands ? "Indexando..." : "Reindexar Comandos"}</span>
+                </button>
+                <label className="checkbox-label" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={enableSystemCommands ?? true}
+                    onChange={(e) => onToggleEnableSystemCommands?.(e.target.checked)}
+                    style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "var(--accent, #3b82f6)" }}
+                  />
+                </label>
+              </div>
             </div>
           </section>
 

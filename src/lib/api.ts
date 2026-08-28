@@ -196,6 +196,7 @@ export const api = {
       args: options?.args,
     }),
   listSystemCommands: () => invoke<SystemCommandItem[]>("list_system_commands"),
+  refreshSystemCommands: () => invoke<number>("refresh_system_commands"),
 
   listHistory: () => invoke<HistoryEntry[]>("list_history"),
   getHistory: () => invoke<HistoryEntry[]>("list_history"),
