@@ -19,6 +19,8 @@ interface Props {
   theme?: Theme;
   onThemeChange?: (theme: Theme) => void;
   onOpenFeedback?: () => void;
+  enableSystemCommands?: boolean;
+  onToggleEnableSystemCommands?: (enabled: boolean) => void;
 }
 
 export function SettingsModal({
@@ -36,6 +38,8 @@ export function SettingsModal({
   theme: propTheme,
   onThemeChange,
   onOpenFeedback,
+  enableSystemCommands,
+  onToggleEnableSystemCommands,
 }: Props) {
   const [theme, setTheme] = useState<Theme>(propTheme || "dark");
 
@@ -323,6 +327,27 @@ export function SettingsModal({
               >
                 {pythonRuntime?.available ? (pythonRuntime.is_embedded ? "Embutido" : "Sistema") : "Ausente"}
               </span>
+            </div>
+          </section>
+
+          {/* Comandos do Sistema & PATH */}
+          <section className="settings__section">
+            <h3 className="settings__title">Comandos do Sistema & PATH</h3>
+            <div className="settings__row">
+              <div className="settings__row-info">
+                <strong>Descoberta Automática de Comandos (PATH / Windows)</strong>
+                <span className="settings__desc" style={{ fontSize: "11px", color: "var(--md-sys-color-on-surface-variant, #888)" }}>
+                  Permite buscar e executar dinamicamente utilitários e consoles do sistema (ex: wt, services.msc, calc, notepad).
+                </span>
+              </div>
+              <label className="checkbox-label" style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={enableSystemCommands ?? true}
+                  onChange={(e) => onToggleEnableSystemCommands?.(e.target.checked)}
+                  style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "var(--accent, #3b82f6)" }}
+                />
+              </label>
             </div>
           </section>
 

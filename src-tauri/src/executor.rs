@@ -29,6 +29,8 @@ pub struct PluginInfo {
 #[tauri::command]
 pub fn run_command(
     name: String,
+    run_as_admin: Option<bool>,
+    args: Option<String>,
     app: AppHandle,
     db: State<'_, DatabaseManager>,
     store: State<'_, CommandStore>,
@@ -39,28 +41,70 @@ pub fn run_command(
         guard.commands.get(&name).cloned()
     };
 
-    let entry = match entry {
-        Some(e) => e,
+    let (entry_kind, result) = match entry {
+        Some(mut e) => {
+            if let Some(admin_flag) = run_as_admin {
+                e.run_as_admin = Some(admin_flag);
+            }
+            if let Some(extra_args) = &args {
+                let current_args = e.args.unwrap_or_default();
+                let combined = if current_args.trim().is_empty() {
+                    extra_args.clone()
+                } else {
+                    format!("{} {}", current_args.trim(), extra_args.trim())
+                };
+                e.args = Some(combined);
+            }
+            let res = match &e.kind {
+                CommandType::Link => run_link(&app, &e),
+                CommandType::Application => run_application(&e),
+                CommandType::Plugin => run_plugin(&app, &name, &e),
+                CommandType::Script => run_script(&app, &name, &e),
+                CommandType::Clipboard => run_clipboard(&name, &e),
+            };
+            (e.kind, res)
+        }
         None => {
-            // Não grava histórico — tipo é desconhecido
-            return Ok(RunResult {
-                ok: false,
-                message: Some(format!("Comando \"{}\" não encontrado.", name)),
-            });
+            // Tenta resolver como comando dinâmico do sistema
+            let resolved = crate::system_commands::resolve_system_command(&name);
+            match resolved {
+                Some((path_buf, parsed_args)) => {
+                    let path_str = path_buf.to_string_lossy().to_string();
+                    let ext = path_buf
+                        .extension()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("")
+                        .to_lowercase();
+
+                    let combined_args = match (parsed_args, args) {
+                        (Some(a1), Some(a2)) => Some(format!("{} {}", a1.trim(), a2.trim())),
+                        (Some(a1), None) => Some(a1),
+                        (None, Some(a2)) => Some(a2),
+                        (None, None) => None,
+                    };
+
+                    let is_admin = run_as_admin.unwrap_or_else(|| {
+                        crate::system_commands::is_known_elevated_utility(&name)
+                    });
+
+                    let res = run_raw_executable(&path_str, &ext, combined_args.as_deref(), is_admin);
+                    (CommandType::Application, res)
+                }
+                None => {
+                    return Ok(RunResult {
+                        ok: false,
+                        message: Some(format!("Comando \"{}\" não encontrado.", name)),
+                    });
+                }
+            }
         }
     };
 
-    let result = match &entry.kind {
-        CommandType::Link => run_link(&app, &entry),
-        CommandType::Application => run_application(&entry),
-        CommandType::Plugin => run_plugin(&app, &name, &entry),
-        CommandType::Script => run_script(&app, &name, &entry),
-        CommandType::Clipboard => run_clipboard(&name, &entry),
-    };
-
-    let success = result.is_ok();
-    let _ = crate::history::record_history_entry(&db, &name, &entry.kind, success, None);
-    record_history(&history, &name, &entry.kind, success);
+    let success = result.as_ref().map(|r| r.ok).unwrap_or(false);
+    if success {
+        let _ = crate::history::record_history_entry(&db, &name, &entry_kind, success, None);
+        record_history(&history, &name, &entry_kind, success);
+    }
     result
 }
 
@@ -225,32 +269,95 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
         .unwrap_or("")
         .to_lowercase();
 
+    run_raw_executable(&path, &ext, entry.args.as_deref(), run_as_admin)
+}
+
+pub fn run_raw_executable(
+    path: &str,
+    ext: &str,
+    raw_args: Option<&str>,
+    run_as_admin: bool,
+) -> Result<RunResult, String> {
     if run_as_admin {
         #[cfg(target_os = "windows")]
         {
-            return run_application_as_admin(&path, &ext, entry.args.as_deref());
+            return run_application_as_admin(path, ext, raw_args);
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            return Ok(RunResult {
+                ok: false,
+                message: Some("Execução como Administrador não suportada nesta plataforma.".to_string()),
+            });
         }
     }
 
-    let mut cmd = match ext.as_str() {
+    #[cfg(target_os = "windows")]
+    {
+        // Se for console MMC (.msc) ou painel de controle (.cpl), executa via ShellExecuteW com verbo "open"
+        if ext == "msc" || ext == "cpl" {
+            use std::ffi::OsStr;
+            use std::os::windows::ffi::OsStrExt;
+            use windows::core::PCWSTR;
+            use windows::Win32::Foundation::HWND;
+            use windows::Win32::UI::Shell::ShellExecuteW;
+            use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+            let op: Vec<u16> = OsStr::new("open").encode_wide().chain(std::iter::once(0)).collect();
+            let file_wide: Vec<u16> = OsStr::new(path).encode_wide().chain(std::iter::once(0)).collect();
+            let args_wide: Option<Vec<u16>> = raw_args.and_then(|a| {
+                let trimmed = a.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(OsStr::new(trimmed).encode_wide().chain(std::iter::once(0)).collect())
+                }
+            });
+
+            let res = unsafe {
+                ShellExecuteW(
+                    HWND(std::ptr::null_mut()),
+                    PCWSTR(op.as_ptr()),
+                    PCWSTR(file_wide.as_ptr()),
+                    args_wide.as_ref().map_or(PCWSTR::null(), |a| PCWSTR(a.as_ptr())),
+                    PCWSTR::null(),
+                    SW_SHOWNORMAL,
+                )
+            };
+
+            let code = res.0 as usize;
+            if code > 32 {
+                let desc = if ext == "msc" {
+                    "Console do Windows iniciado"
+                } else {
+                    "Item do Painel de Controle iniciado"
+                };
+                return Ok(RunResult {
+                    ok: true,
+                    message: Some(format!("{}: {}", desc, path)),
+                });
+            }
+        }
+    }
+
+    let mut cmd = match ext {
         "ps1" => {
             let mut c = Command::new("powershell.exe");
-            c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", &path]);
+            c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path]);
             c
         }
         "bat" | "cmd" => {
             let mut c = Command::new("cmd.exe");
-            c.args(["/c", &path]);
+            c.args(["/c", path]);
             c
         }
-        _ => Command::new(&path),
+        _ => Command::new(path),
     };
 
     // Argumentos extras, se houver (igual ao campo "Destino" do atalho do Windows)
-    if let Some(raw_args) = &entry.args {
+    if let Some(raw_args) = raw_args {
         let trimmed = raw_args.trim();
         if !trimmed.is_empty() {
-            // Faz o split respeitando aspas (ex: --config "meu arquivo.cfg")
             for arg in split_args(trimmed) {
                 cmd.arg(arg);
             }
@@ -258,11 +365,13 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     }
 
     cmd.spawn()
-        .map_err(|e| format!("Falha ao iniciar aplicativo/script: {}", e))?;
+        .map_err(|e| format!("Falha ao iniciar aplicativo/script \"{}\": {}", path, e))?;
 
-    let desc = match ext.as_str() {
+    let desc = match ext {
         "ps1" => "Script PowerShell iniciado",
         "bat" | "cmd" => "Script em lote iniciado",
+        "msc" => "Console do Windows iniciado",
+        "cpl" => "Item do Painel de Controle iniciado",
         _ => "Aplicativo iniciado",
     };
 
@@ -340,11 +449,19 @@ fn run_application_as_admin(path: &str, ext: &str, raw_args: Option<&str>) -> Re
         let desc = match ext {
             "ps1" => "Script PowerShell iniciado como Administrador",
             "bat" | "cmd" => "Script em lote iniciado como Administrador",
+            "msc" => "Console do Windows iniciado como Administrador",
+            "cpl" => "Painel de Controle iniciado como Administrador",
             _ => "Aplicativo iniciado como Administrador",
         };
         Ok(RunResult {
             ok: true,
             message: Some(format!("{}: {}", desc, path)),
+        })
+    } else if code == 5 || code == 0 || code == 1223 {
+        // Usuário cancelou ou recusou a elevação do prompt UAC
+        Ok(RunResult {
+            ok: false,
+            message: Some("Execução como Administrador cancelada pelo usuário.".to_string()),
         })
     } else {
         Err(format!("Falha ao iniciar como Administrador (código Win32: {})", code))

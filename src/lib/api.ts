@@ -140,6 +140,18 @@ export interface BackupStatus {
   backup_commands_count: number;
 }
 
+export interface SystemCommandItem {
+  name: string;
+  path: string;
+  description?: string;
+  is_elevated_required?: boolean;
+}
+
+export interface RunCommandOptions {
+  run_as_admin?: boolean;
+  args?: string;
+}
+
 // ─────────────────────── Bridge Tauri ────────────────────
 
 export const api = {
@@ -171,8 +183,19 @@ export const api = {
   openPluginFolder: (path: string) =>
     invoke<void>("open_plugin_folder", { path }),
 
-  runCommand: (name: string) => invoke<RunResult>("run_command", { name }),
-  executeCommand: (name: string) => invoke<RunResult>("run_command", { name }),
+  runCommand: (name: string, options?: RunCommandOptions) =>
+    invoke<RunResult>("run_command", {
+      name,
+      runAsAdmin: options?.run_as_admin,
+      args: options?.args,
+    }),
+  executeCommand: (name: string, options?: RunCommandOptions) =>
+    invoke<RunResult>("run_command", {
+      name,
+      runAsAdmin: options?.run_as_admin,
+      args: options?.args,
+    }),
+  listSystemCommands: () => invoke<SystemCommandItem[]>("list_system_commands"),
 
   listHistory: () => invoke<HistoryEntry[]>("list_history"),
   getHistory: () => invoke<HistoryEntry[]>("list_history"),

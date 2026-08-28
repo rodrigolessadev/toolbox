@@ -7,6 +7,7 @@ export interface CommandItemProps {
   entry: CommandEntry;
   active: boolean;
   pluginIcon?: string;
+  isSystem?: boolean;
   onClick: () => void;
   onToggleFavorite: () => void;
   onEdit: () => void;
@@ -81,7 +82,7 @@ function IconCell({ entry, pluginIcon }: { entry: CommandEntry; pluginIcon?: str
     );
   }
 
-  // Tenta resolver nome de ícone do Lucide (ex: "workflow", "clock-3", "search-code", "ticket", "puzzle")
+  // Tenta resolver nome de ícone do Lucide (ex: "workflow", "clock-3", "search-code", "ticket", "puzzle", "terminal", "shield")
   const LucideComp = resolveLucideIcon(icon);
   if (LucideComp) {
     return (
@@ -134,6 +135,7 @@ export function CommandItem({
   entry,
   active,
   pluginIcon,
+  isSystem,
   onClick,
   onToggleFavorite,
   onEdit,
@@ -169,6 +171,25 @@ export function CommandItem({
               <Shield size={12} strokeWidth={2.5} />
             </span>
           )}
+          {isSystem && (
+            <span
+              className="command-item__system-tag"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                marginLeft: 8,
+                padding: "1px 6px",
+                fontSize: 10,
+                borderRadius: 4,
+                background: "var(--bg-elev-2, rgba(255, 255, 255, 0.08))",
+                color: "var(--fg-muted, #9ca3af)",
+                border: "1px solid var(--border, rgba(255, 255, 255, 0.1))",
+                verticalAlign: "middle",
+              }}
+            >
+              Sistema
+            </span>
+          )}
         </span>
 
         {subtitle && subtitle !== name && (
@@ -177,35 +198,50 @@ export function CommandItem({
       </div>
 
       <div className="command-item__actions">
-        <button
-          type="button"
-          className="command-item__btn"
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          aria-label={entry.favorite ? "Remover dos favoritos" : "Favoritar"}
-          title={entry.favorite ? "Remover dos favoritos" : "Favoritar"}
-        >
-          {entry.favorite ? "★" : "☆"}
-        </button>
+        {!isSystem && (
+          <>
+            <button
+              type="button"
+              className="command-item__btn"
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+              aria-label={entry.favorite ? "Remover dos favoritos" : "Favoritar"}
+              title={entry.favorite ? "Remover dos favoritos" : "Favoritar"}
+            >
+              {entry.favorite ? "★" : "☆"}
+            </button>
 
-        <button
-          type="button"
-          className="command-item__btn"
-          onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          aria-label="Editar"
-          title="Editar"
-        >
-          ✎
-        </button>
+            <button
+              type="button"
+              className="command-item__btn"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              aria-label="Editar"
+              title="Editar"
+            >
+              ✎
+            </button>
 
-        <button
-          type="button"
-          className="command-item__btn command-item__btn--danger"
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          aria-label="Excluir"
-          title="Excluir"
-        >
-          ✕
-        </button>
+            <button
+              type="button"
+              className="command-item__btn command-item__btn--danger"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              aria-label="Excluir"
+              title="Excluir"
+            >
+              ✕
+            </button>
+          </>
+        )}
+        {isSystem && (
+          <button
+            type="button"
+            className="command-item__btn"
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            aria-label="Criar Atalho Personalizado"
+            title="Salvar como atalho personalizado"
+          >
+            +
+          </button>
+        )}
       </div>
     </li>
   );

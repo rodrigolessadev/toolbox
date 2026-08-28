@@ -1,8 +1,10 @@
 import { CommandEntry } from "../lib/api";
 import { CommandItem } from "./CommandItem";
 
+export type ListItemTuple = [string, CommandEntry, boolean?];
+
 interface Props {
-  items: [string, CommandEntry][];
+  items: ListItemTuple[];
   activeIndex: number;
   pluginIcons?: Record<string, string>;
   onSelect: (name: string) => void;
@@ -33,7 +35,7 @@ export function CommandList({
 
   return (
     <ul className="command-list" role="listbox">
-      {items.map(([name, entry], idx) => {
+      {items.map(([name, entry, isSystem], idx) => {
         let pluginIcon: string | undefined;
         if (entry.type === "plugin" && pluginIcons) {
           const rawPath = entry.path || name;
@@ -48,6 +50,7 @@ export function CommandList({
             entry={entry}
             active={idx === activeIndex}
             pluginIcon={pluginIcon}
+            isSystem={isSystem}
             onClick={() => onSelect(name)}
             onToggleFavorite={() => onToggleFavorite(name, entry.favorite)}
             onEdit={() => onEdit(name, entry)}
