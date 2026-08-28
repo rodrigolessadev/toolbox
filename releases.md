@@ -1,3 +1,21 @@
+## v1.32.0 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.0/Toolbox_1.32.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### ⚡ Melhorias de Performance & Arquitetura
+- **Persistência de Comandos do Sistema no SQLite Central (#105):** Criada a tabela `system_commands_cache` no `toolbox.db` para armazenamento permanente e leitura instantânea (< 1ms) de comandos e utilitários do sistema operacional, eliminando a varredura pesada de disco no startup.
+- **Indexação Nativa Ultrarrápida do Windows (#105):** Substituição da leitura bruta de diretórios no `System32`/`SysWOW64`/`PATH` pela consulta direta a fontes nativas:
+  - Registro do Windows (`App Paths` em `HKLM` e `HKCU` via `winreg`);
+  - Atalhos do Menu Iniciar (`.lnk` em Programas);
+  - Aliases de execução do WindowsApps;
+  - Catálogo embutido de ferramentas administrativas e consoles essenciais (`services.msc`, `regedit`, `taskmgr`, `wt`, etc.).
+- **Inicialização Assíncrona & Não Bloqueante (#105):** O scan inicial roda em background thread sem travar o carregamento da interface ou o canal IPC do Tauri, prevenindo telas brancas e quedas de hooks de atalhos globais (`Ctrl + Space`).
+
+### ⚙️ Interface & Configurações
+- **Reindexação Sob Demanda (#105):** Adicionado botão **"Reindexar Comandos"** na aba de Configurações, com indicador de progresso (spinner) e notificação toast com o total de comandos indexados.
+
+</details>
+
 ## v1.31.0 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.31.0/Toolbox_1.31.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
