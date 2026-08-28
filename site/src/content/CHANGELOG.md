@@ -1,3 +1,15 @@
+## v1.31.0 - 2026-08-28
+
+## O que há de novo na v1.31.0
+
+### 🚀 Novas Funcionalidades
+- **Descoberta Dinâmica de Comandos do PATH:** Agora o Toolbox pesquisa e executa utilitários do sistema operacional, consoles MMC (`services.msc`, `compmgmt.msc`), itens do painel de controle (`sysdm.cpl`) e App Execution Aliases (`wt.exe` / Windows Terminal) mesmo que não estejam previamente cadastrados na lista de comandos.
+- **Atalho de Elevação UAC (Executar como Administrador):** Pressione `Ctrl + Shift + Enter` ou `Ctrl + Enter` em qualquer comando para executá-lo imediatamente com privilégios elevados.
+- **Tratamento Gracioso de Cancelamento do UAC:** Se o prompt de elevação for recusado ou cancelado, o aplicativo exibe uma mensagem informativa sem disparar falhas ou travar.
+- **Precedência Inteligente de Busca:** Seus comandos cadastrados e favoritos continuam com prioridade máxima nos resultados de busca.
+- **Barra de Action Hints:** Rodapé visual com atalhos de navegação e execução rápida.
+- **Controle em Configurações:** Opção dedicada no modal de Configurações para ativar ou desativar a descoberta automática de comandos do sistema a qualquer momento.
+
 ## v1.30.0 - 2026-08-27
 
 ### 📝 Rotação Diária de Logs & Retenção de 7 Dias (#98)
