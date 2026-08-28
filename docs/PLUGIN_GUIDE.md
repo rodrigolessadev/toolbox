@@ -1,170 +1,100 @@
-# Guia de Plugins
+# Guia de Desenvolvimento de Plugins — Toolbox 2.0
 
-> 📖 Para detalhes técnicos completos, veja [plugin-contract.md](plugin-contract.md)
+> 📖 Para detalhes do protocolo IPC e contratos técnicos, veja [`plugin-protocol.md`](./plugin-protocol.md) e [`plugin-contract.md`](./plugin-contract.md).
 
-## O que é um plugin?
+---
 
-Um plugin é um diretório dentro de `plugins/` contendo um arquivo `plugin.json` e um entrypoint executável. O Toolbox descobre plugins dinamicamente ao iniciar — não é necessário recompilar o app.
+## 🧩 O que é um Plugin?
 
-## Estrutura mínima
+No ecossistema **Toolbox 2.0**, os plugins são módulos independentes que oferecem utilitários focados e de alto desempenho. O ecossistema oficial é mantido no repositório descentralizado [`rodrigolessadev/toolbox-plugins`](https://github.com/rodrigolessadev/toolbox-plugins), onde cada plugin possui seu próprio ciclo de lançamento e distribuição via **Marketplace**.
+
+Um plugin consiste em:
+1. `plugin.json`: manifesto com metadados, permissões e entrypoint.
+2. Entrypoint executável: tipicamente Python (`main.py`) com interface moderna **Pywebview (HTML/CSS/JS)** ou CLI via IPC.
+3. Assets e estilos: suporte ao Design System e temas oficiais (**Material 3**, Claro, Escuro e Alto Contraste).
+
+---
+
+## 📁 Estrutura Padrão de um Plugin
 
 ```
 plugins/
 └── meu-plugin/
-    ├── plugin.json
-    └── main.py
+    ├── plugin.json          # Manifesto do plugin
+    ├── main.py              # Entrypoint (Python / Pywebview ou CLI)
+    └── ui/                  # (Opcional) Interface web para Pywebview
+        ├── index.html
+        ├── styles.css
+        └── app.js
 ```
 
-## plugin.json
+---
 
-**Exemplo mínimo:**
+## 📝 Manifesto `plugin.json`
+
+Exemplo completo e recomendado:
 
 ```json
 {
-  "name": "meu-plugin",
+  "name": "Meu Plugin",
   "version": "1.0.0",
-  "language": "python",
-  "entry": "main.py"
-}
-```
-
-**Exemplo completo:**
-
-```json
-{
-  "name": "meu-plugin",
-  "version": "1.0.0",
-  "description": "Faz algo útil",
+  "description": "Descrição clara e objetiva do que o plugin faz.",
   "author": "Seu Nome",
   "language": "python",
   "entry": "main.py",
-  "min_toolbox_version": "1.0.0"
+  "icon": "shield-check",
+  "min_toolbox_version": "1.22.3",
+  "theme_version": "material-3"
 }
 ```
 
-| Campo                 | Obrigatório | Descrição | Exemplo |
-|----------------------|-------------|-----------|---------|
-| `name`               | ✅ sim      | Identificador único | `"meu-plugin"` |
-| `version`            | ✅ sim      | Semver (1.0.0, 1.0.0-beta) | `"1.0.0"` |
-| `language`           | ✅ sim      | Tipo de plugin | `"python"` |
-| `entry`              | ✅ sim      | Arquivo entrypoint | `"main.py"` |
-| `description`        | ❌ não      | Descrição breve | `"Valida CPF"` |
-| `author`             | ❌ não      | Seu nome ou organização | `"Acme Corp"` |
-| `min_toolbox_version`| ❌ não      | Versão mínima do Toolbox | `"1.5.0"` |
+### Campos do Manifesto
 
-⚠️ **Nota:** Use `entry` (não `entrypoint`). Campo `id` é derivado automaticamente do nome do diretório.
+| Campo | Obrigatório | Descrição | Exemplo |
+| :--- | :---: | :--- | :--- |
+| `name` | ✅ Sim | Nome amigável de exibição | `"Validador de CPF"` |
+| `version` | ✅ Sim | Versão SemVer | `"1.0.0"` |
+| `language` | ✅ Sim | Linguagem do runtime | `"python"`, `"node"`, `"rust"`, `"exe"` |
+| `entry` | ✅ Sim | Arquivo ou binário de entrada | `"main.py"` |
+| `description` | ❌ Não | Resumo das funcionalidades | `"Valida e formata CPFs"` |
+| `author` | ❌ Não | Nome do autor/mantenedor | `"Rodrigo Lessa"` |
+| `icon` | ❌ Não | Nome do ícone Lucide | `"shield-check"`, `"key"` |
+| `min_toolbox_version` | ❌ Não | Versão mínima do Toolbox necessária | `"1.22.3"` |
+| `theme_version` | ❌ Não | Padrão de tema utilizado | `"material-3"` |
 
-## Cadastrando o plugin
+---
 
-Após criar a pasta, registre o comando no Toolbox:
+## 🚀 Padrões de Interface
 
-1. Abra o app.
-2. Clique em `+`.
-3. Aba **Plugin** → informe:
-   - **Nome do comando**: ex. `meu-plugin`
-   - **Caminho**: `meu-plugin` (relativo a `plugins/`)
-4. Salvar. O Toolbox criará automaticamente a entrada em `commands.json` apontando para `plugins/meu-plugin`.
-
-## Exemplo: Python com interface
+### 1. Pywebview (Recomendado para UIs Ricas)
+Plugins modernos utilizam `pywebview` para renderizar interfaces HTML5, CSS3 e JavaScript modernas com visual nativo:
 
 ```python
-#!/usr/bin/env python3
-import tkinter as tk
+import webview
+import os
 
-def open_ui():
-    root = tk.Tk()
-    root.title("Meu Plugin")
-    tk.Label(root, text="Olá!").pack(padx=20, pady=20)
-    root.mainloop()
+class Api:
+    def process_data(self, payload):
+        return {"status": "ok", "result": f"Recebido: {payload}"}
 
 if __name__ == "__main__":
-    open_ui()
+    api = Api()
+    html_path = os.path.join(os.path.dirname(__file__), "ui", "index.html")
+    webview.create_window("Meu Plugin", html_path, js_api=api, width=800, height=600)
+    webview.start()
 ```
 
-## Exemplo: Python CLI
+### 2. Protocolo IPC (STDIN / STDOUT)
+Para plugins integrados diretamente às modais do Toolbox ou ferramentas CLI:
+- Entrada recebida via `sys.stdin` (JSON ou NDJSON).
+- Saída emitida via `sys.stdout` no formato especificado pelo [`plugin-protocol.md`](./plugin-protocol.md).
 
-```python
-import sys
-import json
+---
 
-if __name__ == "__main__":
-    print(json.dumps({"args": sys.argv[1:]}))
-```
+## 📦 Distribuição e Marketplace
 
-## Exemplo: Node.js
+1. Desenvolva o plugin dentro do repositório `toolbox-plugins/plugins/<id>`.
+2. Inclua o registro no arquivo `catalog.json` com `version`, `download_url` e `icon`.
+3. Ao criar a tag Git (ex: `<id>-1.0.0`), o GitHub Actions compila o arquivo `.zip` e publica a release automaticamente.
+4. Os usuários podem instalar ou atualizar o plugin com 1 clique através da aba **Marketplace** no Toolbox.
 
-```js
-// main.js
-console.log("Plugin Node ativo!", process.argv.slice(2));
-```
-
-`plugin.json`:
-```json
-{
-  "name": "node-plugin",
-  "entry": "main.js",
-  "language": "node",
-  "version": "1.0.0"
-}
-```
-
-## Exemplo: binário Rust pré-compilado
-
-`plugin.json`:
-```json
-{
-  "name": "fast-plugin",
-  "entry": "target/release/fast-plugin.exe",
-  "language": "rust",
-  "version": "1.0.0"
-}
-```
-
-## Exemplo: binário Windows
-
-`plugin.json`:
-```json
-{
-  "name": "custom-tool",
-  "entry": "tool.exe",
-  "language": "exe",
-  "version": "1.0.0"
-}
-```
-
-## Boas práticas
-
-1. **Não bloqueie a toolbox**: abra uma janela ou termine rápido.
-2. **Use `cwd = pasta do plugin`**: o Toolbox já configura isso; seus arquivos relativos funcionam.
-3. **Valide argumentos**: parse `sys.argv` com cuidado.
-4. **Logs**: escreva em arquivo dentro de `logs/` se precisar de histórico.
-5. **Ícones**: a UI usa emoji por padrão; você pode passar um ícone no `commands.json`.
-
-## Comandos disponíveis por plugin
-
-| Linguagem | Comando executado |
-|-----------|-------------------|
-| `python`  | `python main.py` (fallback: `python3`, `py`) |
-| `node`    | `node main.js` |
-| `rust`    | `<name>.exe` (PATH) |
-| `exe`     | `<entrypoint>` direto |
-
-## Erros comuns
-
-- **Plugin não encontrado** — o `path` em `commands.json` deve corresponder à pasta dentro de `plugins/` ou um caminho absoluto.
-- **Python não instalado** — o Toolbox procura `python`, depois `python3`, depois `py`. Instale um deles e garanta que está no PATH.
-- **Permissões** — no Linux/macOS, plugins Python precisam de `chmod +x` se iniciarem diretamente.
-
-## Recebendo argumentos da toolbox
-
-Por padrão, o Toolbox **não** passa argumentos. Se quiser, leia-os do `commands.json` no frontend (campo `args`) — essa feature é roadmap.
-
-Para um plugin CLI, basta ler `sys.argv`.
-
-## Empacotando plugins
-
-Distribua a pasta do plugin em um arquivo `.zip`. O usuário descompacta dentro de `plugins/` e reinicia o Toolbox (ou ele descobre na próxima execução).
-
-## Templates
-
-Veja `plugins/_template/` para um ponto de partida.

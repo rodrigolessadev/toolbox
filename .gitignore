@@ -46,7 +46,8 @@ logs/*.log.*
 .agents/*
 
 release.bat
-SETUP.md
+/SETUP.md
+!docs/setup.md
 
 # grapify
 .kiro/*

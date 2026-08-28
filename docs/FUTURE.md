@@ -1,76 +1,43 @@
-# Roadmap de evolução
+# Roadmap de Evolução — Toolbox
 
-Sugestões de melhorias, organizadas por área.
+Visão de melhorias, itens implementados e próximos passos para o ecossistema.
 
-## Plugins
+---
 
-- **Hot-reload de plugins** — detectar mudanças em `plugins/` via `notify` e re-descobrir.
-- **Comunicação bidirecional** — stdin/stdout JSON-RPC para plugins poderem devolver resultados estruturados à toolbox.
-- **Argumentos no cadastro** — campo `args` em `commands.json` passado ao plugin.
-- **Variáveis de ambiente** — `env` por comando.
-- **Permissionamento** — `permissions.json` por plugin para limitar o que ele pode fazer.
-- **Marketplace** — instalar plugins de um repositório remoto via `toolbox-cli install <url>`.
-- **Plugins WASM** — rodar plugins sandboxed usando `wasmtime` no backend.
-- **Versões semânticas** — checar atualizações e mostrar "plugin desatualizado".
+## 🧩 Plugins & Marketplace
 
-## UI/UX
+- [x] **Marketplace Oficial** — Instalação, atualização e remoção com 1 clique a partir do catálogo remoto (`toolbox-plugins`). *(Entregue)*
+- [x] **Verificação de Integridade** — Validação SHA-256 e proteção Zip Slip na extração. *(Entregue)*
+- [x] **Comunicação IPC** — Suporte a STDIN/STDOUT JSON e interfaces Pywebview com tema sincronizado. *(Entregue)*
+- [ ] **Hot-reload de plugins** — Detectar mudanças em `plugins/` via file watcher sem reiniciar a aplicação.
+- [ ] **Permissionamento granular** — `permissions.json` por plugin para controle de acesso ao sistema de arquivos/rede.
+- [ ] **Plugins WASM** — Execução de plugins sandboxed com `wasmtime` no backend.
 
-- **Fuzzy search** — busca tolerante a erros de digitação.
-- **Ações secundárias** — clique direito no comando para ações (editar, duplicar, remover).
-- **Arrastar e soltar** — reordenar comandos; criar grupo/pasta.
-- **Preview** — preview do link antes de abrir.
-- **Notificações nativas** do Windows quando plugin termina.
-- **Modo barra de tarefas** — fixar e mostrar apenas a barra de busca.
-- **Configuração de atalho** — UI para trocar o `Ctrl+Space`.
+---
 
-## Plataforma
+## ⚡ Comandos & Sistema
 
-- **Linux e macOS** — `tauri.conf.json` já tem `appimage` e `dmg`. Falta testar e ajustar caminhos.
-- **Auto-update** — `tauri-plugin-updater` apontando para um servidor estático (GitHub Releases, S3, etc.).
-- **Instalador MSI com plugins pré-empacotados** — incluir `plugins/cpf` e `plugins/gerador-json` no bundle.
-- **Tráfego HTTP** — `tauri-plugin-http` para plugins web.
-- **System tray** — ícone na bandeja do Windows com menu de contexto.
-- **Suporte a Windows 7/8** — `webview2-com` shim (não trivial).
+- [x] **Indexação Dinâmica do PATH** — Busca instantânea de executáveis do sistema operacional. *(Entregue)*
+- [x] **Elevação de Privilégios (Admin / UAC)** — Execução com direitos administrativos via atalho dedicado. *(Entregue)*
+- [x] **Persistência & Cache SQLite** — Inicialização ultrarrápida do cache de comandos e preferências em banco local. *(Entregue)*
+- [ ] **Fuzzy search avançada** — Algoritmo tolerante a pequenos erros de digitação e typos.
+- [ ] **Workflows encadeados** — Encadeamento de múltiplos comandos sequenciais.
+- [ ] **Snippets & Aliases expandíveis** — Autocomplete de macros e expansão de texto.
 
-## Produtividade
+---
 
-- **Snippets** — autocomplete que substitui texto por snippet ao pressionar Tab.
-- **Aliases** — `g` = `google`, `gh` = `github`. Já funciona naturalmente.
-- **Workflows** — encadear múltiplos comandos: `git pull && npm test`.
-- **Tarefas agendadas** — executar comandos em horários definidos.
-- **Macros** — gravar e reproduzir sequências.
+## 🎨 UI/UX & Plataforma
 
-## Persistência e dados
+- [x] **Design System Acessível (Material 3)** — Temas Claro, Escuro e Alto Contraste com WCAG AA. *(Entregue)*
+- [x] **Configurações & Backup** — Backup do banco SQLite e chaves mestras. *(Entregue)*
+- [ ] **System Tray** — Ícone na bandeja do sistema com menu de contexto e inicialização oculta.
+- [ ] **Auto-update** — `tauri-plugin-updater` para atualizações automáticas silenciosas via GitHub Releases.
+- [ ] **Suporte Multiplataforma (Linux & macOS)** — Pacotes AppImage e DMG testados e homologados.
 
-- **Sincronização na nuvem** — salvar `commands.json` em S3, Dropbox, etc.
-- **Múltiplos perfis** — `commands.work.json` e `commands.home.json`.
-- **Banco SQLite** — para histórico longo e busca.
-- **Criptografia** — armazenar credenciais de plugins que precisam.
+---
 
-## Observabilidade
+## 🤖 Inteligência & Automação
 
-- **Métricas de uso** — `cmd -> contagem` no log.
-- **Tracing estruturado** — `tracing` + `tracing-subscriber` para spans.
-- **Crash reporting** — `sentry` com `sentry-tauri`.
+- [ ] **Toolbox com IA** — Interpretação de linguagem natural para busca inteligente de ferramentas e automações.
+- [ ] **API Local REST / WebSockets** — Integração com agentes externos e IDEs para automação de tarefas.
 
-## Segurança
-
-- **Sandbox de plugins** — rodar plugins em `Job Objects` (Windows) com privilégios mínimos.
-- **Confirmação de execução** — para comandos de aplicação com privilégios elevados, pedir confirmação.
-- **Assinatura de plugins** — verificar hash SHA256 dos plugins carregados.
-
-## Developer Experience
-
-- **CLI** — `toolbox-cli add <name> --type=link --url=...` para adicionar comandos via terminal.
-- **Devcontainer** — setup completo em `.devcontainer/`.
-- **Hot-reload do frontend** — já funciona em `tauri:dev`.
-- **Testes** — adicionar `vitest` (frontend) e `cargo test` (backend).
-- **CI/CD** — GitHub Actions buildando MSI/AppImage/DMG em matriz.
-
-## Ideias selvagens
-
-- **Toolbox com IA** — interpretar linguagem natural: "abrir meu projeto Python favorito" → abrir VSCode em `~/code/awesome`.
-- **Telemetria opcional** — compartilhar comandos mais usados anonimamente para sugerir novos.
-- **Tema customizado** — usuário aponta para um CSS.
-- **Plugin como API REST** — expor comandos via HTTP para integração com outros apps.
-- **Gravador de voz** — comando por voz.

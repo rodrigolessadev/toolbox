@@ -1,87 +1,88 @@
-# Arquitetura
+# Arquitetura — Toolbox 2.0
 
-## Visão geral
+## Visão Geral
+
+O Toolbox é construído com arquitetura híbrida de alto desempenho utilizando **Tauri 2** (Rust no backend) e **React 18 + TypeScript** (frontend renderizado via WebView2 no Windows).
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                       Frontend (WebView2)                    │
+│                    Frontend (WebView2)                       │
 │                                                              │
-│  React + TypeScript                                          │
-│  ├── App.tsx          ── Estado global + atalhos            │
-│  ├── components/      ── CommandInput, Modais, Toasts        │
+│  React 18 + TypeScript + Tailwind                            │
+│  ├── App.tsx          ── Estado global, busca e atalhos      │
+│  ├── components/      ── CommandInput, Modais, Marketplace,  │
+│  │                       SettingsModal, ToastContainer       │
 │  ├── hooks/           ── useCommands, useTheme, useToasts    │
-│  └── lib/api.ts       ── Wrappers para invoke()              │
+│  └── lib/api.ts       ── IPC wrappers para invoke()          │
 │                                                              │
 └────────────────────────────┬─────────────────────────────────┘
-                             │ IPC (invoke / events)
+                             │ IPC (Tauri invoke / events)
 ┌────────────────────────────▼─────────────────────────────────┐
 │                    Backend Rust (Tauri)                      │
 │                                                              │
-│  main.rs / lib.rs  ── bootstrap + registro de plugins        │
-│  ├── commands_store ── persistência atômica de commands.json │
-│  ├── plugins        ── descoberta dinâmica + spawn de plugins│
-│  ├── executor       ── roteamento (Plugin | Link | App)      │
-│  ├── history        ── últimos 100 comandos                  │
-│  ├── logger         ── logs em arquivo                       │
-│  ├── models         ── tipos compartilhados                  │
-│  ├── paths          ── resolução de diretórios               │
-│  └── error          ── AppError com mensagens amigáveis      │
+│  lib.rs            ── Bootstrap & registro de comandos IPC   │
+│  ├── commands_store── persistência JSON e gerenciamento      │
+│  ├── system_commands─ indexação do PATH e execução UAC       │
+│  ├── storage       ── cache e banco local em SQLite          │
+│  ├── marketplace   ── download, SHA-256 e extração de plugins│
+│  ├── executor      ── roteador de execução (Plugin/Link/App) │
+│  ├── history       ── histórico de execuções                 │
+│  └── paths         ── resolução de diretórios de dados/logs  │
 │                                                              │
 └────────────────────────────┬─────────────────────────────────┘
                              │
         ┌────────────────────┼─────────────────────┐
         ▼                    ▼                     ▼
-  commands.json          plugins/              Windows
-  (BTreeMap JSON)        ├── cpf/              ├── Shell
-                         ├── gerador-json/     ├── Browser
-                         └── _template/        └── File System
+  SQLite & JSON          plugins/              Windows OS
+  (Cache & Configs)      (Extensões)           (PATH, UAC, Shell)
 ```
 
-## Fluxo de execução de um comando
+---
 
-1. Usuário digita no `CommandInput` e pressiona Enter.
-2. `App.tsx` filtra a lista de comandos por nome/url/path e seleciona o ativo.
-3. Frontend chama `api.executeCommand(name)`.
-4. `execute_command` no Rust:
-   - Recupera `CommandEntry` do `CommandsStore`.
-   - Encaminha para o `CommandExecutor` apropriado.
-   - `Plugin` → `PluginManager::execute` (spawn).
-   - `Link` → `tauri-plugin-opener::open_url`.
-   - `Application` → `std::process::Command::new(path).spawn()`.
-5. Sucesso → registra em `HistoryStore`.
-6. Frontend recebe a mensagem e exibe um toast.
+## Módulos do Backend (Rust)
 
-## Persistência
+1. **`commands_store.rs`**:
+   - Mantém comandos e plugins cadastrados em memória com proteção de concorrência (`parking_lot::RwLock`).
+   - Persistência com escrita atômica (`.tmp` + `rename`).
 
-- `commands.json` é lido uma vez no startup e mantido em memória (`parking_lot::RwLock`).
-- Cada modificação é serializada e gravada via **escrita atômica** (`.tmp` + `rename`).
-- O mesmo padrão é usado em `history.json`.
+2. **`system_commands.rs`**:
+   - Indexa executáveis presentes nas variáveis de ambiente do sistema (`PATH`), utilitários administrativos do Windows e ferramentas do sistema.
+   - Suporte à execução padrão ou com privilégios elevados de Administrador (via Windows `runas` / UAC).
 
-## Threads / Concorrência
+3. **`storage.rs` (SQLite)**:
+   - Gerencia o banco local SQLite (`rusqlite`) para cache de inicialização rápida de comandos indexados e preferências do usuário.
+   - Reduz o tempo de boot ao evitar reindexação completa de disco no startup.
 
-- Tauri spawna cada comando IPC em uma task Tokio.
-- O acesso ao `CommandsStore` é feito com `RwLock` para múltiplos leitores.
-- O `PluginManager` é imutável e clonado por valor (internamente tudo é `Arc`).
+4. **`marketplace.rs`**:
+   - Conecta ao catálogo oficial de plugins remotos (`rodrigolessadev/toolbox-plugins`).
+   - Realiza download, validação de integridade via checksum SHA-256 e extração segura (com proteção contra ataques de Zip Slip).
 
-## Plugins
+5. **`executor.rs`**:
+   - Roteia a execução de comandos conforme o tipo (`Plugin`, `SystemCommand`, `Application`, `Link`).
 
-- **Descoberta dinâmica**: `PluginManager::discover_all()` percorre `plugins/` e lê `plugin.json` de cada subdiretório. Hot-reload basta reiniciar o app.
-- **Execução isolada**: cada plugin é um processo independente; falhas não derrubam a toolbox.
-- **Multi-linguagem**: `python` (com fallback `py`), `node`, `rust` (binário pré-compilado), `exe` (binário Windows).
-- **Comunicação**: via argumentos de linha de comando (simples) — expansível futuramente para stdin/stdout JSON-RPC.
+---
 
-## Atalhos globais
+## Fluxo de Execução de Comandos
 
-- `tauri-plugin-global-shortcut` registra `Ctrl+Space` no setup.
-- O handler alterna `show`/`hide` da janela `main`.
-- Para trocar o atalho, edite `src-tauri/src/lib.rs` na função `run()`.
+1. O usuário abre a busca (`Ctrl + K`) e digita o termo desejado.
+2. O frontend unifica e filtra plugins locais, modais integradas, comandos do sistema e atalhos.
+3. Ao acionar o comando (ou pressionar `Ctrl + Shift + Enter` para Admin):
+   - O frontend chama `api.executeCommand` ou `api.executeSystemCommand`.
+   - O Rust valida e dispara o processo de forma assíncrona.
+   - O histórico de execução é registrado.
+   - O frontend recebe a confirmação e exibe toast de status.
 
-## Tema
+---
 
-- CSS custom properties em `global.css`.
-- `useTheme` hook persiste a escolha em `localStorage` e aplica `data-theme` em `<html>`.
-- O tema do sistema é detectado em primeira execução.
+## Segurança e Acessibilidade
 
-## Próximos passos
+- **Isolamento de Processos**: Plugins rodam em subprocessos independentes.
+- **Validação de Arquivos**: O marketplace rejeita arquivos maliciosos ou entradas fora do diretório seguro.
+- **Temas & WCAG**: Suporte a Claro, Escuro e Alto Contraste com conformidade de contraste visual.
 
-Veja [FUTURE.md](FUTURE.md) para um roadmap completo.
+---
+
+## Próximos Passos & Roadmap
+
+Consulte [`FUTURE.md`](./FUTURE.md) para o roadmap detalhado de evolução.
+
