@@ -1,3 +1,14 @@
+## v1.32.2 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.2/Toolbox_1.32.2_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### ⚙️ Infraestrutura & CI/CD
+- **Atualização para Runtime Node.js 24 no GitHub Actions (#111):**
+  - Atualizada a versão do Node.js para `24` no workflow de compilação e publicação de release (`.github/workflows/release.yml`).
+  - Eliminados os avisos de depreciação do Node.js 20 nos runners do GitHub Actions, garantindo estabilidade e compatibilidade futura nos pipelines automatizados.
+
+</details>
+
 ## v1.32.1 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.1/Toolbox_1.32.1_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
