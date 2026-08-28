@@ -1342,6 +1342,45 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 }
 .settings__import:has(input:disabled) { opacity: .5; cursor: not-allowed; }
 
+/* Botões de ação em linhas de configurações (substitui o uso indevido de .modal__browse-btn para textos) */
+.settings__btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  height: 32px;
+  width: auto;
+  min-width: fit-content;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--tr);
+  flex-shrink: 0;
+}
+.settings__btn-action:hover:not(:disabled) {
+  background: var(--border);
+  color: var(--fg);
+}
+.settings__btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.settings__btn-action--primary {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.settings__btn-action--primary:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-fg, #fff);
+}
+
 /* Modal fields (settings usa esses) */
 .modal__field select {
   padding: 8px 10px;

@@ -360,11 +360,10 @@ export function SettingsModal({
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <button
                   type="button"
-                  className="modal__browse-btn"
+                  className="settings__btn-action"
                   onClick={handleRefreshSystemCommands}
                   disabled={reindexingSystemCommands || !enableSystemCommands}
                   title="Reindexar comandos nativos e aplicativos do sistema"
-                  style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 10px" }}
                 >
                   <RefreshCw size={12} className={reindexingSystemCommands ? "spin" : ""} />
                   <span>{reindexingSystemCommands ? "Indexando..." : "Reindexar Comandos"}</span>
@@ -392,7 +391,7 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse-btn"
+                className="settings__btn-action"
                 onClick={handleOpenDataDir}
                 disabled={!dataDir}
                 title="Abrir pasta de dados"
@@ -406,7 +405,7 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse-btn"
+                className="settings__btn-action"
                 onClick={async () => {
                   try { await api.openPath(pluginsDir); }
                   catch { onError?.("Falha ao abrir pasta de plugins."); }
@@ -423,7 +422,7 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse-btn"
+                className="settings__btn-action"
                 onClick={handleOpenLogsDir}
                 disabled={!logsDir}
                 title="Abrir pasta de logs"
@@ -446,10 +445,10 @@ export function SettingsModal({
                     : "Nenhum backup automático gerado ainda"}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <button
                   type="button"
-                  className="modal__browse-btn"
+                  className="settings__btn-action"
                   onClick={handleOpenBackupDir}
                   title="Abrir pasta onde os backups são armazenados"
                 >
@@ -457,7 +456,7 @@ export function SettingsModal({
                 </button>
                 <button
                   type="button"
-                  className="modal__browse-btn"
+                  className="settings__btn-action"
                   onClick={handleTriggerBackup}
                   disabled={backingUp}
                   title="Forçar gravação de um backup agora"
@@ -466,8 +465,7 @@ export function SettingsModal({
                 </button>
                 <button
                   type="button"
-                  className="modal__browse-btn"
-                  style={{ borderColor: "var(--accent-primary, #3b82f6)", color: "var(--accent-primary, #3b82f6)" }}
+                  className="settings__btn-action settings__btn-action--primary"
                   onClick={handleRestoreBackup}
                   disabled={restoring || !backupStatus?.backup_exists}
                   title="Restaurar comandos a partir do backup automático"
@@ -506,7 +504,7 @@ export function SettingsModal({
               </div>
               <button
                 type="button"
-                className="modal__browse-btn"
+                className="settings__btn-action settings__btn-action--primary"
                 onClick={() => {
                   onClose();
                   onOpenFeedback?.();
