@@ -1,3 +1,14 @@
+## v1.32.1 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.1/Toolbox_1.32.1_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🐛 Correções & Interface (UI/UX)
+- **Correção de Sobreposição dos Botões nas Configurações (#107):**
+  - Corrigida a colisão visual e travamento de largura nos botões da seção *Backup & Sincronização Automática* (`Abrir Pasta`, `Fazer Backup`, `Restaurar`), que herdavam indevidamente dimensões fixas de 36px.
+  - Implementada a classe semântica `.settings__btn-action` com dimensionamento dinâmico, espaçamento padronizado (`gap: 8px`), suporte a quebra responsiva de linha (`flex-wrap`) e estados visuais aprimorados em todas as seções de ações do modal de Configurações (*Pastas*, *Comandos do Sistema*, *Backup* e *Feedback*).
+
+</details>
+
 ## v1.32.0 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.0/Toolbox_1.32.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>

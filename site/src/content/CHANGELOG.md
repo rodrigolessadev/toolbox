@@ -1,3 +1,10 @@
+## v1.32.1 - 2026-08-28
+
+### 🐛 Correções & Interface (UI/UX)
+- **Correção de Sobreposição dos Botões nas Configurações (#107):**
+  - Corrigida a colisão visual e travamento de largura nos botões da seção *Backup & Sincronização Automática* (`Abrir Pasta`, `Fazer Backup`, `Restaurar`), que herdavam indevidamente dimensões fixas de 36px.
+  - Implementada a classe semântica `.settings__btn-action` com dimensionamento dinâmico, espaçamento padronizado (`gap: 8px`), suporte a quebra responsiva de linha (`flex-wrap`) e estados visuais aprimorados em todas as seções de ações do modal de Configurações (*Pastas*, *Comandos do Sistema*, *Backup* e *Feedback*).
+
 ## v1.32.0 - 2026-08-28
 
 ### ⚡ Melhorias de Performance & Arquitetura
