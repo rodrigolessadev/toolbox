@@ -1,3 +1,14 @@
+## v1.32.3 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.3/Toolbox_1.32.3_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### 🐛 Correções de Bugs (Bug Fixes)
+- **Correção de Renderização no Modal de Configurações (#113):**
+  - Corrigida a ordem e posicionamento dos hooks do React no `SettingsModal`, eliminando o erro fatal `Minified React error #310` (*"Rendered more hooks than during the previous render."*).
+  - Garante abertura fluida e estável da tela de configurações em todas as transições de abas e estados.
+
+</details>
+
 ## v1.32.2 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.2/Toolbox_1.32.2_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
