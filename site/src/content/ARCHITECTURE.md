@@ -1,80 +1,64 @@
 ---
 title: "Como o Toolbox funciona"
-description: "Entenda a estrutura do aplicativo e onde encontrar cada coisa."
+description: "Entenda a arquitetura moderna do Toolbox, persistência central e execução de plugins."
 ---
 
-O Toolbox é um **launcher** (abridor de comandos) feito para Windows. Você aperta um atalho, digita o que quer abrir e ele executa. Parece simples, mas por baixo tem três camadas: o app em si, o motor que descobre plugins e o lugar onde tudo fica salvo.
+O **Toolbox** é uma plataforma de produtividade e lançador inteligente (*launcher*) projetado especificamente para Windows com arquitetura moderna baseada em **Tauri v2**, **Rust** de alta performance, frontend em **React + TypeScript** e um ecossistema modular de plugins em **Python + pywebview**.
 
-## As três camadas
+---
 
-| Camada | O que é | Para que serve |
+## 🏛️ As Três Camadas Arquiteturais
+
+| Camada | Tecnologia | Responsabilidade |
 |---|---|---|
-| **Aplicativo** | A janela que aparece quando você aperta `Ctrl+Space` | Você digita aqui e escolhe o que executar |
-| **Comandos** | A lista de coisas que o app sabe abrir (links, apps, plugins) | É o "catálogo" que aparece quando você digita |
-| **Plugins** | Pastas extras com `plugin.json` + um script | Acrescentam comandos novos sem mexer no app principal |
+| **Core & Shell Nativo** | Rust + Tauri v2 | Gerencia janelas transparentes, atalhos globais (`Ctrl+Space`), IPC seguro, ciclo de vida do processo e motor de banco de dados SQLite. |
+| **Interface do Usuário** | React + TypeScript + Vite | Barra de busca instantânea com fuzzy-search, navegação por abas, modal de Marketplace e alternância de temas Material Design 3. |
+| **Ecossistema de Plugins** | Python + pywebview | Aplicações e utilitários especializados com bridge assíncrona (`pywebview.api`) rodando em processos isolados e seguros. |
 
-## Onde os arquivos ficam no seu computador
+---
 
-Quando você instala o Toolbox, ele cria uma pasta com esta cara:
+## 🗄️ Estrutura de Diretórios no Sistema Operacional
 
+Quando instalado, o Toolbox centraliza todos os seus arquivos, logs e banco de dados no caminho padrão:
+
+```text
+%APPDATA%\com.toolbox.desktop\
+├── toolbox.db              ← Banco de dados central SQLite com FTS5 (comandos, histórico, segredos)
+├── logs\                   ← Logs de diagnóstico rotativos (toolbox.log, safe.log, etc.)
+└── plugins\                ← Plugins instalados localmente a partir do Marketplace
+    ├── safe\
+    ├── markdown-viewer\
+    ├── novo-ticket\
+    └── logon-aws\
 ```
-C:\Users\SeuNome\AppData\Roaming\Toolbox\
-├── commands.json          ← sua lista de comandos (o principal)
-├── logs\
-│   └── history.json       ← últimos 100 comandos que você rodou
-└── plugins\               ← plugins extras que você instalou
-    ├── cpf\
-    ├── gerador-json\
-    └── _template\         ← modelo para criar o seu
-```
 
-Você **não precisa** mexer nesses arquivos no dia a dia — o app tem uma interface para tudo. Mas se algo der errado, é aqui que vale a pena olhar.
+---
 
-## Como o app decide o que fazer quando você escolhe um comando
+## ⚡ Fluxo de Execução de um Comando
 
-Quando você digita `git` e dá Enter, acontecem cinco coisas em sequência:
+Quando você abre o Toolbox (`Ctrl + Space`), digita um termo e pressiona `Enter`:
 
-1. O app filtra a lista de comandos pelo que você digitou
-2. Você confirma qual quer (geralmente aparece um só)
-3. O app olha o **tipo** do comando: é link, aplicativo ou plugin?
-4. O motor de execução abre da forma correta (navegador, executa o `.exe` ou roda o script)
-5. O comando é registrado no histórico para você ver depois
+1. **Busca e Ranqueamento:** O motor de busca em Rust consulta o índice FTS5 no SQLite e filtra comandos por nome, alias e tags.
+2. **Identificação do Tipo:** O executor identifica se o alvo é um **Link Web**, **Aplicativo Local** ou **Plugin**.
+3. **Despacho Assíncrono:**
+   - **Link:** Aberto no navegador padrão através da API do SO.
+   - **Aplicativo:** Executado via processo filho nativo (`std::process::Command`).
+   - **Plugin:** O runtime Python inicia o `main.py` do plugin com sua interface gráfica dedicada.
+4. **Registro no Histórico:** A execução é persistida no `toolbox.db` para compor as estatísticas de uso e atalhos recentes.
 
-Você não vê nada disso acontecer — leva milissegundos.
+---
 
-## O atalho global
+## 🏬 Descoberta e Ciclo de Vida de Plugins
 
-O `Ctrl+Space` é o atalho principal. Aperte uma vez para abrir, outra vez para fechar. O app também **se esconde sozinho** quando você clica fora dele — isso é proposital, é o jeito mais rápido de usar.
+O Toolbox integra um **Marketplace nativo**:
+- Ao abrir a aba Marketplace, o app consulta o `catalog.json` oficial hospedado no GitHub Releases.
+- A instalação ou atualização realiza o download do `.zip`, valida a integridade do pacote e o descompacta diretamente em `%APPDATA%\com.toolbox.desktop\plugins\`.
+- O novo plugin fica disponível imediatamente na barra de comandos, sem necessidade de reiniciar a aplicação.
 
-> **Dica:** se o `Ctrl+Space` atrapalha em algum outro programa, dá para trocar o atalho. Veja a página de [Configurações](#) para saber como.
+---
 
-## Os três tipos de comando
+## 🚀 Próximos Passos
 
-### Link
-É um endereço da internet (ex.: `https://github.com`). Quando você escolhe, o Toolbox abre no seu navegador padrão.
-
-### Aplicativo
-É um `.exe` instalado no seu computador (ex.: `C:\Program Files\Notepad++\notepad++.exe`). Quando você escolhe, o Toolbox executa.
-
-### Plugin
-É um script (Python, Node, Rust ou outro `.exe`) que mora na pasta `plugins\`. Quando você escolhe, o Toolbox roda esse script. Os plugins podem abrir janelas, gerar arquivos, validar dados — você decide.
-
-## Como os plugins são descobertos
-
-Você não precisa "instalar" um plugin no sentido tradicional. Basta:
-
-1. Colocar uma pasta dentro de `plugins\` (veja o [Guia de Plugins](/docs/plugins))
-2. Reiniciar o Toolbox (ou ele descobre sozinho na próxima execução)
-3. Cadastrar o plugin como um comando (veja [Como cadastrar comandos](#))
-
-O Toolbox varre a pasta `plugins\` quando abre, lê o `plugin.json` de cada subpasta e adiciona à lista de comandos.
-
-## Tema claro e escuro
-
-Aperte o botão de tema no canto superior direito para alternar. Sua escolha fica salva — o Toolbox vai lembrar na próxima vez que você abrir.
-
-## Próximos passos
-
-- [Como cadastrar comandos](/docs/commands) — adicionar links, apps e plugins
-- [Guia de Plugins](/docs/plugins) — criar seus próprios plugins
-- [Roadmap](/docs/roadmap) — o que vem por aí
+- [Como cadastrar comandos e usar o Marketplace](/docs/commands)
+- [Guia de Desenvolvimento de Plugins](/docs/plugins)
+- [Roadmap do Projeto](/docs/roadmap)

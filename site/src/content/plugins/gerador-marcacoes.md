@@ -2,14 +2,14 @@
 id: "gerador-marcacoes"
 name: "Gerador de Marcações SQL"
 description: "Gera INSERTs SQL para a tabela R070ACC compatíveis com SQL Server e Oracle. Suporta campos opcionais dinâmicos, múltiplos horários e intervalo de datas."
-version: "2.2.1"
+version: "2.5.0"
 author: "Rodrigo Lessa"
 language: "python"
 command: "gerador-marcacoes"
-icon: "table-properties"
+icon: "database"
 tags: ["sql", "banco de dados", "insert"]
-download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.2.1/gerador-marcacoes.zip"
-updated_at: "2026-08-18"
+download_url: "https://github.com/rodrigolessadev/toolbox-plugins/releases/download/gerador-marcacoes-2.5.0/gerador-marcacoes.zip"
+updated_at: "2026-08-25"
 ---
 
 # 🗄️ Gerador de Marcações SQL (R070ACC)

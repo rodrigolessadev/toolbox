@@ -36,7 +36,7 @@ export interface LatestReleaseResponse {
 
 function getRepo(): string {
   // Em produção, defina PUBLIC_GITHUB_REPO no painel da Vercel.
-  const repo = import.meta.env.PUBLIC_GITHUB_REPO || 'seu-usuario/toolbox';
+  const repo = import.meta.env.PUBLIC_GITHUB_REPO || 'rodrigolessadev/toolbox';
   return repo;
 }
 

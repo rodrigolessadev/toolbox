@@ -1,151 +1,174 @@
-# Guia de Plugins
+# Guia de Desenvolvimento de Plugins
 
 ## O que é um plugin?
 
-Um plugin é um diretório dentro de `plugins/` contendo um arquivo `plugin.json` e um entrypoint executável. O Toolbox descobre plugins dinamicamente ao iniciar — não é necessário recompilar o app.
+Um plugin é uma extensão independente que roda no ecossistema do **Toolbox**. Ele é estruturado como um diretório dentro de `plugins/` contendo um manifesto `plugin.json` e o código executável (`main.py`).
 
-## Estrutura mínima
+O Toolbox descobre plugins automaticamente na inicialização ou através do **Marketplace de Plugins integrado**, sem necessidade de recompilar a aplicação principal.
 
-```
+---
+
+## Estrutura Oficial de um Plugin (Padrão Moderno)
+
+O padrão oficial para criação de plugins com interface gráfica no ecossistema é **Python + `pywebview`** com frontend HTML/CSS/JavaScript estilizado com **Material Design 3**:
+
+```text
 plugins/
 └── meu-plugin/
-    ├── plugin.json
-    └── main.py
+    ├── plugin.json         ← Manifesto do plugin (metadados e versão)
+    ├── main.py             ← Ponto de entrada (cria janela pywebview e API bridge)
+    ├── domain.py           ← Regras de negócio e processamento puro (opcional)
+    └── ui/                 ← Interface visual (HTML, CSS, JS)
+        ├── index.html
+        ├── app.js
+        └── style.css
 ```
 
-## plugin.json
+---
+
+## Manifesto `plugin.json`
+
+O arquivo `plugin.json` identifica seu plugin para o Toolbox e para o Marketplace:
 
 ```json
 {
-  "name": "meu-plugin",
+  "name": "Meu Plugin",
   "version": "1.0.0",
-  "description": "Faz algo útil",
+  "description": "Automatiza tarefas e processamento de dados.",
   "author": "Seu Nome",
-  "entrypoint": "main.py",
-  "language": "python"
+  "language": "python",
+  "entry": "main.py",
+  "icon": "sparkles",
+  "min_toolbox_version": "1.22.3",
+  "theme_version": "material-3"
 }
 ```
 
-| Campo         | Obrigatório | Descrição |
-|---------------|-------------|-----------|
-| `name`        | sim         | Identificador único |
-| `version`     | sim         | Semver |
-| `description` | não         | Descrição curta |
-| `author`      | não         | Seu nome |
-| `entrypoint`  | sim         | Arquivo a executar (relativo à pasta) |
-| `language`    | sim         | `python` \| `node` \| `rust` \| `exe` |
+| Campo | Obrigatório | Descrição |
+|---|---|---|
+| `name` | Sim | Nome legível exibido na interface e no Marketplace |
+| `version` | Sim | Versão SemVer (ex.: `1.0.0`) |
+| `description` | Não | Descrição concisa das capacidades do plugin |
+| `author` | Não | Nome do autor/mantenedor |
+| `language` | Sim | `python` (recomendado), `node` ou `exe` |
+| `entry` | Sim | Arquivo principal de execução (ex.: `main.py`) |
+| `icon` | Não | Nome do ícone Lucide correspondente (ex.: `shield-check`, `ticket`, `file-text`) |
+| `min_toolbox_version` | Não | Versão mínima do Toolbox requerida |
+| `theme_version` | Não | Versão do tema visual (`material-3`) |
 
-## Cadastrando o plugin
+---
 
-Após criar a pasta, registre o comando no Toolbox:
+## Exemplo Completo: Plugin com Interface `pywebview` + Material 3
 
-1. Abra o app.
-2. Clique em `+`.
-3. Aba **Plugin** → informe:
-   - **Nome do comando**: ex. `meu-plugin`
-   - **Caminho**: `meu-plugin` (relativo a `plugins/`)
-4. Salvar. O Toolbox criará automaticamente a entrada em `commands.json` apontando para `plugins/meu-plugin`.
-
-## Exemplo: Python com interface
+### 1. Backend (`main.py`)
 
 ```python
 #!/usr/bin/env python3
-import tkinter as tk
-
-def open_ui():
-    root = tk.Tk()
-    root.title("Meu Plugin")
-    tk.Label(root, text="Olá!").pack(padx=20, pady=20)
-    root.mainloop()
-
-if __name__ == "__main__":
-    open_ui()
-```
-
-## Exemplo: Python CLI
-
-```python
+import os
 import sys
-import json
+import webview
+
+class PluginApi:
+    """Ponte de comunicação bidirecional entre JavaScript e Python."""
+    def processar_dados(self, texto: str) -> dict:
+        if not texto:
+            return {"success": False, "error": "Texto vazio"}
+        
+        resultado = texto.strip().upper()
+        return {"success": True, "resultado": resultado}
+
+def main():
+    ui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui")
+    index_path = os.path.join(ui_dir, "index.html")
+
+    api = PluginApi()
+    window = webview.create_window(
+        title="Meu Plugin — Toolbox",
+        url=f"file:///{index_path}",
+        js_api=api,
+        width=720,
+        height=540,
+        resizable=True,
+    )
+    webview.start(debug=False)
 
 if __name__ == "__main__":
-    print(json.dumps({"args": sys.argv[1:]}))
+    main()
 ```
 
-## Exemplo: Node.js
+### 2. Frontend (`ui/index.html`)
 
-```js
-// main.js
-console.log("Plugin Node ativo!", process.argv.slice(2));
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Meu Plugin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>✨ Meu Plugin</h1>
+      <p>Transformador e processador rápido de texto</p>
+    </header>
+
+    <main class="content">
+      <textarea id="inputTexto" placeholder="Digite seu texto aqui..."></textarea>
+      <div class="actions">
+        <button id="btnProcessar" class="btn btn-primary">Processar</button>
+      </div>
+      <div id="saida" class="resultado"></div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
 ```
 
-`plugin.json`:
-```json
-{
-  "name": "node-plugin",
-  "entrypoint": "main.js",
-  "language": "node",
-  "version": "1.0.0"
-}
+### 3. JavaScript (`ui/app.js`)
+
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('inputTexto');
+  const btn = document.getElementById('btnProcessar');
+  const saida = document.getElementById('saida');
+
+  btn.addEventListener('click', async () => {
+    const texto = input.value;
+    try {
+      // Chama método Python exposto em PluginApi
+      const resp = await window.pywebview.api.processar_dados(texto);
+      if (resp.success) {
+        saida.textContent = resp.resultado;
+      } else {
+        saida.textContent = `Erro: ${resp.error}`;
+      }
+    } catch (err) {
+      saida.textContent = `Falha na comunicação: ${err}`;
+    }
+  });
+});
 ```
 
-## Exemplo: binário Rust pré-compilado
+---
 
-`plugin.json`:
-```json
-{
-  "name": "fast-plugin",
-  "entrypoint": "target/release/fast-plugin.exe",
-  "language": "rust",
-  "version": "1.0.0"
-}
-```
+## 🗄️ Persistência & Banco de Dados Central
 
-## Exemplo: binário Windows
+Se o seu plugin necessita armazenar histórico, configurações ou entidades estruturadas:
 
-`plugin.json`:
-```json
-{
-  "name": "custom-tool",
-  "entrypoint": "tool.exe",
-  "language": "exe",
-  "version": "1.0.0"
-}
-```
+- **Regra do Ecossistema:** Os plugins **não criam arquivos de banco próprios**.
+- Toda persistência estruturada é unificada no **SQLite Central do Toolbox**, localizado em:
+  ```text
+  %APPDATA%\com.toolbox.desktop\toolbox.db
+  ```
+- No Linux/macOS, o fallback reside em `~/.toolbox/toolbox.db`.
 
-## Boas práticas
+---
 
-1. **Não bloqueie a toolbox**: abra uma janela ou termine rápido.
-2. **Use `cwd = pasta do plugin`**: o Toolbox já configura isso; seus arquivos relativos funcionam.
-3. **Valide argumentos**: parse `sys.argv` com cuidado.
-4. **Logs**: escreva em arquivo dentro de `logs/` se precisar de histórico.
-5. **Ícones**: a UI usa emoji por padrão; você pode passar um ícone no `commands.json`.
+## 🚀 Como Distribuir e Publicar
 
-## Comandos disponíveis por plugin
-
-| Linguagem | Comando executado |
-|-----------|-------------------|
-| `python`  | `python main.py` (fallback: `python3`, `py`) |
-| `node`    | `node main.js` |
-| `rust`    | `<name>.exe` (PATH) |
-| `exe`     | `<entrypoint>` direto |
-
-## Erros comuns
-
-- **Plugin não encontrado** — o `path` em `commands.json` deve corresponder à pasta dentro de `plugins/` ou um caminho absoluto.
-- **Python não instalado** — o Toolbox procura `python`, depois `python3`, depois `py`. Instale um deles e garanta que está no PATH.
-- **Permissões** — no Linux/macOS, plugins Python precisam de `chmod +x` se iniciarem diretamente.
-
-## Recebendo argumentos da toolbox
-
-Por padrão, o Toolbox **não** passa argumentos. Se quiser, leia-os do `commands.json` no frontend (campo `args`) — essa feature é roadmap.
-
-Para um plugin CLI, basta ler `sys.argv`.
-
-## Empacotando plugins
-
-Distribua a pasta do plugin em um arquivo `.zip`. O usuário descompacta dentro de `plugins/` e reinicia o Toolbox (ou ele descobre na próxima execução).
-
-## Templates
-
-Veja `plugins/_template/` para um ponto de partida.
+1. **Empacotamento:** O plugin é distribuído como um arquivo `.zip` contendo todos os seus arquivos internos (`main.py`, `plugin.json`, `ui/`, etc.).
+2. **Marketplace:** Ao publicar a release no GitHub, inclua o zip nos assets e registre a nova versão no `catalog.json` oficial.
+3. **Instalação pelo Usuário:** No Toolbox, o usuário acessa a aba **Marketplace**, clica em **Instalar/Atualizar** e o plugin é baixado e ativado imediatamente.

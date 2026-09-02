@@ -1,112 +1,63 @@
 ---
-title: "Como cadastrar comandos"
-description: "Passo a passo para adicionar links, aplicativos e plugins ao Toolbox."
+title: "Como cadastrar comandos e usar o Marketplace"
+description: "Passo a passo para adicionar links, aplicativos e gerenciar plugins no Toolbox."
 ---
 
-O Toolbox tem três tipos de comando: **link** (site), **aplicativo** (programa no seu PC) e **plugin** (script). Esta página mostra como cadastrar cada um.
+O Toolbox permite executar três tipos principais de recursos: **links** (sites), **aplicativos** (executáveis locais) e **plugins** (extensões integradas).
 
-## Onde fica o botão de cadastrar
+---
 
-1. Abra o Toolbox apertando `Ctrl+Space`
-2. No canto superior direito, clique no botão **+** (mais)
-3. Uma janelinha com três abas abre: **Link**, **Aplicativo** e **Plugin**
+## 🏬 Como Instalar Plugins via Marketplace
 
-![Botão + no canto superior direito](#)
+O jeito mais simples e rápido de estender o Toolbox é através do **Marketplace de Plugins nativo**:
 
-## Como cadastrar um link (site)
+1. Abra o Toolbox apertando `Ctrl + Space`.
+2. Acesse a aba **Marketplace** no topo da janela.
+3. Navegue pela lista de plugins oficiais (ou use a barra de pesquisa para filtrar por nome/tag).
+4. Clique no botão **Instalar / Atualizar**.
+5. O Toolbox baixa o pacote, valida sua integridade e disponibiliza o comando imediatamente para uso.
 
-Use quando quiser abrir um site com um atalho. Exemplos: abrir o GitHub, abrir o WhatsApp Web, abrir a busca do Google.
+---
 
-1. Clique no botão **+**
-2. Fique na aba **Link**
-3. Preencha:
-   - **Nome do comando** — como você quer chamar. Ex.: `github`, `whats`, `gmail`
-   - **URL** — o endereço completo. Ex.: `https://github.com`
-   - **Ícone** *(opcional)* — um emoji para facilitar a busca visual. Ex.: 🐙
-4. Clique em **Salvar**
+## ➕ Como Cadastrar Links e Aplicativos Manuais
 
-Pronto. Agora aperte `Ctrl+Space`, digite `github` e o site abre no seu navegador padrão.
+Para adicionar atalhos customizados para a internet ou programas locais:
 
-> **Dica:** use nomes curtos. Em vez de `abrir-github`, prefira `github` ou `gh` — você digita menos.
+1. Abra o Toolbox (`Ctrl + Space`).
+2. No canto superior direito, clique no botão **+** (Adicionar Comando).
+3. Selecione a aba correspondente ao tipo de comando:
 
-## Como cadastrar um aplicativo
+### 1. Cadastrando um Link (Web)
+- **Nome do comando:** O termo que você digitará na busca (ex.: `github`, `jira`, `gmail`).
+- **URL:** O endereço web completo (ex.: `https://github.com`).
+- **Ícone:** Emoji ou identificador visual para localização rápida.
+- Clique em **Salvar**.
 
-Use quando quiser abrir um programa que já está instalado no seu Windows. Exemplos: Notepad++, VS Code, Calculadora, Spotify.
+### 2. Cadastrando um Aplicativo (.exe)
+- **Nome do comando:** Termo de ativação (ex.: `code`, `dbeaver`, `notepad`).
+- **Caminho do executável:** Localização do arquivo no disco (ex.: `C:\Program Files\Notepad++\notepad++.exe`).
+- **Argumentos** *(opcional)*: Parâmetros de linha de comando para o aplicativo.
+- Clique em **Salvar**.
 
-1. Clique no botão **+**
-2. Mude para a aba **Aplicativo**
-3. Preencha:
-   - **Nome do comando** — como você quer chamar. Ex.: `code` para abrir o VS Code
-   - **Caminho do executável** — onde está o `.exe`. Ex.: `C:\Users\SeuNome\AppData\Local\Programs\Microsoft VS Code\Code.exe`
-   - **Argumentos** *(opcional)* — flags para passar ao programa. Ex.: `--new-window`
-   - **Ícone** *(opcional)* — emoji
-4. Clique em **Salvar**
+> [!TIP]
+> **Como copiar o caminho do .exe rapidamente:** No menu Iniciar ou na Área de Trabalho, clique com o botão direito no programa e selecione **"Copiar como caminho"** (`Ctrl + Shift + C`).
 
-### Como descobrir o caminho do .exe
+---
 
-O jeito mais fácil:
+## ✏️ Editando, Favoritando e Removendo Comandos
 
-1. Clique com o botão direito no ícone do programa na área de trabalho ou no menu Iniciar
-2. Escolha **"Abrir local do arquivo"** (ou **"Mais → Abrir local do arquivo"**)
-3. Clique com o botão direito no `.exe` e escolha **"Copiar como caminho"**
-4. Cole no campo **Caminho do executável** do Toolbox
+- **Favoritar (Fixar no topo):** Clique no ícone de **estrela** ao lado do comando. Os favoritos são priorizados automaticamente no topo dos resultados.
+- **Editar:** Passe o mouse sobre o comando e clique no ícone de **lápis** para alterar URL, argumentos ou ícone.
+- **Remover:** Clique no ícone de **lixeira** e confirme para excluir o atalho.
 
-> **Atalho:** se você mantém o programa fixo na barra de tarefas, segure `Shift` e clique com o botão direito no ícone — aparece a opção **"Copiar como caminho"** direto.
+---
 
-## Como cadastrar um plugin
+## 🗄️ Onde os Dados Ficam Salvos
 
-Você precisa ter um plugin já criado na pasta `plugins\` antes de cadastrá-lo. Se ainda não tem, veja o [Guia de Plugins](/docs/plugins).
+Todos os comandos, histórico de execuções com busca FTS5 e configurações são persistidos de forma segura no banco de dados SQLite Central:
 
-1. Clique no botão **+**
-2. Mude para a aba **Plugin**
-3. Preencha:
-   - **Nome do comando** — como você quer chamar. Ex.: `cpf`, `gerar-json`
-   - **Caminho** — o nome da pasta do plugin. Ex.: `cpf` (deve corresponder à pasta dentro de `plugins\`)
-4. Clique em **Salvar**
-
-## Editando e removendo comandos
-
-Para **editar** um comando já existente:
-
-1. Passe o mouse por cima do comando na lista
-2. Clique no ícone de **lápis** que aparece
-3. Altere o que quiser
-4. Clique em **Salvar**
-
-Para **remover**:
-
-1. Passe o mouse por cima do comando
-2. Clique no ícone de **lixeira**
-3. Confirme a remoção
-
-Para **favoritar** (deixar sempre no topo):
-
-- Clique na **estrela** que aparece quando você passa o mouse em cima
-
-## Importando e exportando comandos
-
-Se você usa o Toolbox em mais de um computador (trabalho e casa, por exemplo), pode levar sua lista com você.
-
-1. Abra o Toolbox
-2. Clique no ícone de **engrenagem** (configurações)
-3. Use **Exportar JSON** para baixar um arquivo com todos os seus comandos
-4. No outro computador, abra as configurações e use **Importar JSON** para carregar
-
-O arquivo exportado contém apenas os comandos — os plugins precisam ser instalados separadamente em cada máquina.
-
-## Onde os comandos ficam salvos
-
-Sua lista fica em:
-
-```
-C:\Users\SeuNome\AppData\Roaming\Toolbox\commands.json
+```text
+%APPDATA%\com.toolbox.desktop\toolbox.db
 ```
 
-Pode abrir esse arquivo em qualquer editor de texto para ver (e editar) à mão se preferir. O formato é JSON simples.
-
-## Dicas
-
-- **Use ícones diferentes para cada tipo**: 🐙 para sites, ⚙️ para apps, 🧩 para plugins. Facilita achar visualmente.
-- **Agrupe por prefixo**: tudo que abre no navegador começa com a mesma letra, ou use prefixos como `w-` (web) e `app-`.
-- **Mantenha nomes curtos** — você digita toda vez.
-- **Não duplique comandos** que já existem como atalho do Windows. O Toolbox é para o que **não tem** atalho.
+Os dados contam com integridade referencial, transações ACID e backup simplificado.
