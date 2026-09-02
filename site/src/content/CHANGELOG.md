@@ -1,3 +1,11 @@
+## v1.32.4 - 2026-09-02
+
+### Toolbox v1.22.4
+- **docs:** Atualiza e expande o catálogo oficial do site com páginas dedicadas para os plugins `safe`, `markdown-viewer`, `novo-ticket` e `logon-aws`.
+- **docs:** Moderniza os guias de desenvolvimento de plugins com o template oficial `pywebview` e tokens Material Design 3.
+- **docs:** Atualiza a documentação de arquitetura destacando o Marketplace integrado e a persistência no SQLite Central (`%APPDATA%\com.toolbox.desktop\toolbox.db`).
+- **fix:** Corrige fallbacks de repositório e links de download do GitHub no portal estático.
+
 ## v1.32.3 - 2026-08-28
 
 ### 🐛 Correções de Bugs (Bug Fixes)

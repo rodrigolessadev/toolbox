@@ -1,13 +1,12 @@
-## v1.32.4 - 2026-08-28 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.4/Toolbox_1.32.4_x64-setup.exe)
+## v1.32.4 - 2026-09-02 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.4/Toolbox_1.32.4_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
 
-### 📚 Documentação & Guias Técnicos
-- **Revisão e Atualização Completa da Documentação Técnica (#108):**
-  - **README.md e Guias de Setup:** Padronização de comandos com `npm`, correção de links para `docs/` e documentação detalhada dos pré-requisitos de compilação no Windows (C++ Build Tools, WebView2 e Rust).
-  - **Arquitetura & Módulos Modernos:** Atualização de `docs/ARCHITECTURE.md` para incluir a arquitetura de comandos do sistema (`system_commands.rs`), cache local SQLite (`storage.rs`) e o fluxo de segurança do Marketplace.
-  - **Guia de Desenvolvimento de Plugins:** Atualização de `docs/PLUGIN_GUIDE.md` para refletir o ecossistema desacoplado `toolbox-plugins`, interfaces modernas em Pywebview com temas Material 3 e protocolo IPC.
-  - **Roadmap e Evolução:** Atualização de `docs/FUTURE.md` consolidando entregas recentes e novos horizontes para o projeto.
+### Toolbox v1.22.4
+- **docs:** Atualiza e expande o catálogo oficial do site com páginas dedicadas para os plugins `safe`, `markdown-viewer`, `novo-ticket` e `logon-aws`.
+- **docs:** Moderniza os guias de desenvolvimento de plugins com o template oficial `pywebview` e tokens Material Design 3.
+- **docs:** Atualiza a documentação de arquitetura destacando o Marketplace integrado e a persistência no SQLite Central (`%APPDATA%\com.toolbox.desktop\toolbox.db`).
+- **fix:** Corrige fallbacks de repositório e links de download do GitHub no portal estático.
 
 </details>
 
