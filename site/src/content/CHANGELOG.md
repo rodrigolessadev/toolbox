@@ -1,3 +1,11 @@
+## v1.32.5 - 2026-09-02
+
+### Toolbox v1.32.5
+
+#### 🐛 Correções & Melhorias no Portal
+- **Resolução de SSR na página `/download`:** Eliminada a falha de loopback de rede (`fetch failed`) no Server-Side Rendering em ambiente Vercel/serverless ao substituir a requisição HTTP interna pela importação e invocação direta da função `fetchAllReleases(30)`.
+- **Estabilidade na Exibição de Releases:** O portal agora renderiza a listagem completa de versões e instaladores de forma nativa e resiliente sem intermitência de rede.
+
 ## v1.32.4 - 2026-09-02
 
 ### Toolbox v1.22.4
