@@ -24,42 +24,64 @@ pub fn check_runtime(app: Option<&tauri::AppHandle>, name: &str) -> RuntimeInfo 
     }
 }
 
-pub fn get_python_executable(app: Option<&tauri::AppHandle>) -> (PathBuf, bool, Option<String>) {
-    // 1. Verificar diretórios de runtime embutido se AppHandle estiver presente
-    if let Some(app_handle) = app {
-        // A. Diretório de recursos do bundle do Tauri (instalador NSIS / MSI)
-        if let Ok(res_dir) = app_handle.path().resource_dir() {
-            let candidate1 = res_dir.join("runtime").join("python").join("python.exe");
-            if candidate1.exists() {
-                let ver = get_version_from_bin(&candidate1);
-                return (candidate1, true, ver);
-            }
-            let candidate2 = res_dir.join("resources").join("runtime").join("python").join("python.exe");
-            if candidate2.exists() {
-                let ver = get_version_from_bin(&candidate2);
-                return (candidate2, true, ver);
-            }
-        }
-
-        // B. Diretório de dados do app (ex: AppData/com.toolbox.desktop/runtime/python)
-        let app_data_runtime = crate::paths::data_dir(app_handle)
-            .join("runtime")
-            .join("python")
-            .join("python.exe");
-        if app_data_runtime.exists() {
-            let ver = get_version_from_bin(&app_data_runtime);
-            return (app_data_runtime, true, ver);
+fn find_python_in_dir(dir: &Path) -> Option<PathBuf> {
+    // Windows embedded / standalone: python.exe ou python/python.exe
+    let win_candidates = [
+        dir.join("python.exe"),
+        dir.join("python").join("python.exe"),
+    ];
+    for c in &win_candidates {
+        if c.exists() {
+            return Some(c.clone());
         }
     }
 
-    // 2. Diretório local relativo de desenvolvimento (ex: ./resources/runtime/python/python.exe)
-    let local_dev_candidate = PathBuf::from("resources")
-        .join("runtime")
-        .join("python")
-        .join("python.exe");
-    if local_dev_candidate.exists() {
-        let ver = get_version_from_bin(&local_dev_candidate);
-        return (local_dev_candidate, true, ver);
+    // Linux standalone: bin/python3, bin/python, python3, python
+    let linux_candidates = [
+        dir.join("bin").join("python3"),
+        dir.join("bin").join("python"),
+        dir.join("python").join("bin").join("python3"),
+        dir.join("python").join("bin").join("python"),
+        dir.join("python3"),
+        dir.join("python"),
+    ];
+    for c in &linux_candidates {
+        if c.exists() {
+            return Some(c.clone());
+        }
+    }
+
+    None
+}
+
+pub fn get_python_executable(app: Option<&tauri::AppHandle>) -> (PathBuf, bool, Option<String>) {
+    // 1. Verificar diretórios de runtime embutido se AppHandle estiver presente
+    if let Some(app_handle) = app {
+        // A. Diretório de recursos do bundle do Tauri (instalador NSIS / MSI / Deb / AppImage)
+        if let Ok(res_dir) = app_handle.path().resource_dir() {
+            if let Some(bin) = find_python_in_dir(&res_dir.join("runtime")) {
+                let ver = get_version_from_bin(&bin);
+                return (bin, true, ver);
+            }
+            if let Some(bin) = find_python_in_dir(&res_dir.join("resources").join("runtime")) {
+                let ver = get_version_from_bin(&bin);
+                return (bin, true, ver);
+            }
+        }
+
+        // B. Diretório de dados do app (ex: ~/.local/share/com.toolbox.desktop/runtime ou AppData/com.toolbox.desktop/runtime)
+        let app_data_runtime = crate::paths::data_dir(app_handle).join("runtime");
+        if let Some(bin) = find_python_in_dir(&app_data_runtime) {
+            let ver = get_version_from_bin(&bin);
+            return (bin, true, ver);
+        }
+    }
+
+    // 2. Diretório local relativo de desenvolvimento (ex: ./resources/runtime/python)
+    let local_dev_candidate = PathBuf::from("resources").join("runtime");
+    if let Some(bin) = find_python_in_dir(&local_dev_candidate) {
+        let ver = get_version_from_bin(&bin);
+        return (bin, true, ver);
     }
 
     // 3. Fallback: buscar executáveis no PATH global do sistema
@@ -207,5 +229,22 @@ mod tests {
             assert_eq!(info.available, true);
             assert_eq!(info.is_embedded, is_embedded);
         }
+    }
+
+    #[test]
+    fn test_find_python_in_dir_candidates() {
+        let temp_dir = std::env::temp_dir().join("toolbox_test_python_candidates");
+        let _ = std::fs::remove_dir_all(&temp_dir);
+
+        // Cenário 1: Linux bin/python3
+        let bin_dir = temp_dir.join("bin");
+        std::fs::create_dir_all(&bin_dir).unwrap();
+        let py_bin = bin_dir.join("python3");
+        std::fs::write(&py_bin, "").unwrap();
+
+        let found = find_python_in_dir(&temp_dir);
+        assert_eq!(found, Some(py_bin));
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
     }
 }

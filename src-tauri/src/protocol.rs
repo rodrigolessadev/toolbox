@@ -174,7 +174,32 @@ pub fn run_protocol_plugin(
 
     let mut cmd = match manifest.language.as_str() {
         "python" => {
-            let mut c = Command::new("python");
+            let (python_bin, is_embedded, _) = crate::runtimes::get_python_executable(Some(app));
+            let mut c = Command::new(&python_bin);
+            if is_embedded {
+                let root_dir = if python_bin.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()) == Some("bin") {
+                    python_bin.parent().and_then(|p| p.parent()).unwrap_or_else(|| python_bin.parent().unwrap())
+                } else {
+                    python_bin.parent().unwrap_or(std::path::Path::new("."))
+                };
+
+                let win_sp = root_dir.join("Lib").join("site-packages");
+                if win_sp.exists() {
+                    c.env("PYTHONPATH", &win_sp);
+                } else {
+                    let lib_dir = root_dir.join("lib");
+                    if let Ok(entries) = std::fs::read_dir(&lib_dir) {
+                        for entry in entries.flatten() {
+                            let sp = entry.path().join("site-packages");
+                            if sp.exists() {
+                                c.env("PYTHONPATH", &sp);
+                                break;
+                            }
+                        }
+                    }
+                }
+                c.env("PYTHONHOME", root_dir);
+            }
             c.arg(&entry_path);
             c
         }

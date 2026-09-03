@@ -12,6 +12,21 @@ Este documento reúne os passos para configurar o ambiente de desenvolvimento lo
 - **Windows (C++ Build Tools)**:
   - Instale o *Visual Studio Build Tools* selecionando a carga de trabalho "Desenvolvimento para Desktop com C++".
   - WebView2 Runtime (geralmente pré-instalado no Windows 10/11).
+- **Linux (Debian / Ubuntu / WSL2)**:
+  - Instale as bibliotecas necessárias para WebKitGTK e AppIndicator:
+    ```bash
+    sudo apt-get update && sudo apt-get install -y \
+      libwebkit2gtk-4.1-dev \
+      libappindicator3-dev \
+      librsvg2-dev \
+      patchelf \
+      build-essential \
+      curl \
+      wget \
+      file \
+      libssl-dev \
+      libgtk-3-dev
+    ```
 
 ### Instalação e Execução
 
@@ -26,8 +41,12 @@ npm install
 # Iniciar em modo de desenvolvimento (Frontend Vite + Backend Rust / Tauri)
 npm run tauri dev
 
-# Para compilar o instalador nativo (.exe / .msi)
+# Para compilar o instalador nativo no Windows (.exe / .msi) ou Linux (.deb / .AppImage)
 npm run tauri build
+
+# No Linux, para gerar especificamente o pacote .deb ou .AppImage:
+npm run tauri build -- --bundles deb
+npm run tauri build -- --bundles appimage
 ```
 
 ---

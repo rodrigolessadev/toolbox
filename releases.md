@@ -1,3 +1,21 @@
+## v1.33.0 - 2026-09-03 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.0/Toolbox_1.33.0_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.0
+
+#### 🚀 Funcionalidades & Empacotamento Linux (Closes #122)
+- **Suporte ao Empacotamento Linux (`.deb` / `AppImage`):**
+  - Habilitados os alvos `"deb"` e `"appimage"` no `tauri.conf.json` com dependências de sistema (`libwebkit2gtk`, `libgtk-3`, `libappindicator3`).
+  - Metadados semânticos e desktop entry configurados para distribuições Linux e WSL2 (WSLg).
+- **Paridade Multiplataforma de Runtimes para Plugins:**
+  - O resolvedor de runtimes (`runtimes.rs`) agora detecta automaticamente estruturas de runtime isolado tanto no Windows (`python.exe`) quanto no Linux (`bin/python3`, `bin/python`, `python3`).
+  - O orquestrador de plugins (`executor.rs` e `protocol.rs`) abstrai as árvores de `site-packages` para Windows (`Lib/site-packages`) e Linux (`lib/python*/site-packages`), garantindo que plugins executem sem necessidade de instalações adicionais no sistema operacional.
+- **Documentação de Setup Atualizada:**
+  - Guia `docs/setup.md` expandido com pré-requisitos de compilação para Debian/Ubuntu/WSL2.
+
+</details>
+
 ## v1.32.5 - 2026-09-02 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.5/Toolbox_1.32.5_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
