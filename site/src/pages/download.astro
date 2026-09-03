@@ -65,14 +65,23 @@ try {
               {rel.assets.length === 0 && (
                 <li class="empty-assets">Nenhum asset anexado a esta release.</li>
               )}
-              {rel.assets.map((asset) => (
-                <li>
-                  <a href={asset.url} ...>
-                    <span class="asset-name">⬇ {asset.name}</span>
-                     <span class="asset-size">{formatBytes(asset.size)}</span>
-                </a>
-                </li>
-              ))}
+              {rel.assets.map((asset) => {
+                const isDeb = asset.name.endsWith('.deb');
+                const isAppImage = asset.name.toLowerCase().endsWith('.appimage');
+                const isExe = asset.name.toLowerCase().endsWith('.exe');
+                const isMsi = asset.name.toLowerCase().endsWith('.msi');
+                const badge = isDeb ? '🐧 Linux DEB' : (isAppImage ? '🐧 Linux AppImage' : (isExe ? '🪟 Windows Setup' : (isMsi ? '🪟 Windows MSI' : '📦 Arquivo')));
+
+                return (
+                  <li>
+                    <a href={asset.browser_download_url} rel="noopener noreferrer">
+                      <span class="asset-name">⬇ {asset.name}</span>
+                      <span style="font-size: 11px; opacity: 0.8; margin-left: 8px;">{badge}</span>
+                      <span class="asset-size">{formatBytes(asset.size)}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </article>
         ))}

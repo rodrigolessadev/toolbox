@@ -29,7 +29,11 @@ export interface LatestReleaseResponse {
   published_at: string;
   html_url: string;
   body: string;
-  installer: ReleaseAsset | null;
+  installer: ReleaseAsset | null; // default windows exe
+  windows_installer: ReleaseAsset | null;
+  windows_msi: ReleaseAsset | null;
+  linux_deb: ReleaseAsset | null;
+  linux_appimage: ReleaseAsset | null;
   size_mb: number;
   all_assets: ReleaseAsset[];
 }
@@ -53,12 +57,25 @@ export async function fetchLatestRelease(): Promise<LatestReleaseResponse | null
 
   const data: Release = await res.json();
 
-  // Preferir o instalador Windows; cair para o primeiro asset.
-  const installer =
+  const windows_installer =
     data.assets.find((a) => /setup.*\.exe$/i.test(a.name)) ||
     data.assets.find((a) => /\.exe$/i.test(a.name)) ||
-    data.assets[0] ||
     null;
+
+  const windows_msi =
+    data.assets.find((a) => /\.msi$/i.test(a.name)) ||
+    null;
+
+  const linux_deb =
+    data.assets.find((a) => /\.deb$/i.test(a.name)) ||
+    null;
+
+  const linux_appimage =
+    data.assets.find((a) => /\.appimage$/i.test(a.name)) ||
+    null;
+
+  // Preferir o instalador Windows; cair para o primeiro asset.
+  const installer = windows_installer || data.assets[0] || null;
 
   return {
     tag: data.tag_name,
@@ -67,6 +84,10 @@ export async function fetchLatestRelease(): Promise<LatestReleaseResponse | null
     html_url: data.html_url,
     body: data.body,
     installer,
+    windows_installer,
+    windows_msi,
+    linux_deb,
+    linux_appimage,
     size_mb: installer ? +(installer.size / 1024 / 1024).toFixed(2) : 0,
     all_assets: data.assets,
   };

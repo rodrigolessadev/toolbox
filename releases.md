@@ -21,7 +21,15 @@
   - No Linux via AppImage, aplica a atualização in-place automaticamente.
   - No Linux via `.deb` ou WSL2, faz download do pacote `.deb` para pasta temporária e fornece o comando pronto (`sudo dpkg -i ...`) com cópia automática para a Área de Transferência.
 - **Feedback Visual Aprimorado no Frontend (`App.tsx`):**
-  - Notificações de Toast contextuais informando o status exato e instrução de comando no terminal de acordo com a plataforma.
+#### 🌐 Portal Web & Downloads Linux (Closes #124)
+- **Detecção de Plataforma no Botão de Download (`DownloadButton.tsx`):**
+  - Usuários acessando via Linux veem como ação principal o download do pacote `.deb` e links alternativos para `.AppImage` e `.exe`.
+  - Usuários em Windows continuam com o instalador `.exe` priorizado e opções para `.msi`.
+- **Snippet de Terminal One-Liner (`InstallTerminal.tsx` & `install.sh`):**
+  - Adicionado componente interativo de terminal na landing page permitindo copiar com 1 clique o comando de instalação para Linux/WSL2 (`curl -fsSL ... | bash`).
+  - Disponibilizado o script `install.sh` na pasta pública do portal.
+- **Categorização Visual na Página de Downloads (`download.astro`):**
+  - Badges semânticos por sistema operacional para cada artefato de release (Linux DEB, Linux AppImage, Windows Setup, Windows MSI).
 
 </details>
 
