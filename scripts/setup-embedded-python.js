@@ -168,7 +168,19 @@ function validateEmbeddedPython(targetDir) {
 }
 
 async function main() {
-  log(`=== Iniciando montagem do Python Embedded v${PYTHON_VERSION} ===`);
+  log(`=== Iniciando verificação de runtime para a plataforma: ${process.platform} ===`);
+  
+  if (process.platform !== 'win32') {
+    log('Ambiente Linux/Unix detectado.');
+    log('No Linux, o Toolbox utiliza o Python nativo do sistema ou runtime local em bin/python3.');
+    if (!fs.existsSync(TARGET_DIR)) {
+      fs.mkdirSync(TARGET_DIR, { recursive: true });
+    }
+    log('✔ Estrutura de runtime pronta para empacotamento Linux.');
+    return;
+  }
+
+  log(`=== Iniciando montagem do Python Embedded v${PYTHON_VERSION} (Windows) ===`);
   const pythonExe = path.join(TARGET_DIR, 'python.exe');
   const pywebviewDir = path.join(SITE_PACKAGES_DIR, 'webview');
 
