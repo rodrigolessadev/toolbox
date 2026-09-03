@@ -272,12 +272,46 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     run_raw_executable(&path, &ext, entry.args.as_deref(), run_as_admin)
 }
 
+pub fn run_windows_command_in_wsl(
+    path: &str,
+    ext: &str,
+    raw_args: Option<&str>,
+) -> Result<RunResult, String> {
+    let win_target = if path.ends_with(".exe") || (path.len() >= 3 && path.as_bytes()[1] == b':') {
+        path.to_string()
+    } else if matches!(ext, "bat" | "cmd" | "ps1" | "msc" | "cpl") {
+        path.to_string()
+    } else {
+        format!("{}.exe", path)
+    };
+
+    let mut c = std::process::Command::new("cmd.exe");
+    let mut cmd_line = format!("/c start \"\" \"{}\"", win_target);
+    if let Some(args) = raw_args {
+        let trimmed = args.trim();
+        if !trimmed.is_empty() {
+            cmd_line.push(' ');
+            cmd_line.push_str(trimmed);
+        }
+    }
+    c.arg(cmd_line);
+    c.spawn().map_err(|e| format!("Falha ao invocar comando Windows via WSL Interop: {}", e))?;
+
+    Ok(RunResult {
+        ok: true,
+        message: Some(format!("Comando Windows disparado via WSL: {}", path)),
+    })
+}
+
 pub fn run_raw_executable(
     path: &str,
     ext: &str,
     raw_args: Option<&str>,
     run_as_admin: bool,
 ) -> Result<RunResult, String> {
+    if crate::wsl::is_wsl() && crate::wsl::is_windows_command(path, ext) {
+        return run_windows_command_in_wsl(path, ext, raw_args);
+    }
     if run_as_admin {
         #[cfg(target_os = "windows")]
         {

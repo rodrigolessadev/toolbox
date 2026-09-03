@@ -13,6 +13,7 @@ pub mod plugin;
 pub mod protocol;
 pub mod runtimes;
 pub mod system_commands;
+pub mod wsl;
 
 
 use commands_store::CommandStore;
@@ -229,6 +230,8 @@ pub fn run() {
             );
 
             let app_handle = app.handle().clone();
+            crate::wsl::start_wsl_focus_listener(app_handle.clone());
+
             if let Err(e) = app.global_shortcut().on_shortcut(
                 shortcut,
                 move |_app, _scut, event| {
