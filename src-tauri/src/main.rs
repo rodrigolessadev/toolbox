@@ -11,6 +11,9 @@ fn main() {
         if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
         }
+        if std::env::var("WEBKIT_FORCE_SANDBOX").is_err() {
+            std::env::set_var("WEBKIT_FORCE_SANDBOX", "0");
+        }
     }
 
     toolbox_lib::run()

@@ -1,7 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { invoke } from "@tauri-apps/api/core";
 import App from "./App";
 import "./styles/global.css";
+
+// Grava no log central de arquivo a inicialização do frontend
+invoke("log_event", { level: "info", target: "frontend", message: "Frontend inicializado e montando ReactDOM..." }).catch(() => {});
+
+window.addEventListener("error", (event) => {
+  invoke("log_event", { level: "error", target: "frontend:uncaught_error", message: `${event.message} at ${event.filename}:${event.lineno}` }).catch(() => {});
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  invoke("log_event", { level: "error", target: "frontend:unhandled_rejection", message: String(event.reason) }).catch(() => {});
+});
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },

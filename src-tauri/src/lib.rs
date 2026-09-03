@@ -230,6 +230,9 @@ pub fn run() {
         if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
         }
+        if std::env::var("WEBKIT_FORCE_SANDBOX").is_err() {
+            std::env::set_var("WEBKIT_FORCE_SANDBOX", "0");
+        }
     }
 
     tauri::Builder::default()
@@ -241,6 +244,14 @@ pub fn run() {
             // Inicializa o logger de arquivo com o diretório resolvido pelo AppHandle
             let logs_path = paths::logs_dir(app.handle());
             logger::init(logs_path);
+
+            #[cfg(target_os = "linux")]
+            log::info!(
+                "[Linux Runtime] WEBKIT_DISABLE_DMABUF_RENDERER={:?}, WEBKIT_DISABLE_COMPOSITING_MODE={:?}, WEBKIT_FORCE_SANDBOX={:?}",
+                std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").ok(),
+                std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").ok(),
+                std::env::var("WEBKIT_FORCE_SANDBOX").ok()
+            );
 
             // Garante que o diretório de dados existe
             let data_dir = paths::data_dir(app.handle());
