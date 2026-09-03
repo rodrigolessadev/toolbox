@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import DownloadButton from '../components/DownloadButton.tsx';
+import InstallTerminal from '../components/InstallTerminal.tsx';
 import FeatureCard from '../components/FeatureCard.astro';
 import { SITE } from '../lib/site';
 
@@ -43,7 +44,7 @@ const features = [
   <section class="hero">
     <div class="hero-text">
       <span class="badge">v1.22+ · Tauri 2 + Rust + React</span>
-      <h1>Launcher inteligente para Windows com sistema de <span class="accent">plugins</span></h1>
+      <h1>Launcher inteligente para Windows & Linux com sistema de <span class="accent">plugins</span></h1>
       <p class="lead">
         {SITE.description}
       </p>
@@ -56,6 +57,7 @@ const features = [
           ⭐ Ver no GitHub
         </a>
       </div>
+      <InstallTerminal client:load />
     </div>
     <div class="hero-art">
       <CommandPalette />
