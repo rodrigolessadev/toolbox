@@ -58,6 +58,7 @@ graphify-out/
 .geminiignore
 .claude/*
 .codebuddy/*
+.cursor/
 .cursorrules
 .gemini/*
 .github/code-review-graph.instruction.md
