@@ -14,6 +14,15 @@
 - **Documentação de Setup Atualizada:**
   - Guia `docs/setup.md` expandido com pré-requisitos de compilação para Debian/Ubuntu/WSL2.
 
+#### 🔄 Fluxo Contextual de Atualização por Sistema Operacional (Closes #123)
+- **Inteligência de Ambiente no Updater (`lib.rs` & `api.ts`):**
+  - O comando `install_update` agora retorna um payload estruturado `InstallUpdateResult` diferenciando Windows, Linux AppImage e Linux Deb/WSL2.
+  - No Windows, mantém a elevação UAC para atualização do instalador em `Program Files`.
+  - No Linux via AppImage, aplica a atualização in-place automaticamente.
+  - No Linux via `.deb` ou WSL2, faz download do pacote `.deb` para pasta temporária e fornece o comando pronto (`sudo dpkg -i ...`) com cópia automática para a Área de Transferência.
+- **Feedback Visual Aprimorado no Frontend (`App.tsx`):**
+  - Notificações de Toast contextuais informando o status exato e instrução de comando no terminal de acordo com a plataforma.
+
 </details>
 
 ## v1.32.5 - 2026-09-02 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.32.5/Toolbox_1.32.5_x64-setup.exe)

@@ -122,6 +122,13 @@ export interface UpdateCheckResult {
   body?: string | null;
 }
 
+export interface InstallUpdateResult {
+  success: boolean;
+  message: string;
+  platform: "windows" | "linux_appimage" | "linux_deb" | "linux_wsl" | string;
+  command_to_run?: string | null;
+}
+
 export interface RuntimeInfo {
   name: string;
   available: boolean;
@@ -211,7 +218,7 @@ export const api = {
   getWorkdir: () => invoke<string>("get_data_dir"),
   openPath: (path: string) => invoke<void>("open_path", { path }),
   checkUpdate: () => invoke<UpdateCheckResult>("check_update"),
-  installUpdate: () => invoke<string>("install_update"),
+  installUpdate: () => invoke<InstallUpdateResult>("install_update"),
 
   checkRuntimeStatus: (runtime: string) =>
     invoke<RuntimeInfo>("check_runtime_status", { runtime }),

@@ -66,8 +66,16 @@ fn launch_elevated_installer(installer_path: &std::path::Path) -> Result<(), Str
     Ok(())
 }
 
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct InstallUpdateResult {
+    pub success: bool,
+    pub message: String,
+    pub platform: String, // "windows" | "linux_appimage" | "linux_deb" | "linux_generic"
+    pub command_to_run: Option<String>,
+}
+
 #[tauri::command]
-async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
+async fn install_update(app: tauri::AppHandle) -> Result<InstallUpdateResult, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
     let update = updater
         .check()
@@ -106,17 +114,61 @@ async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
             std::thread::sleep(std::time::Duration::from_millis(1500));
             app_handle.exit(0);
         });
+
+        Ok(InstallUpdateResult {
+            success: true,
+            message: "Instalador iniciado. Conceda permissão de Administrador (UAC) para concluir a atualização.".to_string(),
+            platform: "windows".to_string(),
+            command_to_run: None,
+        })
     }
 
     #[cfg(not(windows))]
     {
-        update
-            .download_and_install(|_chunk, _total| {}, || {})
-            .await
-            .map_err(|e| e.to_string())?;
-    }
+        let is_appimage = std::env::var("APPIMAGE").is_ok();
+        let is_wsl_env = crate::wsl::is_wsl();
 
-    Ok("Atualização iniciada. O instalador será executado como Administrador em breve.".to_string())
+        if is_appimage {
+            update
+                .download_and_install(|_chunk, _total| {}, || {})
+                .await
+                .map_err(|e| e.to_string())?;
+
+            Ok(InstallUpdateResult {
+                success: true,
+                message: "AppImage atualizado com sucesso! Reinicie o aplicativo para aplicar a nova versão.".to_string(),
+                platform: "linux_appimage".to_string(),
+                command_to_run: None,
+            })
+        } else {
+            // Ambiente Debian / Ubuntu / WSL2: Pacote .deb instalado no sistema (/usr/bin)
+            // Baixa o artefato .deb para o diretório de dados/temp e fornece o comando pronto
+            let bytes = update
+                .download(|_chunk, _total| {}, || {})
+                .await
+                .map_err(|e| e.to_string())?;
+
+            let target_deb = std::env::temp_dir().join(format!("toolbox_{}_amd64.deb", update.version));
+            std::fs::write(&target_deb, &bytes)
+                .map_err(|e| format!("Falha ao gravar pacote .deb: {e}"))?;
+
+            let deb_path_str = target_deb.to_string_lossy().to_string();
+            let install_cmd = format!("sudo dpkg -i {}", deb_path_str);
+
+            let platform_str = if is_wsl_env { "linux_wsl" } else { "linux_deb" };
+            let msg = format!(
+                "Pacote v{} baixado para {}. Execute o comando abaixo no terminal com permissão root para instalar.",
+                update.version, deb_path_str
+            );
+
+            Ok(InstallUpdateResult {
+                success: true,
+                message: msg,
+                platform: platform_str.to_string(),
+                command_to_run: Some(install_cmd),
+            })
+        }
+    }
 }
 
 #[derive(serde::Serialize)]

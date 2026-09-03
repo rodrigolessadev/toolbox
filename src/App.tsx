@@ -200,9 +200,19 @@ export default function App() {
   const handleInstallUpdate = useCallback(async () => {
     setUpdating(true);
     try {
-      await api.installUpdate();
+      const res = await api.installUpdate();
       setUpdateVersion(null);
-      push("Atualização instalada. O app será reiniciado em breve.", "success");
+      if (res.command_to_run) {
+        // Tenta copiar o comando para o clipboard e notifica o usuário com instrução
+        try {
+          await navigator.clipboard.writeText(res.command_to_run);
+          push(`${res.message} (Comando de instalação copiado para a Área de Transferência!)`, "info");
+        } catch {
+          push(`${res.message} Execute: ${res.command_to_run}`, "info");
+        }
+      } else {
+        push(res.message || "Atualização processada com sucesso!", "success");
+      }
     } catch (e) {
       push(`Falha ao instalar atualização: ${e instanceof Error ? e.message : String(e)}`, "error");
     } finally {
