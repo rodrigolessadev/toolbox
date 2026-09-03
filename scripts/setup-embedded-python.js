@@ -169,7 +169,7 @@ function validateEmbeddedPython(targetDir) {
 
 async function main() {
   log(`=== Iniciando verificação de runtime para a plataforma: ${process.platform} ===`);
-  
+
   if (process.platform !== 'win32') {
     log('Ambiente Linux/Unix detectado.');
     log('No Linux, o Toolbox utiliza o Python nativo do sistema ou runtime local em bin/python3.');
