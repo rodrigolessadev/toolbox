@@ -325,6 +325,18 @@
   color: var(--danger);
 }
 
+.select option {
+  background-color: var(--bg-elev-2, #1d2024);
+  color: var(--fg, #e2e2e9);
+  padding: 8px 12px;
+}
+
+[data-theme="light"] .select option {
+  background-color: var(--bg-elev-1, #ffffff);
+  color: var(--fg, #1a1c20);
+}
+
+
 /* ───────────────────────────────────────────────────────
    Checkbox Component
    ─────────────────────────────────────────────────────── */
@@ -604,6 +616,7 @@
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.4;
 }

@@ -1393,6 +1393,30 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   cursor: pointer;
 }
 
+/* Reset e Contraste para opções de dropdown (select option) */
+select option,
+.select option,
+.modal__field select option {
+  background-color: var(--bg-elev-2, #1d2024);
+  color: var(--fg, #e2e2e9);
+  padding: 8px 12px;
+}
+
+[data-theme="light"] select option,
+[data-theme="light"] .select option,
+[data-theme="light"] .modal__field select option {
+  background-color: var(--bg-elev-1, #ffffff);
+  color: var(--fg, #1a1c20);
+}
+
+select option:checked,
+.select option:checked,
+.modal__field select option:checked {
+  background-color: var(--accent, #a8c7fa);
+  color: var(--accent-fg, #062e6f);
+}
+
+
 /* ===========================================================
    Toasts
    =========================================================== */
