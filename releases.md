@@ -1,3 +1,19 @@
+## v1.33.4 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.4/Toolbox_1.33.4_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.4
+
+#### 🐛 Correção de Contraste e Visibilidade em Dropdowns e Selects (Closes #132)
+- **Padronização de Contraste de Opções (`select option`):**
+  - Adicionadas regras CSS explícitas de fundo e cor para elementos `<option>` tanto no tema escuro (`background-color: var(--bg-elev-2, #1d2024)` e `color: var(--fg, #e2e2e9)`) quanto no tema claro (`background-color: var(--bg-elev-1, #ffffff)` e `color: var(--fg, #1a1c20)`).
+  - Elimina o problema de ilegibilidade no Linux/WebKit/Chromium e navegadores modernos onde o menu suspenso nativo mantinha fundo branco padrão do sistema operacional com texto claro herdado do tema escuro.
+- **Estilização Consistente de Componentes e Modais:**
+  - Padronizadas as classes de formulário em `FeedbackModal.tsx` com `className="select modal__field-select"`.
+  - Definidas regras dedicadas para seletores globais `select option`, `.select option` e `.modal__field select option`, além de contraste aprimorado para `:checked` e `:hover`.
+
+</details>
+
 ## v1.33.3 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.3/Toolbox_1.33.3_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>

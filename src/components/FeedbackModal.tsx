@@ -207,10 +207,12 @@ export function FeedbackModal({ open, onClose, onSuccess, onError }: Props) {
               </label>
               <select
                 id="feedback-desktop-type"
+                className="select modal__field-select"
                 value={type}
                 onChange={(e) => setType(e.target.value as FeedbackType)}
                 disabled={status === "sending"}
                 style={{
+
                   width: "100%",
                   padding: "7px 10px",
                   background: "var(--bg-elev-2)",
