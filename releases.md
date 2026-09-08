@@ -1,6 +1,23 @@
+## v1.33.1 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.1/Toolbox_1.33.1_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.1
+
+#### 🐛 Correções em Runtimes e Plugins (Closes #129)
+- **Suporte a Ambiente Virtual (venv) Dedicado por Plugin:**
+  - O resolvedor de runtimes (`runtimes.rs`) agora detecta e prioriza interpretadores em `.venv` e `venv` na raiz do plugin (`bin/python3` / `bin/python` no Linux e `Scripts/python.exe` no Windows).
+  - Garante isolamento de bibliotecas (`pywebview`, `requests`, etc.) por plugin, eliminando conflitos de dependências.
+- **Feedback Imediato de Falhas de Inicialização na UI (`executor.rs`):**
+  - Implementado health-check de processo após o spawn que captura `stderr` inicial.
+  - Erros fatais (como `ModuleNotFoundError`, falhas de importação ou falta de bibliotecas gráficas GTK/WebKit) não são mais mascarados como sucesso: a UI agora recebe o traceback exato do Python no erro com orientações de troubleshooting.
+
+</details>
+
 ## v1.33.0 - 2026-09-03 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.0/Toolbox_1.33.0_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
+
 
 ### Toolbox v1.33.0
 

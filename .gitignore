@@ -15,6 +15,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.Issues/
+.Issues/*
+.toolbox_backup/
+
 
 # Rust
 src-tauri/target

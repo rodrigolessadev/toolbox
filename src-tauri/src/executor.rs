@@ -590,7 +590,7 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
 
     let mut cmd = match language.as_str() {
         "python" => {
-            let (python_bin, is_embedded, _) = crate::runtimes::get_python_executable(Some(app));
+            let (python_bin, is_embedded, _) = crate::runtimes::get_plugin_python_executable(&plugin_path, Some(app));
             let mut c = Command::new(&python_bin);
             if is_embedded {
                 // Determina a raiz da distribuição Python (se o binário estiver em bin/, sobe mais um nível)
@@ -688,13 +688,52 @@ fn run_plugin(app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunRe
             }
         });
     }
+
+    let initial_stderr_buffer = std::sync::Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
+    let buffer_clone = initial_stderr_buffer.clone();
+
     if let Some(stderr) = child.stderr.take() {
         let tag = format!("plugin::{}", plugin_name);
         std::thread::spawn(move || {
             for line in BufReader::new(stderr).lines().flatten() {
+                if let Ok(mut buf) = buffer_clone.lock() {
+                    if buf.len() < 30 {
+                        buf.push(line.clone());
+                    }
+                }
                 crate::logger::write_line(log::Level::Warn, &tag, &line);
             }
         });
+    }
+
+    // Health-check pós-spawn: aguarda brevemente para verificar se o processo encerrou precocemente (ex: ModuleNotFoundError, SyntaxError)
+    std::thread::sleep(std::time::Duration::from_millis(350));
+    match child.try_wait() {
+        Ok(Some(status)) if !status.success() => {
+            let captured_err = initial_stderr_buffer
+                .lock()
+                .map(|b| b.join("\n"))
+                .unwrap_or_default();
+            let err_trimmed = captured_err.trim();
+            let detail = if !err_trimmed.is_empty() {
+                if err_trimmed.contains("No module named 'webview'") {
+                    format!(
+                        "{}\n\nDica: A biblioteca 'pywebview' não foi encontrada no interpretador Python ativo. No Linux, instale-a via 'pip install pywebview' ou configure um ambiente virtual (.venv) no diretório do plugin.",
+                        err_trimmed
+                    )
+                } else {
+                    err_trimmed.to_string()
+                }
+            } else {
+                format!(
+                    "O processo encerrou imediatamente com código de erro {}.",
+                    status.code().unwrap_or(-1)
+                )
+            };
+
+            return Err(format!("Falha ao iniciar plugin '{}':\n{}", name, detail));
+        }
+        _ => {}
     }
 
     Ok(RunResult {
