@@ -54,6 +54,67 @@ fn find_python_in_dir(dir: &Path) -> Option<PathBuf> {
     None
 }
 
+/// Busca interpretador Python em um ambiente virtual local (.venv ou venv)
+pub fn find_python_in_venv(dir: &Path) -> Option<PathBuf> {
+    let venv_candidates = [
+        dir.join(".venv"),
+        dir.join("venv"),
+        dir.to_path_buf(),
+    ];
+
+    for venv_dir in &venv_candidates {
+        // Windows venv: Scripts/python.exe ou python.exe
+        let win_candidates = [
+            venv_dir.join("Scripts").join("python.exe"),
+            venv_dir.join("python.exe"),
+        ];
+        for c in &win_candidates {
+            if c.exists() {
+                return Some(c.clone());
+            }
+        }
+
+        // Linux/Unix venv: bin/python3, bin/python, python3, python
+        let linux_candidates = [
+            venv_dir.join("bin").join("python3"),
+            venv_dir.join("bin").join("python"),
+            venv_dir.join("python3"),
+            venv_dir.join("python"),
+        ];
+        for c in &linux_candidates {
+            if c.exists() {
+                return Some(c.clone());
+            }
+        }
+    }
+
+    None
+}
+
+/// Resolve o executável Python apropriado para um plugin:
+/// 1. Prioriza ambiente virtual local do plugin (.venv/venv)
+/// 2. Se app presente, verifica se há ambiente virtual em app_data_dir/runtime/venv
+/// 3. Runtime embutido ou fallback no PATH do sistema
+pub fn get_plugin_python_executable(
+    plugin_dir: &Path,
+    app: Option<&tauri::AppHandle>,
+) -> (PathBuf, bool, Option<String>) {
+    if let Some(venv_python) = find_python_in_venv(plugin_dir) {
+        let ver = get_version_from_bin(&venv_python);
+        return (venv_python, false, ver);
+    }
+
+    if let Some(app_handle) = app {
+        let app_data_venv = crate::paths::data_dir(app_handle).join("runtime").join("venv");
+        if let Some(venv_python) = find_python_in_venv(&app_data_venv) {
+            let ver = get_version_from_bin(&venv_python);
+            return (venv_python, false, ver);
+        }
+    }
+
+    get_python_executable(app)
+}
+
 pub fn get_python_executable(app: Option<&tauri::AppHandle>) -> (PathBuf, bool, Option<String>) {
     // 1. Verificar diretórios de runtime embutido se AppHandle estiver presente
     if let Some(app_handle) = app {
@@ -244,6 +305,36 @@ mod tests {
 
         let found = find_python_in_dir(&temp_dir);
         assert_eq!(found, Some(py_bin));
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_find_python_in_venv() {
+        let temp_dir = std::env::temp_dir().join("toolbox_test_venv_candidates");
+        let _ = std::fs::remove_dir_all(&temp_dir);
+
+        #[cfg(windows)]
+        {
+            let venv_scripts_dir = temp_dir.join(".venv").join("Scripts");
+            std::fs::create_dir_all(&venv_scripts_dir).unwrap();
+            let py_bin = venv_scripts_dir.join("python.exe");
+            std::fs::write(&py_bin, "").unwrap();
+
+            let found = find_python_in_venv(&temp_dir);
+            assert_eq!(found, Some(py_bin));
+        }
+
+        #[cfg(not(windows))]
+        {
+            let venv_bin_dir = temp_dir.join(".venv").join("bin");
+            std::fs::create_dir_all(&venv_bin_dir).unwrap();
+            let py_bin = venv_bin_dir.join("python");
+            std::fs::write(&py_bin, "").unwrap();
+
+            let found = find_python_in_venv(&temp_dir);
+            assert_eq!(found, Some(py_bin));
+        }
 
         let _ = std::fs::remove_dir_all(&temp_dir);
     }
