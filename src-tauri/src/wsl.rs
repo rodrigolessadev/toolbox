@@ -31,10 +31,15 @@ pub fn is_windows_command(path: &str, ext: &str) -> bool {
         return true;
     }
 
+    if path.starts_with(r"\\") || path.starts_with("//") {
+        return true;
+    }
+
     let bytes = path.as_bytes();
     if bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && (bytes[2] == b'\\' || bytes[2] == b'/') {
         return true;
     }
+
 
     let p = Path::new(path);
     let base_name = p
@@ -96,6 +101,22 @@ pub fn wsl_to_windows_path(path: &str) -> Option<String> {
     None
 }
 
+
+/// Sanitiza ou escapa caracteres especiais ao repassar argumentos para interpretadores de shell do Windows (ex: cmd.exe).
+/// Metacaracteres perigosos como &, |, ^, %, <, > sao escapados com ^ para evitar command injection.
+pub fn sanitize_cmd_arg(arg: &str) -> String {
+    let mut sanitized = String::with_capacity(arg.len() + 8);
+    for ch in arg.chars() {
+        match ch {
+            '^' | '&' | '|' | '<' | '>' | '%' => {
+                sanitized.push('^');
+                sanitized.push(ch);
+            }
+            _ => sanitized.push(ch),
+        }
+    }
+    sanitized
+}
 
 /// Porta padrão para a ponte IPC de foco entre host Windows e Toolbox WSL2
 pub const WSL_FOCUS_BRIDGE_PORT: u16 = 49152;
@@ -161,9 +182,25 @@ mod tests {
         assert!(is_windows_command(r"C:\Windows\explorer.exe", "exe"));
         assert!(is_windows_command("services.msc", "msc"));
 
+        // UNC paths
+        assert!(is_windows_command(r"\\NB025869\SeniorGPO108ORA\Iniciar.exe", "exe"));
+        assert!(is_windows_command(r"\\server\share\tool", ""));
+        assert!(is_windows_command("//server/share/tool", ""));
+
         assert!(!is_windows_command("ls", ""));
         assert!(!is_windows_command("grep", ""));
         assert!(!is_windows_command("/usr/bin/python3", ""));
+    }
+
+    #[test]
+    fn test_sanitize_cmd_arg() {
+        assert_eq!(sanitize_cmd_arg("foo & calc.exe"), "foo ^& calc.exe");
+        assert_eq!(sanitize_cmd_arg("param | dir"), "param ^| dir");
+        assert_eq!(sanitize_cmd_arg("param > file"), "param ^> file");
+        assert_eq!(sanitize_cmd_arg("param < file"), "param ^< file");
+        assert_eq!(sanitize_cmd_arg("%ENV%"), "^%ENV^%");
+        assert_eq!(sanitize_cmd_arg("test^value"), "test^^value");
+        assert_eq!(sanitize_cmd_arg("normal_arg"), "normal_arg");
     }
 
     #[test]
@@ -176,3 +213,4 @@ mod tests {
         assert_eq!(converted_back, win);
     }
 }
+

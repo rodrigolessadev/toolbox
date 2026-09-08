@@ -1,6 +1,26 @@
+## v1.33.2 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.2/Toolbox_1.33.2_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.2
+
+#### 🐛 Correção de Invocação de Executáveis Windows e Sanitização no WSL (Closes #130)
+- **Execução Direta de Binários PE Windows no WSL:**
+  - Aplicativos cadastrados com caminhos absolutos do Windows (`C:\...`) agora têm seus caminhos convertidos para pontos de montagem (`/mnt/c/...`) e são executados diretamente pelo subsistema WSLInterop sem passar pelo intermediário `cmd.exe /c start`.
+  - Elimina em definitivo o erro *"O Windows não pode localizar '\\'"* que ocorria devido à quebra de aspas escapadas no WSL.
+- **Tratamento de Scripts (.bat, .cmd, .ps1), Consoles e Caminhos UNC:**
+  - Invocação via `cmd.exe` agora define explicitamente o diretório de trabalho em `/mnt/c`, evitando erros de diretório de trabalho UNC (`\\wsl.localhost\...`).
+  - Argumentos são passados em tokens isolados ao invés de strings concatenadas.
+  - Reconhecimento de caminhos de rede UNC (`\\servidor\compartilhamento\...`) em `wsl.rs`.
+- **Sanitização de Argumentos (Segurança):**
+  - Implementada a função `sanitize_cmd_arg` em `wsl.rs` que neutraliza metacaracteres de controle de shell (`^`, `&`, `|`, `%`, `<`, `>`) ao invocar interpretadores de linha de comando do Windows.
+
+</details>
+
 ## v1.33.1 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.1/Toolbox_1.33.1_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
+
 
 ### Toolbox v1.33.1
 
