@@ -214,11 +214,28 @@ async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, String
             })
         }
         Err(e) => {
-            log::error!("Falha ao verificar atualização manualmente: {e}");
-            Err(e.to_string())
+            let err_msg = e.to_string();
+            if err_msg.contains("None of the fallback platforms") || err_msg.contains("linux-x86_64") {
+                let current = app.package_info().version.to_string();
+                log::info!(
+                    "Verificação de atualização no Linux: plataforma linux-x86_64 não encontrada no manifesto remoto latest.json. Aplicativo considerado atualizado."
+                );
+                return Ok(UpdateCheckResult {
+                    available: false,
+                    current_version: current.clone(),
+                    version: None,
+                    body: Some(format!(
+                        "O Toolbox está rodando na versão v{}. No Linux, novas versões (.deb ou AppImage) são gerenciadas diretamente pela página oficial de Releases.",
+                        current
+                    )),
+                });
+            }
+            log::error!("Falha ao verificar atualização manualmente: {err_msg}");
+            Err(err_msg)
         }
     }
 }
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

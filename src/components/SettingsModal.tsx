@@ -116,13 +116,26 @@ export function SettingsModal({
         onInfo?.(`Nova versão disponível: v${res.version}`);
       } else {
         setLastCheckedText(`Verificado às ${timeStr}`);
-        onInfo?.(`O Toolbox está atualizado na versão mais recente (v${res.current_version || appVersion || "1.0.0"}).`);
+        if (res.body) {
+          onInfo?.(res.body);
+        } else {
+          onInfo?.(`O Toolbox está atualizado na versão mais recente (v${res.current_version || appVersion || "1.0.0"}).`);
+        }
       }
     } catch (e) {
-      onError?.(`Falha ao verificar atualizações: ${e instanceof Error ? e.message : String(e)}`);
+      const errStr = e instanceof Error ? e.message : String(e);
+      if (errStr.includes("None of the fallback platforms") || errStr.includes("linux-x86_64")) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        setLastCheckedText(`Verificado às ${timeStr}`);
+        onInfo?.(`O Toolbox está na versão mais recente (v${appVersion || "1.0.0"}). No Linux, novas versões (.deb ou AppImage) são gerenciadas diretamente pela página de Releases.`);
+      } else {
+        onError?.(`Falha ao verificar atualizações: ${errStr}`);
+      }
     } finally {
       setCheckingUpdate(false);
     }
+
   };
 
   const handleThemeChange = async (next: string) => {

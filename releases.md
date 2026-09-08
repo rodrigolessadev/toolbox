@@ -1,6 +1,22 @@
+## v1.33.3 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.3/Toolbox_1.33.3_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.3
+
+#### 🐛 Tratamento de Plataforma Linux no Verificador de Atualizações (Closes #131)
+- **Interceptação Amigável de Plataforma Ausente no Tauri Updater:**
+  - O comando `check_update` (`lib.rs`) agora intercepta de forma defensiva quando o manifesto remoto `latest.json` não contém a chave `linux-x86_64` (plataformas restritas a Windows), registrando log informativo em vez de erro de aplicação.
+  - O backend retorna `available: false` com mensagem orientativa em `body` indicando a versão atual e o canal de releases para pacotes `.deb` ou `AppImage`.
+- **Experiência de Usuário Aprimorada no Modal de Configurações (`SettingsModal.tsx`):**
+  - O botão *Verificar* agora exibe toast informativo orientando o usuário sobre o status da versão no Linux em vez de disparar uma notificação de erro vermelha com a mensagem técnica interna do plugin.
+
+</details>
+
 ## v1.33.2 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.2/Toolbox_1.33.2_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
+
 
 ### Toolbox v1.33.2
 
