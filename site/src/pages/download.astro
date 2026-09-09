@@ -14,13 +14,13 @@ try {
 
 <Base
   title="Download — Toolbox"
-  description="Baixe a versão mais recente do Toolbox para Windows. Lista completa de versões com checksums e histórico."
+  description="Baixe a versão mais recente do Toolbox para Windows e Linux. Instaladores oficiais (.exe, .msi, .deb, .AppImage) com paridade estrita de versões e histórico."
 >
   <section class="download-page">
-    <h1>Download</h1>
+    <h1>Download do Toolbox</h1>
     <p class="lead text-muted">
-      O instalador é distribuído via GitHub Releases. Cada tag gera um instalador
-      Windows assinado e versionado.
+      Os instaladores oficiais são distribuídos com paridade estrita para <strong>Windows</strong> e <strong>Linux</strong> via GitHub Releases.
+      Cada versão lançada é sincronizada entre ambas as plataformas.
     </p>
 
     {error && (
@@ -38,53 +38,115 @@ try {
 
     {releases.length > 0 && (
       <div class="releases">
-        {releases.map((rel) => (
-          <article class="release card">
-            <header class="release-head">
-              <div>
-                <h2>
-                  <a href={rel.html_url} target="_blank" rel="noopener noreferrer">
-                    {rel.tag_name}
-                  </a>
-                  {rel.prerelease && <span class="tag tag-prerelease">pre-release</span>}
-                </h2>
-                <p class="text-muted release-date">
-                  Publicada em {formatDate(rel.published_at)}
-                </p>
-              </div>
-            </header>
+        {releases.map((rel) => {
+          const winAssets = rel.assets.filter(a => /\.(exe|msi)$/i.test(a.name));
+          const linuxAssets = rel.assets.filter(a => /\.(deb|appimage)$/i.test(a.name));
+          const otherAssets = rel.assets.filter(a => !/\.(exe|msi|deb|appimage)$/i.test(a.name));
+          const hasParity = winAssets.length > 0 && linuxAssets.length > 0;
 
-            {rel.body && (
-              <details class="release-notes">
-                <summary>Notas da versão</summary>
-                <pre>{rel.body}</pre>
-              </details>
-            )}
+          return (
+            <article class="release card">
+              <header class="release-head">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <h2>
+                      <a href={rel.html_url} target="_blank" rel="noopener noreferrer">
+                        {rel.tag_name}
+                      </a>
+                    </h2>
+                    {rel.prerelease && <span class="tag tag-prerelease">pre-release</span>}
+                    {hasParity ? (
+                      <span class="tag tag-parity">★ Paridade Windows &amp; Linux</span>
+                    ) : (
+                      <span class="tag tag-warning">Parcial</span>
+                    )}
+                  </div>
+                  <p class="text-muted release-date">
+                    Publicada em {formatDate(rel.published_at)}
+                  </p>
+                </div>
+              </header>
 
-            <ul class="assets">
-              {rel.assets.length === 0 && (
-                <li class="empty-assets">Nenhum asset anexado a esta release.</li>
+              {rel.body && (
+                <details class="release-notes">
+                  <summary>Notas da versão</summary>
+                  <pre>{rel.body}</pre>
+                </details>
               )}
-              {rel.assets.map((asset) => {
-                const isDeb = asset.name.endsWith('.deb');
-                const isAppImage = asset.name.toLowerCase().endsWith('.appimage');
-                const isExe = asset.name.toLowerCase().endsWith('.exe');
-                const isMsi = asset.name.toLowerCase().endsWith('.msi');
-                const badge = isDeb ? '🐧 Linux DEB' : (isAppImage ? '🐧 Linux AppImage' : (isExe ? '🪟 Windows Setup' : (isMsi ? '🪟 Windows MSI' : '📦 Arquivo')));
 
-                return (
-                  <li>
-                    <a href={asset.browser_download_url} rel="noopener noreferrer">
-                      <span class="asset-name">⬇ {asset.name}</span>
-                      <span style="font-size: 11px; opacity: 0.8; margin-left: 8px;">{badge}</span>
-                      <span class="asset-size">{formatBytes(asset.size)}</span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </article>
-        ))}
+              <div class="platforms-split">
+                {/* Coluna Windows */}
+                <div class="platform-column">
+                  <div class="column-header">
+                    <span class="column-title">🪟 Windows</span>
+                    <span class={`status-badge ${winAssets.length > 0 ? 'badge-ok' : 'badge-empty'}`}>
+                      {winAssets.length > 0 ? `${winAssets.length} pacote(s)` : 'Não disponível'}
+                    </span>
+                  </div>
+                  <ul class="assets-list">
+                    {winAssets.length === 0 && <li class="text-muted empty-item">Sem instalador Windows nesta tag.</li>}
+                    {winAssets.map(asset => {
+                      const isMsi = asset.name.toLowerCase().endsWith('.msi');
+                      return (
+                        <li>
+                          <a href={asset.browser_download_url} class="asset-card-link" rel="noopener noreferrer">
+                            <span class="asset-icon">⬇</span>
+                            <div class="asset-details">
+                              <span class="asset-title">{asset.name}</span>
+                              <span class="asset-meta">{isMsi ? 'Corporativo MSI' : 'Instalador oficial EXE'} · {formatBytes(asset.size)}</span>
+                            </div>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+
+                {/* Coluna Linux */}
+                <div class="platform-column">
+                  <div class="column-header">
+                    <span class="column-title">🐧 Linux</span>
+                    <span class={`status-badge ${linuxAssets.length > 0 ? 'badge-ok' : 'badge-empty'}`}>
+                      {linuxAssets.length > 0 ? `${linuxAssets.length} pacote(s)` : 'Não disponível'}
+                    </span>
+                  </div>
+                  <ul class="assets-list">
+                    {linuxAssets.length === 0 && <li class="text-muted empty-item">Sem instalador Linux nesta tag.</li>}
+                    {linuxAssets.map(asset => {
+                      const isDeb = asset.name.toLowerCase().endsWith('.deb');
+                      return (
+                        <li>
+                          <a href={asset.browser_download_url} class="asset-card-link" rel="noopener noreferrer">
+                            <span class="asset-icon">⬇</span>
+                            <div class="asset-details">
+                              <span class="asset-title">{asset.name}</span>
+                              <span class="asset-meta">{isDeb ? 'Debian / Ubuntu (.deb)' : 'Portátil (.AppImage)'} · {formatBytes(asset.size)}</span>
+                            </div>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+
+              {otherAssets.length > 0 && (
+                <details class="other-assets-details">
+                  <summary>Outros arquivos técnicos ({otherAssets.length})</summary>
+                  <ul class="other-assets-list">
+                    {otherAssets.map(asset => (
+                      <li>
+                        <a href={asset.browser_download_url} rel="noopener noreferrer">
+                          {asset.name} <span class="asset-size">({formatBytes(asset.size)})</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </article>
+          );
+        })}
       </div>
     )}
   </section>
@@ -112,28 +174,35 @@ try {
   .releases {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
   }
   .release h2 {
     font-size: 1.3rem;
-    margin: 0 0 4px;
+    margin: 0;
   }
   .release h2 a {
     color: var(--text);
   }
   .release-date {
-    margin: 0;
+    margin: 4px 0 0;
     font-size: 0.88rem;
   }
   .tag {
     font-size: 11px;
     font-family: var(--font-mono);
-    padding: 1px 8px;
+    padding: 2px 8px;
     border-radius: 4px;
     background: var(--bg-elevated);
-    color: var(--warning);
+    color: var(--text);
     border: 1px solid var(--border);
-    margin-left: 8px;
+  }
+  .tag-parity {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .tag-warning {
+    color: var(--warning);
   }
   .release-notes summary {
     cursor: pointer;
@@ -146,38 +215,115 @@ try {
     font-size: 0.85rem;
     max-height: 280px;
     overflow: auto;
+    background: var(--bg-elevated);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
   }
-  .assets {
-    list-style: none;
-    margin: 12px 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  .platforms-split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
   }
-  .asset-link {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 14px;
+  .platform-column {
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    color: var(--text);
-    transition: border-color 0.15s ease, background 0.15s ease;
+    padding: 14px;
   }
-  .asset-link:hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
-    color: var(--text);
+  .column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
   }
-  .asset-size {
+  .column-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .status-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .badge-ok {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+  }
+  .badge-empty {
     color: var(--text-muted);
-    font-family: var(--font-mono);
+    font-style: italic;
+  }
+  .assets-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .empty-item {
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+  .asset-card-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    transition: all 0.15s ease;
+  }
+  .asset-card-link:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+    color: var(--text);
+  }
+  .asset-icon {
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+  .asset-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .asset-title {
+    font-size: 0.88rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .asset-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .other-assets-details {
+    margin-top: 14px;
     font-size: 0.85rem;
   }
-  .empty-assets {
+  .other-assets-details summary {
+    cursor: pointer;
     color: var(--text-muted);
-    font-size: 0.9rem;
-    font-style: italic;
+  }
+  .other-assets-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .other-assets-list a {
+    color: var(--text-muted);
+  }
+  .other-assets-list a:hover {
+    color: var(--accent);
   }
 </style>

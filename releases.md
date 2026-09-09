@@ -1,3 +1,22 @@
+## v1.33.5 - 2026-09-09 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.5/Toolbox_1.33.5_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.5
+
+#### 🐛 Paridade Estrita de Instaladores Windows e Linux no Site e CI/CD (Closes #137)
+- **Paridade Visual e de Acesso no Site Oficial (`site/src/components/DownloadButton.tsx` & `global.css`):**
+  - Implementada exibição balanceada e simultânea para instaladores Windows (`.exe` e `.msi`) e Linux (`.deb` e `.AppImage`).
+  - Destaque dinâmico e contextual com tag `★ Recomendado` para o sistema operacional identificado no navegador (`User-Agent`), mantendo o outro sistema visível e acessível a 1 clique no bloco Hero.
+  - Exibição de versão sincronizada unificada (`v1.33.x · Windows & Linux sincronizados`).
+- **Página de Downloads Dedicada (`site/src/pages/download.astro`):**
+  - Reformulada a listagem de releases em colunas segmentadas por plataforma (🪟 Windows e 🐧 Linux) com status de paridade, ícones, tamanhos formatados e agrupamento de arquivos complementares.
+  - Adicionadas tags informativas de integridade de distribuição.
+- **Quality Gate de Paridade Multiplataforma no CI/CD (`.github/workflows/release.yml`):**
+  - Adicionado job `verify-release-parity` que valida automaticamente que toda release pública gerada contém tanto os instaladores de Windows (`.exe`) quanto os pacotes de Linux (`.deb` / `.AppImage`), impedindo publicações assimétricas.
+
+</details>
+
 ## v1.33.4 - 2026-09-08 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.4/Toolbox_1.33.4_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>
