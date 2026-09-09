@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { sendFeedback, type FeedbackType } from '../lib/supabase';
+import { sendFeedback, type FeedbackType } from '../lib/feedback';
 
 interface FeedbackModalProps {
   buttonLabel?: string;
