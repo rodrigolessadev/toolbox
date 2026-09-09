@@ -1,3 +1,21 @@
+## v1.33.6 - 2026-09-09 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.6/Toolbox_1.33.6_x64-setup.exe)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+### Toolbox v1.33.6
+
+#### ♻️ Migração de Feedbacks do Supabase para Webhook do Google Sheets (Desktop & Site) (Closes #138)
+- **Disponibilidade Contínua 24/7 sem Suspensão:**
+  - Migrada a persistência de feedbacks para um Webhook HTTP no Google Apps Script conectado ao Google Sheets, eliminando em definitivo os erros de conexão e suspensões periódicas do plano gratuito do Supabase.
+- **Redução Significativa do Tamanho do Pacote (Bundle Size):**
+  - Desinstalada completamente a dependência `@supabase/supabase-js` e seus submódulos do aplicativo Desktop e do Site de Documentação, reduzindo o componente de feedback em até 94% no build de produção.
+- **Cliente Nativo com Alta Resiliência:**
+  - Implementados os novos módulos `src/lib/feedback.ts` e `site/src/lib/feedback.ts` baseados em `fetch` nativo com `AbortController` (timeout estrito de 10s), detecção de plataforma e auditoria local (`api.logEvent`).
+- **Guia Completo de Setup:**
+  - Adicionada documentação oficial em `docs/google-sheets-feedback-setup.md` com o código do Google Apps Script (`Code.gs`) suportando criação e atualização de triagem.
+
+</details>
+
 ## v1.33.5 - 2026-09-09 [Download](https://github.com/rodrigolessadev/toolbox/releases/download/v1.33.5/Toolbox_1.33.5_x64-setup.exe)
 <details>
 <summary>Ver detalhes da versao</summary>

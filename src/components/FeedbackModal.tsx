@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { getVersion } from "@tauri-apps/api/app";
 import { MessageSquarePlus, Send, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { sendFeedback, type FeedbackType } from "../lib/supabase";
+import { sendFeedback, type FeedbackType } from "../lib/feedback";
 
 interface Props {
   open: boolean;
