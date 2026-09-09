@@ -55,15 +55,17 @@ export default function DownloadButton() {
     );
   }
 
-  if (state.status === 'empty' || !state.data.installer) {
+  if (state.status === 'empty' || (!state.data.windows_installer && !state.data.linux_deb && !state.data.linux_appimage && !state.data.installer)) {
     return (
-      <a className="btn btn-secondary btn-large" href="/download">
-        Em breve
-      </a>
+      <div className="download-cta">
+        <a className="btn btn-secondary btn-large" href="/download">
+          Ver versões disponíveis
+        </a>
+      </div>
     );
   }
 
-  const { tag, published_at, installer, windows_installer, linux_deb, linux_appimage } = state.data;
+  const { tag, published_at, installer, windows_installer, windows_msi, linux_deb, linux_appimage } = state.data;
 
   const [isLinux, setIsLinux] = useState(false);
 
@@ -74,59 +76,76 @@ export default function DownloadButton() {
     }
   }, []);
 
-  const primaryAsset = isLinux
-    ? (linux_deb || linux_appimage || installer)
-    : (windows_installer || installer);
-
-  const primaryLabel = isLinux
-    ? (linux_deb ? 'Baixar para Linux (.deb)' : (linux_appimage ? 'Baixar para Linux (.AppImage)' : 'Baixar para Linux'))
-    : 'Baixar para Windows (.exe)';
-
-  if (!primaryAsset) {
-    return (
-      <a className="btn btn-secondary btn-large" href="/download">
-        Ver versões disponíveis
-      </a>
-    );
-  }
+  const winPrimary = windows_installer || installer;
+  const linuxPrimary = linux_deb || linux_appimage || installer;
 
   return (
     <div className="download-cta">
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <a
-          className="btn btn-primary btn-large"
-          href={primaryAsset.browser_download_url}
-          rel="noopener noreferrer"
-        >
-          <span aria-hidden>⬇</span>
-          {primaryLabel}
-        </a>
+      <div className="download-dual-group">
+        {/* Painel de Download Windows */}
+        <div className={`download-platform-box ${!isLinux ? 'is-recommended' : ''}`}>
+          <div className="platform-pill-badge">
+            <span className="platform-os-tag">🪟 Windows</span>
+            {!isLinux && <span className="badge-rec">★ Recomendado</span>}
+          </div>
+          <div className="platform-btn-row">
+            <a
+              className={`btn ${!isLinux ? 'btn-primary' : 'btn-secondary'} download-btn-main`}
+              href={winPrimary ? winPrimary.browser_download_url : '/download'}
+              rel="noopener noreferrer"
+              title="Baixar instalador oficial para Windows (.exe)"
+            >
+              <span aria-hidden>⬇</span>
+              <span>Baixar (.exe)</span>
+            </a>
+            {windows_msi && (
+              <a
+                className="btn-ghost-subtle"
+                href={windows_msi.browser_download_url}
+                title={`Baixar pacote corporativo .msi (${formatBytes(windows_msi.size)})`}
+              >
+                .msi
+              </a>
+            )}
+          </div>
+        </div>
 
-        {isLinux && windows_installer && (
-          <a
-            className="btn btn-secondary"
-            href={windows_installer.browser_download_url}
-            title="Baixar versão para Windows"
-          >
-            Versão Windows (.exe)
-          </a>
-        )}
-
-        {!isLinux && (linux_deb || linux_appimage) && (
-          <a
-            className="btn btn-secondary"
-            href={linux_deb?.browser_download_url || linux_appimage?.browser_download_url}
-            title="Baixar versão para Linux"
-          >
-            Versão Linux ({linux_deb ? '.deb' : '.AppImage'})
-          </a>
-        )}
+        {/* Painel de Download Linux */}
+        <div className={`download-platform-box ${isLinux ? 'is-recommended' : ''}`}>
+          <div className="platform-pill-badge">
+            <span className="platform-os-tag">🐧 Linux</span>
+            {isLinux && <span className="badge-rec">★ Recomendado</span>}
+          </div>
+          <div className="platform-btn-row">
+            <a
+              className={`btn ${isLinux ? 'btn-primary' : 'btn-secondary'} download-btn-main`}
+              href={linuxPrimary ? linuxPrimary.browser_download_url : '/download'}
+              rel="noopener noreferrer"
+              title="Baixar pacote oficial para Linux"
+            >
+              <span aria-hidden>⬇</span>
+              <span>Baixar ({linux_deb ? '.deb' : '.AppImage'})</span>
+            </a>
+            {linux_deb && linux_appimage && (
+              <a
+                className="btn-ghost-subtle"
+                href={linux_appimage.browser_download_url}
+                title={`Baixar pacote portátil .AppImage (${formatBytes(linux_appimage.size)})`}
+              >
+                .AppImage
+              </a>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="download-meta">
         <span className="tag">{tag}</span>
-        <span className="muted">· {formatBytes(primaryAsset.size)}</span>
+        <span className="muted">· Windows &amp; Linux sincronizados</span>
         <span className="muted">· {formatDate(published_at)}</span>
+        <a href="/download" className="meta-all-link" title="Ver checksums e histórico de todas as versões">
+          Todas as versões →
+        </a>
       </div>
     </div>
   );

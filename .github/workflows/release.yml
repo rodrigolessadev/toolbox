@@ -65,3 +65,45 @@ jobs:
           releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
+
+  verify-release-parity:
+    name: Verify Multi-Platform Parity
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Windows & Linux Artifact Parity
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Verificando paridade de artefatos para a tag $TAG_NAME..."
+          ASSETS=$(gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')
+          echo "Artefatos encontrados na release:"
+          echo "$ASSETS"
+
+          HAS_WIN_EXE=$(echo "$ASSETS" | grep -iE 'setup\.exe$|\.exe$' || true)
+          HAS_LINUX_DEB=$(echo "$ASSETS" | grep -iE '\.deb$' || true)
+          HAS_LINUX_APPIMAGE=$(echo "$ASSETS" | grep -iE '\.appimage$' || true)
+
+          MISSING=0
+          if [ -z "$HAS_WIN_EXE" ]; then
+            echo "❌ ERRO DE PARIDADE: Nenhum executável/instalador Windows (.exe) encontrado na release!"
+            MISSING=1
+          else
+            echo "✅ Windows (.exe) detectado: $HAS_WIN_EXE"
+          fi
+
+          if [ -z "$HAS_LINUX_DEB" ] && [ -z "$HAS_LINUX_APPIMAGE" ]; then
+            echo "❌ ERRO DE PARIDADE: Nenhum pacote Linux (.deb ou .AppImage) encontrado na release!"
+            MISSING=1
+          else
+            echo "✅ Linux detectado: deb=[$HAS_LINUX_DEB] appimage=[$HAS_LINUX_APPIMAGE]"
+          fi
+
+          if [ "$MISSING" -ne 0 ]; then
+            echo "::error::Release parcial detectada! Paridade estrita entre Windows e Linux é mandatória."
+            exit 1
+          fi
+
+          echo "🎉 Paridade Windows e Linux confirmada com sucesso na release $TAG_NAME!"
+

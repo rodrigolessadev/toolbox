@@ -34,6 +34,9 @@ export interface LatestReleaseResponse {
   windows_msi: ReleaseAsset | null;
   linux_deb: ReleaseAsset | null;
   linux_appimage: ReleaseAsset | null;
+  has_windows: boolean;
+  has_linux: boolean;
+  is_parity: boolean;
   size_mb: number;
   all_assets: ReleaseAsset[];
 }
@@ -74,6 +77,10 @@ export async function fetchLatestRelease(): Promise<LatestReleaseResponse | null
     data.assets.find((a) => /\.appimage$/i.test(a.name)) ||
     null;
 
+  const has_windows = Boolean(windows_installer || windows_msi);
+  const has_linux = Boolean(linux_deb || linux_appimage);
+  const is_parity = has_windows && has_linux;
+
   // Preferir o instalador Windows; cair para o primeiro asset.
   const installer = windows_installer || data.assets[0] || null;
 
@@ -88,6 +95,9 @@ export async function fetchLatestRelease(): Promise<LatestReleaseResponse | null
     windows_msi,
     linux_deb,
     linux_appimage,
+    has_windows,
+    has_linux,
+    is_parity,
     size_mb: installer ? +(installer.size / 1024 / 1024).toFixed(2) : 0,
     all_assets: data.assets,
   };
