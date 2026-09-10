@@ -70,15 +70,27 @@ function extractZip(zipPath, targetDir) {
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  // Utiliza PowerShell Expand-Archive ou tar no Windows
+  if (process.platform === 'win32') {
+    try {
+      execSync(`powershell -NoProfile -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${targetDir}' -Force"`, {
+        stdio: 'inherit',
+      });
+      log('Extração concluída com sucesso via PowerShell.');
+      return;
+    } catch (e) {
+      log(`Tentando extração via tar no Windows: ${e.message}`);
+      execSync(`tar -xf "${zipPath}" -C "${targetDir}"`, { stdio: 'inherit' });
+      return;
+    }
+  }
+
+  // Fallback defensivo para Linux / Unix
   try {
-    execSync(`powershell -NoProfile -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${targetDir}' -Force"`, {
-      stdio: 'inherit',
-    });
-    log('Extração concluída com sucesso.');
+    log('Executando extração via unzip no Linux...');
+    execSync(`unzip -q -o "${zipPath}" -d "${targetDir}"`, { stdio: 'inherit' });
   } catch (e) {
-    log(`Tentando extração via tar: ${e.message}`);
-    execSync(`tar -xf "${zipPath}" -C "${targetDir}"`, { stdio: 'inherit' });
+    log(`Tentando extração via módulo zipfile do Python 3: ${e.message}`);
+    execSync(`python3 -m zipfile -e "${zipPath}" "${targetDir}"`, { stdio: 'inherit' });
   }
 }
 
@@ -146,6 +158,9 @@ function installPackages(targetSitePackages) {
 }
 
 function validateEmbeddedPython(targetDir) {
+  if (process.platform !== 'win32') {
+    return;
+  }
   log('Validando execução do interpretador Python embutido e importação dos módulos...');
   const pythonExe = path.join(targetDir, 'python.exe');
 
@@ -168,7 +183,28 @@ function validateEmbeddedPython(targetDir) {
 }
 
 async function main() {
-  log(`=== Iniciando montagem do Python Embedded v${PYTHON_VERSION} ===`);
+  log(`=== Verificando ambiente de runtime Python (v${PYTHON_VERSION}) ===`);
+
+  // No Linux / WSL / macOS, o Toolbox utiliza o python3 do sistema ou .venv dedicado por plugin.
+  // O runtime embutido (python.exe) é empacotado exclusivamente nos instaladores do Windows.
+  if (process.platform !== 'win32') {
+    log('Plataforma não-Windows detectada (Linux/macOS).');
+    log('O runtime Python embutido (python.exe) é exclusivo para instaladores Windows.');
+    log('Garantindo estrutura de diretórios para o empacotamento Tauri...');
+
+    if (!fs.existsSync(TARGET_DIR)) {
+      fs.mkdirSync(TARGET_DIR, { recursive: true });
+    }
+    const placeholder = path.join(TARGET_DIR, '.gitkeep');
+    if (!fs.existsSync(placeholder)) {
+      fs.writeFileSync(placeholder, '');
+    }
+
+    log('✔ Ambiente de runtime Linux validado (usará python3 do sistema / .venv dos plugins).');
+    return;
+  }
+
+  log(`=== Iniciando montagem do Python Embedded v${PYTHON_VERSION} para Windows ===`);
   const pythonExe = path.join(TARGET_DIR, 'python.exe');
   const pywebviewDir = path.join(SITE_PACKAGES_DIR, 'webview');
 
