@@ -180,6 +180,8 @@ async fn install_update(app: tauri::AppHandle) -> Result<InstallUpdateResult, St
 
             log::info!("Baixando pacote .deb oficial de: {}", deb_url);
             let client = reqwest::Client::builder()
+                .user_agent("Toolbox-Desktop-Updater")
+                .redirect(reqwest::redirect::Policy::limited(10))
                 .timeout(std::time::Duration::from_secs(60))
                 .build()
                 .map_err(|e| format!("Falha ao criar cliente HTTP: {e}"))?;
@@ -202,10 +204,7 @@ async fn install_update(app: tauri::AppHandle) -> Result<InstallUpdateResult, St
                 .await
                 .map_err(|e| format!("Falha ao ler dados do pacote .deb: {e}"))?;
 
-            // Valida cabeçalho Debian: os primeiros 8 bytes devem ser "!<arch>\n"
-            if bytes.len() < 8 || &bytes[..8] != b"!<arch>\n" {
-                return Err("O arquivo baixado não possui formato Debian válido.".to_string());
-            }
+            validate_debian_package_header(&bytes)?;
 
             let target_deb = std::env::temp_dir().join(format!("toolbox_{}_amd64.deb", update.version));
             std::fs::write(&target_deb, &bytes)
@@ -461,4 +460,54 @@ async fn check_for_updates(app: tauri::AppHandle) {
             "body": update.body,
         }),
     );
+}
+
+/// Valida o cabeçalho de um pacote Debian (.deb).
+/// Pacotes Debian são arquivos no formato Unix ar e obrigatoriamente iniciam com os 8 bytes `!<arch>\n`.
+pub fn validate_debian_package_header(bytes: &[u8]) -> Result<(), String> {
+    if bytes.len() < 8 {
+        return Err("Arquivo incompleto ou corrompido (menos de 8 bytes).".to_string());
+    }
+    if bytes.starts_with(&[0x1f, 0x8b]) {
+        return Err("Arquivo baixado é um arquivo compactado (gzip) e não um pacote Debian (.deb).".to_string());
+    }
+    if !bytes.starts_with(b"!<arch>\n") {
+        return Err("O arquivo baixado não possui formato Debian válido (assinatura '!<arch>\\n' ausente).".to_string());
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_debian_package_header_valid() {
+        let valid_deb = b"!<arch>\ndebian-binary   0           0     0     644     4         `\n2.0\n";
+        assert!(validate_debian_package_header(valid_deb).is_ok());
+    }
+
+    #[test]
+    fn test_validate_debian_package_header_gzip_error() {
+        let gzip_data = [0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00];
+        let res = validate_debian_package_header(&gzip_data);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("gzip"));
+    }
+
+    #[test]
+    fn test_validate_debian_package_header_invalid_signature() {
+        let invalid_data = b"<!DOCTYPE html><html><body>Error</body></html>";
+        let res = validate_debian_package_header(invalid_data);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("assinatura '!<arch>\\n' ausente"));
+    }
+
+    #[test]
+    fn test_validate_debian_package_header_too_short() {
+        let short_data = b"!<arch";
+        let res = validate_debian_package_header(short_data);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("menos de 8 bytes"));
+    }
 }
