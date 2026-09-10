@@ -1,13 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+type Tab = 'win' | 'curl' | 'deb';
 
 export default function InstallTerminal() {
-  const [activeTab, setActiveTab] = useState<'curl' | 'dpkg'>('curl');
+  const [activeTab, setActiveTab] = useState<Tab>('win');
   const [copied, setCopied] = useState(false);
+  const [baseUrl, setBaseUrl] = useState('https://toolbox-nine-phi.vercel.app');
 
-  const curlCmd = 'curl -fsSL https://toolbox.rodrigolessa.dev/install.sh | bash';
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      if (origin && !origin.includes('localhost')) {
+        setBaseUrl(origin);
+      }
+      const ua = window.navigator.userAgent.toLowerCase();
+      if (ua.indexOf('linux') >= 0 || ua.indexOf('x11') >= 0) {
+        setActiveTab('curl');
+      } else {
+        setActiveTab('win');
+      }
+    }
+  }, []);
+
+  const winCmd = `irm ${baseUrl}/install.ps1 | iex`;
+  const curlCmd = `curl -fsSL ${baseUrl}/install.sh | bash`;
   const dpkgCmd = 'sudo dpkg -i toolbox_*_amd64.deb';
 
-  const currentCmd = activeTab === 'curl' ? curlCmd : dpkgCmd;
+  const currentCmd = activeTab === 'win' ? winCmd : activeTab === 'curl' ? curlCmd : dpkgCmd;
+  const promptSymbol = activeTab === 'win' ? 'PS>' : '$';
 
   const handleCopy = async () => {
     try {
@@ -30,6 +50,13 @@ export default function InstallTerminal() {
         <div className="terminal-tabs">
           <button
             type="button"
+            className={`tab-btn ${activeTab === 'win' ? 'active' : ''}`}
+            onClick={() => setActiveTab('win')}
+          >
+            🪟 Windows (PowerShell)
+          </button>
+          <button
+            type="button"
             className={`tab-btn ${activeTab === 'curl' ? 'active' : ''}`}
             onClick={() => setActiveTab('curl')}
           >
@@ -37,8 +64,8 @@ export default function InstallTerminal() {
           </button>
           <button
             type="button"
-            className={`tab-btn ${activeTab === 'dpkg' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dpkg')}
+            className={`tab-btn ${activeTab === 'deb' ? 'active' : ''}`}
+            onClick={() => setActiveTab('deb')}
           >
             📦 Pacote .deb Manual
           </button>
@@ -54,7 +81,7 @@ export default function InstallTerminal() {
       </div>
 
       <div className="terminal-body">
-        <span className="prompt">$</span>
+        <span className="prompt">{promptSymbol}</span>
         <code className="command-text">{currentCmd}</code>
       </div>
 

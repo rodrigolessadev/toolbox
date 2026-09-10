@@ -41,9 +41,37 @@ export default function DownloadButton() {
 
   if (state.status === 'loading') {
     return (
-      <a className="btn btn-primary btn-large" href="#" aria-disabled="true">
-        <span>⏳</span> Carregando versão…
-      </a>
+      <div className="download-cta">
+        <div className="download-dual-group">
+          <div className="download-platform-box is-recommended">
+            <div className="platform-pill-badge">
+              <span className="platform-os-tag">🪟 Windows</span>
+              <span className="badge-rec">Oficial</span>
+            </div>
+            <div className="platform-btn-row">
+              <a className="btn btn-primary download-btn-main" href="/download">
+                <span aria-hidden>⬇</span>
+                <span>Baixar (.exe)</span>
+              </a>
+              <a className="btn-ghost-subtle" href="/download" title="Baixar pacote corporativo .msi">
+                .msi
+              </a>
+            </div>
+          </div>
+          <div className="download-platform-box is-recommended">
+            <div className="platform-pill-badge">
+              <span className="platform-os-tag">🐧 Linux</span>
+              <span className="badge-rec">Oficial</span>
+            </div>
+            <div className="platform-btn-row">
+              <a className="btn btn-primary download-btn-main" href="/download">
+                <span aria-hidden>⬇</span>
+                <span>Baixar (.AppImage)</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -77,20 +105,20 @@ export default function DownloadButton() {
   }, []);
 
   const winPrimary = windows_installer || installer;
-  const linuxPrimary = linux_deb || linux_appimage || installer;
+  const linuxPrimary = linux_appimage || linux_deb || installer;
 
   return (
     <div className="download-cta">
       <div className="download-dual-group">
         {/* Painel de Download Windows */}
-        <div className={`download-platform-box ${!isLinux ? 'is-recommended' : ''}`}>
+        <div className="download-platform-box is-recommended">
           <div className="platform-pill-badge">
             <span className="platform-os-tag">🪟 Windows</span>
-            {!isLinux && <span className="badge-rec">★ Recomendado</span>}
+            <span className="badge-rec">{!isLinux ? '★ Recomendado' : 'Oficial'}</span>
           </div>
           <div className="platform-btn-row">
             <a
-              className={`btn ${!isLinux ? 'btn-primary' : 'btn-secondary'} download-btn-main`}
+              className="btn btn-primary download-btn-main"
               href={winPrimary ? winPrimary.browser_download_url : '/download'}
               rel="noopener noreferrer"
               title="Baixar instalador oficial para Windows (.exe)"
@@ -111,28 +139,28 @@ export default function DownloadButton() {
         </div>
 
         {/* Painel de Download Linux */}
-        <div className={`download-platform-box ${isLinux ? 'is-recommended' : ''}`}>
+        <div className="download-platform-box is-recommended">
           <div className="platform-pill-badge">
             <span className="platform-os-tag">🐧 Linux</span>
-            {isLinux && <span className="badge-rec">★ Recomendado</span>}
+            <span className="badge-rec">{isLinux ? '★ Recomendado' : 'Oficial'}</span>
           </div>
           <div className="platform-btn-row">
             <a
-              className={`btn ${isLinux ? 'btn-primary' : 'btn-secondary'} download-btn-main`}
+              className="btn btn-primary download-btn-main"
               href={linuxPrimary ? linuxPrimary.browser_download_url : '/download'}
               rel="noopener noreferrer"
               title="Baixar pacote oficial para Linux"
             >
               <span aria-hidden>⬇</span>
-              <span>Baixar ({linux_deb ? '.deb' : '.AppImage'})</span>
+              <span>Baixar ({linux_appimage ? '.AppImage' : '.deb'})</span>
             </a>
             {linux_deb && linux_appimage && (
               <a
                 className="btn-ghost-subtle"
-                href={linux_appimage.browser_download_url}
-                title={`Baixar pacote portátil .AppImage (${formatBytes(linux_appimage.size)})`}
+                href={linux_deb.browser_download_url}
+                title={`Baixar pacote de sistema .deb (${formatBytes(linux_deb.size)})`}
               >
-                .AppImage
+                .deb
               </a>
             )}
           </div>
