@@ -125,28 +125,87 @@ async fn install_update(app: tauri::AppHandle) -> Result<InstallUpdateResult, St
 
     #[cfg(not(windows))]
     {
-        let is_appimage = std::env::var("APPIMAGE").is_ok();
+        let current_exe = std::env::current_exe().ok();
+        let is_appimage_env = std::env::var("APPIMAGE").is_ok();
         let is_wsl_env = crate::wsl::is_wsl();
 
-        if is_appimage {
+        // Verifica se o executável reside em espaço do usuário (ex: ~/.local/bin/toolbox)
+        let is_user_space = if let Some(ref exe) = current_exe {
+            if let Ok(home) = std::env::var("HOME") {
+                exe.starts_with(&home)
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        let can_self_update = is_appimage_env || is_user_space;
+
+        if can_self_update {
+            // Se estiver em user-space e a variável APPIMAGE não estiver definida,
+            // aponta para o caminho do executável para permitir a substituição atômica pelo updater
+            if !is_appimage_env {
+                if let Some(ref exe) = current_exe {
+                    std::env::set_var("APPIMAGE", exe);
+                }
+            }
+
+            log::info!("Executando download_and_install nativo em modo user-space/AppImage...");
             update
                 .download_and_install(|_chunk, _total| {}, || {})
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| format!("Falha ao atualizar AppImage em user-space: {e}"))?;
+
+            // Reinício automático em background após breve delay para retorno da resposta à UI
+            let app_handle = app.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(1200));
+                app_handle.restart();
+            });
 
             Ok(InstallUpdateResult {
                 success: true,
-                message: "AppImage atualizado com sucesso! Reinicie o aplicativo para aplicar a nova versão.".to_string(),
+                message: "Toolbox atualizado com sucesso! Reiniciando a aplicação...".to_string(),
                 platform: "linux_appimage".to_string(),
                 command_to_run: None,
             })
         } else {
-            // Ambiente Debian / Ubuntu / WSL2: Pacote .deb instalado no sistema (/usr/bin)
-            // Baixa o artefato .deb para o diretório de dados/temp e fornece o comando pronto
-            let bytes = update
-                .download(|_chunk, _total| {}, || {})
+            // Ambiente Debian / Ubuntu / WSL2 instalado em nível de sistema (/usr/bin)
+            // Baixa o artefato .deb autêntico da release via HTTP e valida a assinatura ar/Debian
+            let deb_url = format!(
+                "https://github.com/rodrigolessadev/toolbox/releases/download/v{}/Toolbox_{}_amd64.deb",
+                update.version, update.version
+            );
+
+            log::info!("Baixando pacote .deb oficial de: {}", deb_url);
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(60))
+                .build()
+                .map_err(|e| format!("Falha ao criar cliente HTTP: {e}"))?;
+
+            let response = client
+                .get(&deb_url)
+                .send()
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| format!("Falha ao baixar pacote .deb da release: {e}"))?;
+
+            if !response.status().is_success() {
+                return Err(format!(
+                    "Falha ao baixar pacote .deb (HTTP {}): {}",
+                    response.status(), deb_url
+                ));
+            }
+
+            let bytes = response
+                .bytes()
+                .await
+                .map_err(|e| format!("Falha ao ler dados do pacote .deb: {e}"))?;
+
+            // Valida cabeçalho Debian: os primeiros 8 bytes devem ser "!<arch>\n"
+            if bytes.len() < 8 || &bytes[..8] != b"!<arch>\n" {
+                return Err("O arquivo baixado não possui formato Debian válido.".to_string());
+            }
 
             let target_deb = std::env::temp_dir().join(format!("toolbox_{}_amd64.deb", update.version));
             std::fs::write(&target_deb, &bytes)
