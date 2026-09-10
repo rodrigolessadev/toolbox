@@ -1,3 +1,67 @@
+## v1.35.0 - 2026-09-10
+
+# Toolbox v1.35.0
+
+Esta versão traz melhorias substanciais na experiência de atualização automática no Linux, correções críticas no instalador de pacotes Debian e paridade completa entre Windows e Linux na landing page oficial.
+
+---
+
+### 🚀 Novas Funcionalidades
+
+- **Auto-Update em Espaço de Usuário via AppImage no Linux ([#142](https://github.com/rodrigolessadev/toolbox/issues/142)):**
+  - O Toolbox agora é capaz de se atualizar no Linux de forma 100% transparente e atômica quando executado como AppImage.
+  - Elimina a necessidade de permissões root ou execução manual de `sudo dpkg -i`.
+  - Suporta substituição in-place sobre `$APPIMAGE`, renomeação atômica (`.old`), aplicação automática de permissões executáveis (`+x`) e reinicialização automática do processo.
+  - Para instalações de sistema (`.deb`), o assistente continua fornecendo a opção de download com instruções claras para atualização administrativa.
+
+---
+
+### 🐛 Correções de Bugs e Estabilidade
+
+- **Resolução do Erro `not a Debian format archive` no Auto-Updater ([#143](https://github.com/rodrigolessadev/toolbox/issues/143)):**
+  - Corrigido o download de pacotes `.deb` que resultava em arquivos corrompidos ou payloads HTML de erro.
+  - Configurado cliente HTTP `reqwest` com cabeçalho `User-Agent: Toolbox-Desktop-Updater` e política explícita de seguimento de redirecionamentos (necessária para os links de CDN da API do GitHub Releases).
+  - Implementada validação estrita do cabeçalho de assinatura Unix `ar` (`!<arch>\n`) nos pacotes `.deb`, prevenindo que arquivos inválidos ou arquivos gzip brutos (`0x1f, 0x8b`) sejam gravados como pacotes de sistema.
+  - Adicionados testes unitários no backend Rust cobrindo cenários de integridade de arquivo.
+
+---
+
+### 🌐 Site Institucional e Instaladores
+
+- **Correção da URL de Instalação One-Liner no Terminal ([#144](https://github.com/rodrigolessadev/toolbox/issues/144)):**
+  - Corrigido o domínio quebrado `toolbox.rodrigolessa.dev` no comando de terminal para resolução dinâmica de host (`window.location.origin`) com fallback seguro para `https://toolbox-nine-phi.vercel.app`.
+- **Instalador Oficial para Windows via PowerShell One-Liner ([#144](https://github.com/rodrigolessadev/toolbox/issues/144)):**
+  - Adicionada aba nativa para Windows no terminal interativo da home com o comando:
+    ```powershell
+    irm https://toolbox-nine-phi.vercel.app/install.ps1 | iex
+    ```
+  - Novo script `install.ps1` que consulta a API de releases mais recente do GitHub, baixa com validação e executa o instalador oficial `.exe`.
+- **Paridade Visual e Resiliência na Home ([#144](https://github.com/rodrigolessadev/toolbox/issues/144)):**
+  - Botões de download do Windows e Linux mantidos com destaque primário vibrante (`btn-primary` e `is-recommended`) em todas as plataformas.
+  - Otimização do estado de carregamento inicial (SSR/Loading) para evitar layout shift e links desabilitados.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #145](https://github.com/rodrigolessadev/toolbox/pull/145):** `feat(updater): implementar auto-update in-place para appimage no linux em espaco de usuario` (Closes [#142](https://github.com/rodrigolessadev/toolbox/issues/142))
+- **[PR #146](https://github.com/rodrigolessadev/toolbox/pull/146):** `fix(updater): validar cabecalho debian ar e redirecionamento no download do updater` (Closes [#143](https://github.com/rodrigolessadev/toolbox/issues/143))
+- **[PR #147](https://github.com/rodrigolessadev/toolbox/pull/147):** `fix(site): corrigir url do instalador one-liner e garantir visibilidade e paridade da versao windows na home` (Closes [#144](https://github.com/rodrigolessadev/toolbox/issues/144))
+```
+
+---
+
+### 📋 3. Checklist para Publicação
+
+1. **Aprovar e Mesclar os PRs na branch `main`:**
+   - [ ] [PR #145](https://github.com/rodrigolessadev/toolbox/pull/145) (Issue #142)
+   - [ ] [PR #146](https://github.com/rodrigolessadev/toolbox/pull/146) (Issue #143)
+   - [ ] [PR #147](https://github.com/rodrigolessadev/toolbox/pull/147) (Issue #144)
+2. **Atualizar a Versão nos Arquivos do Projeto (após merge na `main`):**
+   - No app `toolbox-release`, selecionar o repositório `toolbox` e aplicar o bump para **`1.35.0`** (ou executar a sincronização em `package.json`, `src-tauri/tauri.conf.json` e `src-tauri/Cargo.toml`).
+3. **Disparar a Publicação:**
+   - Iniciar o release pelo **Toolbox Release** ou criar a tag `v1.35.0` e push para disparar o pipeline do GitHub Actions que compila e assina os binários para Windows (`.exe`, `.msi`) e Linux (`.AppImage`, `.deb`).
+
 ## v1.34.0 - 2026-09-10
 
 ## v1.34.0 - 2026-09-10 (Linux Multiplatform Release)
