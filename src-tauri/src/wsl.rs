@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Identifica se o processo esta em execucao dentro de um ambiente WSL
@@ -121,6 +122,26 @@ pub fn sanitize_cmd_arg(arg: &str) -> String {
 /// Porta padrão para a ponte IPC de foco entre host Windows e Toolbox WSL2
 pub const WSL_FOCUS_BRIDGE_PORT: u16 = 49152;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WslFocusBridgeStatus {
+    pub is_wsl: bool,
+    pub port: u16,
+    pub script_path: Option<String>,
+}
+
+#[tauri::command]
+pub fn get_wsl_focus_bridge_status() -> WslFocusBridgeStatus {
+    WslFocusBridgeStatus {
+        is_wsl: is_wsl(),
+        port: WSL_FOCUS_BRIDGE_PORT,
+        script_path: if is_wsl() {
+            Some("scripts/wsl-bridge/focus-bridge.ps1".to_string())
+        } else {
+            None
+        },
+    }
+}
+
 /// Inicia o daemon local TCP para receber sinais de ativação e foco do Windows host
 pub fn start_wsl_focus_listener(app_handle: tauri::AppHandle) {
     if !is_wsl() {
@@ -211,6 +232,17 @@ mod tests {
 
         let converted_back = wsl_to_windows_path(wsl.to_str().unwrap()).unwrap();
         assert_eq!(converted_back, win);
+    }
+
+    #[test]
+    fn test_wsl_focus_bridge_status() {
+        let status = get_wsl_focus_bridge_status();
+        assert_eq!(status.port, WSL_FOCUS_BRIDGE_PORT);
+        if status.is_wsl {
+            assert_eq!(status.script_path, Some("scripts/wsl-bridge/focus-bridge.ps1".to_string()));
+        } else {
+            assert_eq!(status.script_path, None);
+        }
     }
 }
 

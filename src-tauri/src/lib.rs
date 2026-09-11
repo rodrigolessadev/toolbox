@@ -372,11 +372,12 @@ pub fn run() {
             let app_handle = app.handle().clone();
             crate::wsl::start_wsl_focus_listener(app_handle.clone());
 
+            let app_handle_ctrl = app_handle.clone();
             if let Err(e) = app.global_shortcut().on_shortcut(
                 shortcut,
                 move |_app, _scut, event| {
                     if event.state == ShortcutState::Pressed {
-                        if let Some(window) = app_handle.get_webview_window("main") {
+                        if let Some(window) = app_handle_ctrl.get_webview_window("main") {
                             let _ = window.unminimize();
                             let _ = window.show();
                             let _ = window.set_focus();
@@ -385,8 +386,27 @@ pub fn run() {
                 },
             ) {
                 eprintln!(
-                    "Aviso: nao foi possivel registrar Ctrl+Space ({e}). O app continua funcionando."
+                    "Aviso: nao foi possivel registrar Ctrl+Space ({e}). No Linux/Wayland ou sob IBus, este atalho pode estar reservado pelo sistema. Tentando registrar fallback Alt+Space..."
                 );
+
+                let shortcut_alt = Shortcut::new(Some(Modifiers::ALT), Code::Space);
+                let app_handle_alt = app_handle.clone();
+                if let Err(e_alt) = app.global_shortcut().on_shortcut(
+                    shortcut_alt,
+                    move |_app, _scut, event| {
+                        if event.state == ShortcutState::Pressed {
+                            if let Some(window) = app_handle_alt.get_webview_window("main") {
+                                let _ = window.unminimize();
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                    },
+                ) {
+                    eprintln!("Aviso: nao foi possivel registrar fallback Alt+Space ({e_alt}). O app continua funcionando.");
+                } else {
+                    eprintln!("Atalho fallback Alt+Space registrado com sucesso!");
+                }
             }
 
             // Verifica atualizações em background (não bloqueia a inicialização)
@@ -412,6 +432,7 @@ pub fn run() {
             commands_store::check_auto_backup_available,
             check_update,
             install_update,
+            wsl::get_wsl_focus_bridge_status,
             executor::run_command,
             executor::list_plugins,
             executor::open_plugin_folder,

@@ -1,3 +1,34 @@
+## v1.35.4 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/Toolbox_1.35.4_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/toolbox_1.35.4_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/Toolbox_1.35.4_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.4
+
+Esta versão aprimora a integração de atalhos globais de teclado no Linux e sob o ambiente WSL2, introduzindo scripts de automação em segundo plano para o WSL Focus Bridge e mecanismo de atalho alternativo de fallback.
+
+---
+
+### 🚀 Novas Funcionalidades e Melhorias
+
+- **Automação e Inicialização do WSL Focus Bridge no Windows ([#151](https://github.com/rodrigolessadev/toolbox/issues/151)):**
+  - Adicionados scripts em `scripts/wsl-bridge/` para iniciar o Focus Bridge em segundo plano silencioso (`start-focus-bridge.cmd`) e instalar na inicialização do Windows (`install-focus-bridge.cmd` na pasta `shell:startup`).
+  - Exposto comando Tauri `get_wsl_focus_bridge_status` para consulta programática de status da ponte e da porta TCP `49152`.
+
+---
+
+### 🐛 Correções de Bugs e Resiliência
+
+- **Resiliência de Atalho Global no Linux e Fallback `Alt + Space` ([#151](https://github.com/rodrigolessadev/toolbox/issues/151)):**
+  - Melhorado o tratamento de erros ao registrar o atalho `Ctrl + Space` no Linux, fornecendo diagnóstico de conflito com o IBus e registrando automaticamente `Alt + Space` como atalho secundário funcional de fallback.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #157](https://github.com/rodrigolessadev/toolbox/pull/157):** `fix(shortcut): garantir atalho ctrl+space sob wsl2 via focus-bridge e fallback linux` (Closes [#151](https://github.com/rodrigolessadev/toolbox/issues/151))
+
+</details>
+
 ## v1.35.3 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/Toolbox_1.35.3_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/toolbox_1.35.3_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/Toolbox_1.35.3_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
