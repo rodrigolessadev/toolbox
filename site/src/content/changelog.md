@@ -1,3 +1,35 @@
+## v1.35.1 - 2026-09-11
+
+# Toolbox v1.35.1
+
+Esta versão traz importantes correções de estabilidade, compatibilidade e experiência visual para usuários de **Linux**, **WSL2** e melhorias no site oficial de download.
+
+---
+
+### 🐧 Compatibilidade Linux & Empacotamento AppImage
+
+- **Correção de Artefatos Gráficos no WebKitGTK**: Desativação do renderizador DMABuf no Linux (`WEBKIT_DISABLE_DMABUF_RENDERER=1`), eliminando as linhas diagonais em formato de 'X' que apareciam sobre inputs e selects ([#148](https://github.com/rodrigolessadev/toolbox/issues/148) via [#154](https://github.com/rodrigolessadev/toolbox/pull/154)).
+- **Isolamento de Ambiente para Plugins Python**: Sanitização de variáveis de ambiente herdadas do runtime AppImage (`PYTHONHOME`, `PYTHONPATH`, `PYTHONEXECUTABLE`), garantindo que plugins do marketplace executem no ambiente Python correto sem conflitos de dependências ([#149](https://github.com/rodrigolessadev/toolbox/issues/149) via [#155](https://github.com/rodrigolessadev/toolbox/pull/155)).
+- **Sanitização de Execução de Comandos Externos**: Limpeza de variáveis de sistema do AppImage (`LD_LIBRARY_PATH`, `PATH`) ao invocar ferramentas externas e comandos virtuais como o *Toolbox Release* ([#150](https://github.com/rodrigolessadev/toolbox/issues/150) via [#156](https://github.com/rodrigolessadev/toolbox/pull/156)).
+
+---
+
+### 🪟 Integração e Experiência sob WSL2
+
+- **Atalho Global `Ctrl+Space` no WSL2**: Tratamento aprimorado de captura no Linux e integração com o *focus-bridge*, garantindo disparo e foco consistentes da paleta de comandos no WSL2 ([#151](https://github.com/rodrigolessadev/toolbox/issues/151) via [#157](https://github.com/rodrigolessadev/toolbox/pull/157)).
+- **Abertura de Links no Navegador do Windows**: Comandos do tipo `link` acionados a partir do WSL2 agora são delegados diretamente ao navegador padrão do host Windows (`cmd.exe /c start`), com escape seguro de parâmetros de URL ([#152](https://github.com/rodrigolessadev/toolbox/issues/152) via [#158](https://github.com/rodrigolessadev/toolbox/pull/158)).
+
+---
+
+### 🌐 Site Oficial & Downloads
+
+- **Correção de Crash de Hooks na Home**: Correção na ordem de execução de hooks do React que provocava a desmontagem inesperada dos botões de download após o carregamento inicial ([#153](https://github.com/rodrigolessadev/toolbox/issues/153) via [#159](https://github.com/rodrigolessadev/toolbox/pull/159)).
+- **Pré-carregamento SSR e Opções Fixas**: Integração de SSR via Astro para entrega instantânea dos links de release, mantendo opções fixas e simétricas para Windows (`.exe` / `.msi`) e Linux (`.deb` / `.AppImage`).
+
+---
+
+**Full Changelog**: https://github.com/rodrigolessadev/toolbox/compare/v1.35.0...v1.35.1
+
 ## v1.35.0 - 2026-09-11
 
 # Toolbox v1.35.0

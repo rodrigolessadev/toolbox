@@ -1,3 +1,39 @@
+## v1.35.1 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/toolbox_1.35.1_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.1
+
+Esta versão traz importantes correções de estabilidade, compatibilidade e experiência visual para usuários de **Linux**, **WSL2** e melhorias no site oficial de download.
+
+---
+
+### 🐧 Compatibilidade Linux & Empacotamento AppImage
+
+- **Correção de Artefatos Gráficos no WebKitGTK**: Desativação do renderizador DMABuf no Linux (`WEBKIT_DISABLE_DMABUF_RENDERER=1`), eliminando as linhas diagonais em formato de 'X' que apareciam sobre inputs e selects ([#148](https://github.com/rodrigolessadev/toolbox/issues/148) via [#154](https://github.com/rodrigolessadev/toolbox/pull/154)).
+- **Isolamento de Ambiente para Plugins Python**: Sanitização de variáveis de ambiente herdadas do runtime AppImage (`PYTHONHOME`, `PYTHONPATH`, `PYTHONEXECUTABLE`), garantindo que plugins do marketplace executem no ambiente Python correto sem conflitos de dependências ([#149](https://github.com/rodrigolessadev/toolbox/issues/149) via [#155](https://github.com/rodrigolessadev/toolbox/pull/155)).
+- **Sanitização de Execução de Comandos Externos**: Limpeza de variáveis de sistema do AppImage (`LD_LIBRARY_PATH`, `PATH`) ao invocar ferramentas externas e comandos virtuais como o *Toolbox Release* ([#150](https://github.com/rodrigolessadev/toolbox/issues/150) via [#156](https://github.com/rodrigolessadev/toolbox/pull/156)).
+
+---
+
+### 🪟 Integração e Experiência sob WSL2
+
+- **Atalho Global `Ctrl+Space` no WSL2**: Tratamento aprimorado de captura no Linux e integração com o *focus-bridge*, garantindo disparo e foco consistentes da paleta de comandos no WSL2 ([#151](https://github.com/rodrigolessadev/toolbox/issues/151) via [#157](https://github.com/rodrigolessadev/toolbox/pull/157)).
+- **Abertura de Links no Navegador do Windows**: Comandos do tipo `link` acionados a partir do WSL2 agora são delegados diretamente ao navegador padrão do host Windows (`cmd.exe /c start`), com escape seguro de parâmetros de URL ([#152](https://github.com/rodrigolessadev/toolbox/issues/152) via [#158](https://github.com/rodrigolessadev/toolbox/pull/158)).
+
+---
+
+### 🌐 Site Oficial & Downloads
+
+- **Correção de Crash de Hooks na Home**: Correção na ordem de execução de hooks do React que provocava a desmontagem inesperada dos botões de download após o carregamento inicial ([#153](https://github.com/rodrigolessadev/toolbox/issues/153) via [#159](https://github.com/rodrigolessadev/toolbox/pull/159)).
+- **Pré-carregamento SSR e Opções Fixas**: Integração de SSR via Astro para entrega instantânea dos links de release, mantendo opções fixas e simétricas para Windows (`.exe` / `.msi`) e Linux (`.deb` / `.AppImage`).
+
+---
+
+**Full Changelog**: https://github.com/rodrigolessadev/toolbox/compare/v1.35.0...v1.35.1
+
+</details>
+
 ## v1.35.4 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/Toolbox_1.35.4_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/toolbox_1.35.4_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.4/Toolbox_1.35.4_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
@@ -74,30 +110,6 @@ Esta versão traz correção crítica na execução de plugins e extensões base
 ### 🔗 Pull Requests Relacionados
 
 - **[PR #155](https://github.com/rodrigolessadev/toolbox/pull/155):** `fix(executor): isolar variaveis de ambiente do appimage na execucao de plugins` (Closes [#149](https://github.com/rodrigolessadev/toolbox/issues/149))
-
-</details>
-
-## v1.35.1 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/toolbox_1.35.1_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_amd64.AppImage)
-<details>
-<summary>Ver detalhes da versao</summary>
-
-# Toolbox v1.35.1
-
-Esta versão traz correção crítica na renderização de interface no Linux e WSLg, eliminando artefatos visuais e linhas cruzadas em formato de "X" sobre inputs e campos suspensos.
-
----
-
-### 🐛 Correções de Bugs e Estabilidade
-
-- **Desativação do Renderizador DMABUF do WebKitGTK no Linux ([#148](https://github.com/rodrigolessadev/toolbox/issues/148)):**
-  - Configuração automática da variável de ambiente `WEBKIT_DISABLE_DMABUF_RENDERER=1` durante a inicialização no Linux (`#[cfg(target_os = "linux")]`).
-  - Corrige incompatibilidade conhecida do WebKitGTK 2.40+ com drivers gráficos virtuais (Mesa / WSLg / d3d12) e compositores Wayland que provocava linhas diagonais em formato de "X" sobre inputs de texto e selects.
-
----
-
-### 🔗 Pull Requests Relacionados
-
-- **[PR #149](https://github.com/rodrigolessadev/toolbox/pull/149):** `fix(ui): desativar renderizador dmabuf do webkitgtk no linux para eliminar linhas em X` (Closes [#148](https://github.com/rodrigolessadev/toolbox/issues/148))
 
 </details>
 
