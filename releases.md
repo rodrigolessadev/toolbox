@@ -1,3 +1,27 @@
+## v1.35.3 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/Toolbox_1.35.3_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/toolbox_1.35.3_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.3/Toolbox_1.35.3_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.3
+
+Esta versão traz correção crítica na execução de comandos externos, executáveis e scripts a partir da paleta de comandos no Linux, garantindo o isolamento de variáveis de ambiente do AppImage.
+
+---
+
+### 🐛 Correções de Bugs e Estabilidade
+
+- **Sanitização de Ambiente do AppImage em Comandos Externos e Scripts ([#150](https://github.com/rodrigolessadev/toolbox/issues/150)):**
+  - Implementada função utilitária `sanitize_appimage_env` que remove preventivamente `PYTHONHOME` e `PYTHONPATH` antes de despachar processos em `run_raw_executable` e `run_script`.
+  - Permite a inicialização perfeita de comandos externos e ferramentas virtuais (como o Toolbox-Release em `.venv/bin/python3`) sem que o interpretador do host sofra falhas de codec do sistema de arquivos (`init_fs_encoding`).
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #156](https://github.com/rodrigolessadev/toolbox/pull/156):** `fix(executor): sanitizar ambiente herdado do appimage na execucao de comandos externos` (Closes [#150](https://github.com/rodrigolessadev/toolbox/issues/150))
+
+</details>
+
 ## v1.35.2 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/Toolbox_1.35.2_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/toolbox_1.35.2_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/Toolbox_1.35.2_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>

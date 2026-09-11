@@ -163,6 +163,17 @@ fn run_clipboard(name: &str, entry: &CommandEntry) -> Result<RunResult, String> 
     })
 }
 
+/// Remove variáveis de ambiente que o empacotamento AppImage injeta no processo pai
+/// (como PYTHONHOME e PYTHONPATH apontando para /tmp/.mount_toolbXXXXXX),
+/// prevenindo erros de carregamento e crash na execução de ferramentas externas.
+pub fn sanitize_appimage_env(cmd: &mut Command) {
+    #[cfg(target_os = "linux")]
+    {
+        cmd.env_remove("PYTHONHOME");
+        cmd.env_remove("PYTHONPATH");
+    }
+}
+
 fn run_script(_app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunResult, String> {
     let script_content = entry
         .script_content
@@ -228,6 +239,8 @@ fn run_script(_app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunR
         }
         _ => Command::new(&path_str),
     };
+
+    sanitize_appimage_env(&mut cmd);
 
     if let Some(raw_args) = &entry.args {
         let trimmed = raw_args.trim();
@@ -477,6 +490,8 @@ pub fn run_raw_executable(
         }
         _ => Command::new(path),
     };
+
+    sanitize_appimage_env(&mut cmd);
 
     // Argumentos extras, se houver (igual ao campo "Destino" do atalho do Windows)
     if let Some(raw_args) = raw_args {
@@ -915,6 +930,23 @@ mod tests {
     fn test_split_args_empty_or_whitespace() {
         assert!(split_args("").is_empty());
         assert!(split_args("    ").is_empty());
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn test_sanitize_appimage_env_removes_vars() {
+        let mut cmd = Command::new("dummy");
+        sanitize_appimage_env(&mut cmd);
+
+        let envs: Vec<(&std::ffi::OsStr, Option<&std::ffi::OsStr>)> = cmd.get_envs().collect();
+        let pythonhome_entry = envs.iter().find(|(k, _)| *k == "PYTHONHOME");
+        let pythonpath_entry = envs.iter().find(|(k, _)| *k == "PYTHONPATH");
+
+        assert!(pythonhome_entry.is_some());
+        assert_eq!(pythonhome_entry.unwrap().1, None);
+
+        assert!(pythonpath_entry.is_some());
+        assert_eq!(pythonpath_entry.unwrap().1, None);
     }
 }
 
