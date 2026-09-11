@@ -7,10 +7,29 @@ type State =
   | { status: 'error'; message: string }
   | { status: 'empty' };
 
-export default function DownloadButton() {
-  const [state, setState] = useState<State>({ status: 'loading' });
+export interface DownloadButtonProps {
+  initialData?: LatestReleaseResponse | null;
+}
+
+export default function DownloadButton({ initialData }: DownloadButtonProps = {}) {
+  const [isLinux, setIsLinux] = useState(false);
+  const [state, setState] = useState<State>(() => {
+    if (initialData && initialData.tag) {
+      return { status: 'ready', data: initialData };
+    }
+    return { status: 'loading' };
+  });
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.navigator) {
+      const ua = window.navigator.userAgent.toLowerCase();
+      setIsLinux(ua.indexOf('linux') >= 0 || ua.indexOf('x11') >= 0);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (initialData && initialData.tag) return;
+
     let cancelled = false;
 
     async function load() {
@@ -37,7 +56,7 @@ export default function DownloadButton() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialData]);
 
   if (state.status === 'loading') {
     return (
@@ -66,7 +85,10 @@ export default function DownloadButton() {
             <div className="platform-btn-row">
               <a className="btn btn-primary download-btn-main" href="/download">
                 <span aria-hidden>⬇</span>
-                <span>Baixar (.AppImage)</span>
+                <span>Baixar (.deb)</span>
+              </a>
+              <a className="btn-ghost-subtle" href="/download" title="Baixar pacote portátil .AppImage">
+                .AppImage
               </a>
             </div>
           </div>
@@ -83,7 +105,13 @@ export default function DownloadButton() {
     );
   }
 
-  if (state.status === 'empty' || (!state.data.windows_installer && !state.data.linux_deb && !state.data.linux_appimage && !state.data.installer)) {
+  if (
+    state.status === 'empty' ||
+    (!state.data.windows_installer &&
+      !state.data.linux_deb &&
+      !state.data.linux_appimage &&
+      !state.data.installer)
+  ) {
     return (
       <div className="download-cta">
         <a className="btn btn-secondary btn-large" href="/download">
@@ -93,19 +121,11 @@ export default function DownloadButton() {
     );
   }
 
-  const { tag, published_at, installer, windows_installer, windows_msi, linux_deb, linux_appimage } = state.data;
-
-  const [isLinux, setIsLinux] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.navigator) {
-      const ua = window.navigator.userAgent.toLowerCase();
-      setIsLinux(ua.indexOf('linux') >= 0 || ua.indexOf('x11') >= 0);
-    }
-  }, []);
+  const { tag, published_at, installer, windows_installer, windows_msi, linux_deb, linux_appimage } =
+    state.data;
 
   const winPrimary = windows_installer || installer;
-  const linuxPrimary = linux_appimage || linux_deb || installer;
+  const linuxPrimary = linux_deb || linux_appimage || installer;
 
   return (
     <div className="download-cta">
@@ -152,15 +172,15 @@ export default function DownloadButton() {
               title="Baixar pacote oficial para Linux"
             >
               <span aria-hidden>⬇</span>
-              <span>Baixar ({linux_appimage ? '.AppImage' : '.deb'})</span>
+              <span>Baixar {linux_deb ? '(.deb)' : (linux_appimage ? '(.AppImage)' : '(Linux)')}</span>
             </a>
-            {linux_deb && linux_appimage && (
+            {linux_appimage && (
               <a
                 className="btn-ghost-subtle"
-                href={linux_deb.browser_download_url}
-                title={`Baixar pacote de sistema .deb (${formatBytes(linux_deb.size)})`}
+                href={linux_appimage.browser_download_url}
+                title={`Baixar pacote portátil .AppImage (${formatBytes(linux_appimage.size)})`}
               >
-                .deb
+                .AppImage
               </a>
             )}
           </div>

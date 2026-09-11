@@ -5,6 +5,14 @@ import DownloadButton from '../components/DownloadButton.tsx';
 import InstallTerminal from '../components/InstallTerminal.tsx';
 import FeatureCard from '../components/FeatureCard.astro';
 import { SITE } from '../lib/site';
+import { fetchLatestRelease } from '../lib/github';
+
+let latestRelease = null;
+try {
+  latestRelease = await fetchLatestRelease();
+} catch (err) {
+  console.warn('Não foi possível obter release recente em SSR para index:', err);
+}
 
 const features = [
   {
@@ -49,7 +57,7 @@ const features = [
         {SITE.description}
       </p>
       <div class="cta-row">
-        <DownloadButton client:load />
+        <DownloadButton initialData={latestRelease} client:load />
         <a class="btn btn-secondary" href="/docs/commands">
           📖 Como usar
         </a>
