@@ -1,3 +1,31 @@
+## v1.35.5 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/Toolbox_1.35.5_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/toolbox_1.35.5_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/Toolbox_1.35.5_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.5
+
+Esta versão corrige a execução de comandos, scripts e binários Windows no ambiente WSL2, eliminando o erro `Opção inválida - "/mnt".`.
+
+---
+
+### 🐛 Correções de Bugs & Integração WSL2
+
+- **Execução Direta de Binários Windows (`.exe`) via WSL2 ([#160](https://github.com/rodrigolessadev/toolbox/issues/160)):**
+  - Identificação de executáveis Windows montados sob `/mnt/...` e unidades Windows (`C:\...`), executando binários `.exe` existentes diretamente através do kernel WSL2 (`binfmt_misc`) sem intermediação desnecessária do `cmd.exe`.
+- **Normalização de Caminhos para Host Windows ([#160](https://github.com/rodrigolessadev/toolbox/issues/160)):**
+  - Conversão obrigatória de caminhos `/mnt/c/...` para o formato Windows (`C:\...`) ao repassar argumentos para `cmd.exe /c start` (consoles MMC `.msc`, `.cpl`, atalhos), `powershell.exe` (`.ps1`) e `cmd.exe /c` (`.bat`, `.cmd`).
+  - Prevenção garantida contra passagem de argumentos com prefixo `/mnt/` que causavam interpretação indevida de switches no comando `start` do Windows.
+- **Resolução Automática de Extensões ([#160](https://github.com/rodrigolessadev/toolbox/issues/160)):**
+  - Aprimoramento de `is_windows_command` para deduzir a extensão do arquivo a partir do caminho quando fornecido vazio.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #162](https://github.com/rodrigolessadev/toolbox/pull/162):** `fix(executor): corrigir erro opcao invalida mnt ao executar comandos e binarios windows sob wsl2` (Closes [#160](https://github.com/rodrigolessadev/toolbox/issues/160))
+
+</details>
+
 ## v1.35.1 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/toolbox_1.35.1_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
