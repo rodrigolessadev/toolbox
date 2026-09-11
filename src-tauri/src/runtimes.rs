@@ -200,6 +200,44 @@ fn get_version_from_bin(bin_path: &Path) -> Option<String> {
     Some("Python (Embutido)".to_string())
 }
 
+/// Configura o ambiente de execução para um comando Python, prevenindo
+/// a contaminação por variáveis exportadas pelo ambiente pai (como AppImage no Linux)
+/// e injetando as variáveis adequadas quando se tratar de runtime embutido.
+pub fn configure_python_command_env(
+    cmd: &mut Command,
+    python_bin: &Path,
+    is_embedded: bool,
+) {
+    // Remove contaminação de variáveis de ambiente do AppImage ou do processo pai
+    cmd.env_remove("PYTHONHOME");
+    cmd.env_remove("PYTHONPATH");
+
+    if is_embedded {
+        let root_dir = if python_bin.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()) == Some("bin") {
+            python_bin.parent().and_then(|p| p.parent()).unwrap_or_else(|| python_bin.parent().unwrap())
+        } else {
+            python_bin.parent().unwrap_or(Path::new("."))
+        };
+
+        let win_sp = root_dir.join("Lib").join("site-packages");
+        if win_sp.exists() {
+            cmd.env("PYTHONPATH", &win_sp);
+        } else {
+            let lib_dir = root_dir.join("lib");
+            if let Ok(entries) = std::fs::read_dir(&lib_dir) {
+                for entry in entries.flatten() {
+                    let sp = entry.path().join("site-packages");
+                    if sp.exists() {
+                        cmd.env("PYTHONPATH", &sp);
+                        break;
+                    }
+                }
+            }
+        }
+        cmd.env("PYTHONHOME", root_dir);
+    }
+}
+
 fn check_python_runtime(app: Option<&tauri::AppHandle>) -> RuntimeInfo {
     let (bin_path, is_embedded, version) = get_python_executable(app);
     let available = version.is_some() || bin_path.exists();
@@ -335,6 +373,42 @@ mod tests {
             let found = find_python_in_venv(&temp_dir);
             assert_eq!(found, Some(py_bin));
         }
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn test_configure_python_command_env_removes_parent_contamination() {
+        let mut cmd = Command::new("python");
+        let bin_path = PathBuf::from("/usr/bin/python3");
+        configure_python_command_env(&mut cmd, &bin_path, false);
+
+        let envs: Vec<(&std::ffi::OsStr, Option<&std::ffi::OsStr>)> = cmd.get_envs().collect();
+        let pythonhome_entry = envs.iter().find(|(k, _)| *k == "PYTHONHOME");
+        let pythonpath_entry = envs.iter().find(|(k, _)| *k == "PYTHONPATH");
+
+        assert!(pythonhome_entry.is_some());
+        assert_eq!(pythonhome_entry.unwrap().1, None);
+
+        assert!(pythonpath_entry.is_some());
+        assert_eq!(pythonpath_entry.unwrap().1, None);
+    }
+
+    #[test]
+    fn test_configure_python_command_env_embedded_sets_vars() {
+        let mut cmd = Command::new("python");
+        let temp_dir = std::env::temp_dir().join("toolbox_test_embedded_python");
+        let bin_dir = temp_dir.join("bin");
+        std::fs::create_dir_all(&bin_dir).unwrap();
+        let py_bin = bin_dir.join("python3");
+
+        configure_python_command_env(&mut cmd, &py_bin, true);
+
+        let envs: Vec<(&std::ffi::OsStr, Option<&std::ffi::OsStr>)> = cmd.get_envs().collect();
+        let pythonhome_entry = envs.iter().find(|(k, _)| *k == "PYTHONHOME");
+
+        assert!(pythonhome_entry.is_some());
+        assert_eq!(pythonhome_entry.unwrap().1, Some(temp_dir.as_os_str()));
 
         let _ = std::fs::remove_dir_all(&temp_dir);
     }

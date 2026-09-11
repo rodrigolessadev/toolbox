@@ -1,3 +1,27 @@
+## v1.35.2 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/Toolbox_1.35.2_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/toolbox_1.35.2_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.2/Toolbox_1.35.2_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.2
+
+Esta versão traz correção crítica na execução de plugins e extensões baseadas em Python baixadas do Marketplace no Linux, eliminando conflitos de variáveis de ambiente herdadas do empacotamento AppImage.
+
+---
+
+### 🐛 Correções de Bugs e Estabilidade
+
+- **Isolamento de Variáveis de Ambiente do AppImage na Execução de Plugins ([#149](https://github.com/rodrigolessadev/toolbox/issues/149)):**
+  - Sanitização preventiva de `PYTHONHOME` e `PYTHONPATH` nos módulos `executor` e `protocol` antes de lançar o interpretador do host ou o ambiente virtual (`.venv`) de plugins.
+  - Elimina o erro crítico `Fatal Python error: Failed to import encodings module / ModuleNotFoundError: No module named 'encodings'` decorrente do apontamento indevido para o ponto de montagem temporário do AppImage.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #155](https://github.com/rodrigolessadev/toolbox/pull/155):** `fix(executor): isolar variaveis de ambiente do appimage na execucao de plugins` (Closes [#149](https://github.com/rodrigolessadev/toolbox/issues/149))
+
+</details>
+
 ## v1.35.1 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/toolbox_1.35.1_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
