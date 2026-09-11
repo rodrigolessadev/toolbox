@@ -24,9 +24,18 @@ pub fn is_wsl() -> bool {
 
 /// Identifica se um comando ou extensao corresponde a um executavel ou ferramenta do Windows
 pub fn is_windows_command(path: &str, ext: &str) -> bool {
-    let ext_lower = ext.to_lowercase();
+    let effective_ext = if !ext.is_empty() {
+        ext.to_lowercase()
+    } else {
+        Path::new(path)
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_lowercase()
+    };
+
     if matches!(
-        ext_lower.as_str(),
+        effective_ext.as_str(),
         "exe" | "bat" | "cmd" | "msc" | "cpl" | "ps1"
     ) {
         return true;
@@ -207,6 +216,13 @@ mod tests {
         assert!(is_windows_command(r"\\NB025869\SeniorGPO108ORA\Iniciar.exe", "exe"));
         assert!(is_windows_command(r"\\server\share\tool", ""));
         assert!(is_windows_command("//server/share/tool", ""));
+
+        // WSL mounted paths
+        assert!(is_windows_command("/mnt/c/Windows/notepad.exe", ""));
+        assert!(is_windows_command("/mnt/c/Windows/System32/cmd.exe", "exe"));
+        assert!(is_windows_command("/mnt/c/Tools/script.bat", ""));
+        assert!(is_windows_command("/mnt/c/Tools/script.ps1", ""));
+        assert!(is_windows_command("/mnt/c/Windows/System32/devmgmt.msc", ""));
 
         assert!(!is_windows_command("ls", ""));
         assert!(!is_windows_command("grep", ""));
