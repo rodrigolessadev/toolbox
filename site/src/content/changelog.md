@@ -1,4 +1,4 @@
-## v1.35.0 - 2026-09-10
+## v1.35.0 - 2026-09-11
 
 # Toolbox v1.35.0
 
@@ -61,6 +61,7 @@ Esta versão traz melhorias substanciais na experiência de atualização autom�
    - No app `toolbox-release`, selecionar o repositório `toolbox` e aplicar o bump para **`1.35.0`** (ou executar a sincronização em `package.json`, `src-tauri/tauri.conf.json` e `src-tauri/Cargo.toml`).
 3. **Disparar a Publicação:**
    - Iniciar o release pelo **Toolbox Release** ou criar a tag `v1.35.0` e push para disparar o pipeline do GitHub Actions que compila e assina os binários para Windows (`.exe`, `.msi`) e Linux (`.AppImage`, `.deb`).
+
 
 ## v1.34.0 - 2026-09-10
 

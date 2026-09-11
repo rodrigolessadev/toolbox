@@ -1,4 +1,4 @@
-## v1.35.0 - 2026-09-10 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/toolbox_1.35.0_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_amd64.AppImage)
+## v1.35.0 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/toolbox_1.35.0_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
 
