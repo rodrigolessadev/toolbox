@@ -131,6 +131,95 @@ pub fn sanitize_cmd_arg(arg: &str) -> String {
 /// Porta padrão para a ponte IPC de foco entre host Windows e Toolbox WSL2
 pub const WSL_FOCUS_BRIDGE_PORT: u16 = 49152;
 
+/// Retorna o endereço de bind para o socket TCP do Focus Bridge (0.0.0.0:49152)
+pub fn get_wsl_focus_bridge_bind_addr() -> String {
+    format!("0.0.0.0:{}", WSL_FOCUS_BRIDGE_PORT)
+}
+
+const EMBEDDED_FOCUS_BRIDGE_SCRIPT: &str = include_str!("../../scripts/wsl-bridge/focus-bridge.ps1");
+
+/// Obtém ou implanta o script focus-bridge.ps1 em um caminho acessível pelo Windows host
+pub fn get_or_deploy_wsl_focus_bridge_script() -> Result<String, String> {
+    // 1. Se existir relativo ao diretório atual sob partição montada (/mnt/...)
+    let local_candidates = [
+        Path::new("scripts/wsl-bridge/focus-bridge.ps1"),
+        Path::new("../scripts/wsl-bridge/focus-bridge.ps1"),
+    ];
+
+    for candidate in &local_candidates {
+        if candidate.exists() {
+            if let Ok(abs) = candidate.canonicalize() {
+                let abs_str = abs.to_string_lossy().to_string();
+                if let Some(win_path) = wsl_to_windows_path(&abs_str) {
+                    return Ok(win_path);
+                }
+            }
+        }
+    }
+
+    // 2. Implantação em diretório acessível globalmente no Windows (C:\Users\Public\Toolbox\wsl-bridge)
+    let public_dir = Path::new("/mnt/c/Users/Public/Toolbox/wsl-bridge");
+    if let Err(e) = std::fs::create_dir_all(public_dir) {
+        return Err(format!("Falha ao criar diretório público do Focus Bridge no Windows: {}", e));
+    }
+
+    let target_file = public_dir.join("focus-bridge.ps1");
+    let should_write = match std::fs::read_to_string(&target_file) {
+        Ok(existing) => existing != EMBEDDED_FOCUS_BRIDGE_SCRIPT,
+        Err(_) => true,
+    };
+
+    if should_write {
+        if let Err(e) = std::fs::write(&target_file, EMBEDDED_FOCUS_BRIDGE_SCRIPT) {
+            return Err(format!("Falha ao salvar script focus-bridge.ps1 em {}: {}", target_file.display(), e));
+        }
+    }
+
+    Ok(r"C:\Users\Public\Toolbox\wsl-bridge\focus-bridge.ps1".to_string())
+}
+
+/// Constrói o comando PowerShell para iniciar o Focus Bridge em segundo plano
+pub fn build_spawn_focus_bridge_command(script_win_path: &str) -> std::process::Command {
+    let mut cmd = std::process::Command::new("powershell.exe");
+    cmd.current_dir("/mnt/c");
+    cmd.stdin(std::process::Stdio::null());
+    cmd.stdout(std::process::Stdio::null());
+    cmd.stderr(std::process::Stdio::null());
+    cmd.args([
+        "-NoProfile",
+        "-WindowStyle",
+        "Hidden",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        script_win_path,
+    ]);
+    cmd
+}
+
+/// Dispara o cliente Focus Bridge no host Windows em segundo plano silencioso
+pub fn spawn_wsl_focus_bridge_client() {
+    if !is_wsl() {
+        return;
+    }
+
+    std::thread::Builder::new()
+        .name("wsl-focus-bridge-spawner".into())
+        .spawn(|| {
+            match get_or_deploy_wsl_focus_bridge_script() {
+                Ok(win_path) => {
+                    let mut cmd = build_spawn_focus_bridge_command(&win_path);
+                    match cmd.spawn() {
+                        Ok(_) => log::info!("Toolbox WSL Focus Bridge client iniciado no Windows: {}", win_path),
+                        Err(e) => log::warn!("Falha ao iniciar WSL Focus Bridge no Windows: {}", e),
+                    }
+                }
+                Err(e) => log::warn!("Nao foi possivel preparar o script do WSL Focus Bridge: {}", e),
+            }
+        })
+        .ok();
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct WslFocusBridgeStatus {
     pub is_wsl: bool,
@@ -140,14 +229,18 @@ pub struct WslFocusBridgeStatus {
 
 #[tauri::command]
 pub fn get_wsl_focus_bridge_status() -> WslFocusBridgeStatus {
+    let script_path = if is_wsl() {
+        get_or_deploy_wsl_focus_bridge_script().ok().or_else(|| {
+            Some("scripts/wsl-bridge/focus-bridge.ps1".to_string())
+        })
+    } else {
+        None
+    };
+
     WslFocusBridgeStatus {
         is_wsl: is_wsl(),
         port: WSL_FOCUS_BRIDGE_PORT,
-        script_path: if is_wsl() {
-            Some("scripts/wsl-bridge/focus-bridge.ps1".to_string())
-        } else {
-            None
-        },
+        script_path,
     }
 }
 
@@ -164,7 +257,7 @@ pub fn start_wsl_focus_listener(app_handle: tauri::AppHandle) {
             use std::net::TcpListener;
             use tauri::Manager;
 
-            let addr = format!("127.0.0.1:{}", WSL_FOCUS_BRIDGE_PORT);
+            let addr = get_wsl_focus_bridge_bind_addr();
             let listener = match TcpListener::bind(&addr) {
                 Ok(l) => {
                     log::info!("WSL Focus Bridge ativo em {}", addr);
@@ -187,6 +280,8 @@ pub fn start_wsl_focus_listener(app_handle: tauri::AppHandle) {
                             let _ = window.show();
                             let _ = window.set_focus();
                         }
+                    } else if cmd == "ping" || cmd == "heartbeat" {
+                        // Responde ao heartbeat de liveness sem acionar foco na janela
                     }
                 }
             }
@@ -255,9 +350,38 @@ mod tests {
         let status = get_wsl_focus_bridge_status();
         assert_eq!(status.port, WSL_FOCUS_BRIDGE_PORT);
         if status.is_wsl {
-            assert_eq!(status.script_path, Some("scripts/wsl-bridge/focus-bridge.ps1".to_string()));
+            assert!(status.script_path.is_some());
+            assert!(status.script_path.unwrap().ends_with("focus-bridge.ps1"));
         } else {
             assert_eq!(status.script_path, None);
+        }
+    }
+
+    #[test]
+    fn test_wsl_focus_bridge_bind_addr() {
+        assert_eq!(get_wsl_focus_bridge_bind_addr(), "0.0.0.0:49152");
+    }
+
+    #[test]
+    fn test_build_spawn_focus_bridge_command() {
+        let cmd = build_spawn_focus_bridge_command(r"C:\Users\Public\Toolbox\wsl-bridge\focus-bridge.ps1");
+        assert_eq!(cmd.get_program(), "powershell.exe");
+        assert_eq!(cmd.get_current_dir(), Some(std::path::Path::new("/mnt/c")));
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(
+            args,
+            vec![
+                "-NoProfile",
+                "-WindowStyle",
+                "Hidden",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                r"C:\Users\Public\Toolbox\wsl-bridge\focus-bridge.ps1"
+            ]
+        );
+        for arg in &args {
+            assert!(!arg.to_string_lossy().starts_with("/mnt/"));
         }
     }
 }

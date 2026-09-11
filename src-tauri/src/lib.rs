@@ -371,6 +371,7 @@ pub fn run() {
 
             let app_handle = app.handle().clone();
             crate::wsl::start_wsl_focus_listener(app_handle.clone());
+            crate::wsl::spawn_wsl_focus_bridge_client();
 
             let app_handle_ctrl = app_handle.clone();
             if let Err(e) = app.global_shortcut().on_shortcut(
