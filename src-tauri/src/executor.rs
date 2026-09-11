@@ -262,8 +262,32 @@ fn run_script(_app: &AppHandle, name: &str, entry: &CommandEntry) -> Result<RunR
     })
 }
 
+/// Prepara comando cmd.exe para abrir URL no navegador padrão do host Windows a partir do WSL2
+pub fn build_wsl_link_command(url: &str) -> Command {
+    let escaped_url = url.replace('&', "^&");
+    let mut cmd = Command::new("cmd.exe");
+    cmd.current_dir("/mnt/c");
+    cmd.stdin(Stdio::null());
+    cmd.stdout(Stdio::null());
+    cmd.stderr(Stdio::null());
+    cmd.args(["/c", "start", "", &escaped_url]);
+    cmd
+}
+
 fn run_link(app: &AppHandle, entry: &CommandEntry) -> Result<RunResult, String> {
     let url = entry.url.clone().ok_or("Link sem URL")?;
+
+    #[cfg(target_os = "linux")]
+    if crate::wsl::is_wsl() {
+        let mut cmd = build_wsl_link_command(&url);
+        if let Ok(_) = cmd.spawn() {
+            return Ok(RunResult {
+                ok: true,
+                message: Some(format!("Link aberto no navegador do Windows: {}", url)),
+            });
+        }
+    }
+
     app.opener()
         .open_url(url.clone(), None::<&str>)
         .map_err(|e| e.to_string())?;
@@ -930,6 +954,19 @@ mod tests {
     fn test_split_args_empty_or_whitespace() {
         assert!(split_args("").is_empty());
         assert!(split_args("    ").is_empty());
+    }
+
+    #[test]
+    fn test_build_wsl_link_command_formatting_and_escaping() {
+        let cmd = build_wsl_link_command("https://example.com/search?query=rust&category=tools");
+        assert_eq!(cmd.get_program(), "cmd.exe");
+        assert_eq!(cmd.get_current_dir(), Some(std::path::Path::new("/mnt/c")));
+
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(
+            args,
+            vec!["/c", "start", "", "https://example.com/search?query=rust^&category=tools"]
+        );
     }
 
     #[test]
