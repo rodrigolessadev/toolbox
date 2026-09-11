@@ -309,17 +309,36 @@ fn run_application(entry: &CommandEntry) -> Result<RunResult, String> {
     run_raw_executable(&path, &ext, entry.args.as_deref(), run_as_admin)
 }
 
-pub fn run_windows_command_in_wsl(
+pub fn build_windows_command_in_wsl(
     path: &str,
     ext: &str,
     raw_args: Option<&str>,
-) -> Result<RunResult, String> {
+) -> Result<std::process::Command, String> {
+    let effective_ext = if !ext.is_empty() {
+        ext.to_lowercase()
+    } else {
+        std::path::Path::new(path)
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_lowercase()
+    };
+    let is_exe = effective_ext == "exe" || path.to_lowercase().ends_with(".exe");
+
     // 1. Execucao direta de binarios Windows (.exe) montados via /mnt/...
-    if let Some(wsl_path) = crate::wsl::windows_to_wsl_path(path) {
-        if wsl_path.exists() && (ext == "exe" || path.ends_with(".exe")) {
+    let direct_wsl_path: Option<std::path::PathBuf> = if path.starts_with("/mnt/") {
+        Some(std::path::PathBuf::from(path))
+    } else {
+        crate::wsl::windows_to_wsl_path(path)
+    };
+
+    if let Some(wsl_path) = direct_wsl_path {
+        if wsl_path.exists() && is_exe {
             let mut c = std::process::Command::new(&wsl_path);
-            if let Some(parent) = wsl_path.parent() {
+            if let Some(parent) = wsl_path.parent().filter(|p| p.exists()) {
                 c.current_dir(parent);
+            } else {
+                c.current_dir("/mnt/c");
             }
             c.stdin(std::process::Stdio::null());
 
@@ -332,22 +351,23 @@ pub fn run_windows_command_in_wsl(
                 }
             }
 
-            c.spawn()
-                .map_err(|e| format!("Falha ao iniciar executavel Windows \"{}\" via WSL: {}", path, e))?;
-
-            return Ok(RunResult {
-                ok: true,
-                message: Some(format!("Aplicativo Windows iniciado via WSL: {}", path)),
-            });
+            return Ok(c);
         }
     }
 
+    // Normaliza caminho para formato Windows se estiver montado em /mnt/...
+    let win_path = if path.starts_with("/mnt/") {
+        crate::wsl::wsl_to_windows_path(path).unwrap_or_else(|| path.to_string())
+    } else {
+        path.to_string()
+    };
+
     // 2. Scripts PowerShell (.ps1)
-    if ext == "ps1" {
+    if effective_ext == "ps1" || path.to_lowercase().ends_with(".ps1") {
         let mut c = std::process::Command::new("powershell.exe");
         c.current_dir("/mnt/c");
         c.stdin(std::process::Stdio::null());
-        c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path]);
+        c.args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", &win_path]);
 
         if let Some(args) = raw_args {
             let trimmed = args.trim();
@@ -358,21 +378,18 @@ pub fn run_windows_command_in_wsl(
             }
         }
 
-        c.spawn()
-            .map_err(|e| format!("Falha ao executar script PowerShell Windows \"{}\" via WSL: {}", path, e))?;
-
-        return Ok(RunResult {
-            ok: true,
-            message: Some(format!("Script PowerShell Windows iniciado via WSL: {}", path)),
-        });
+        return Ok(c);
     }
 
     // 3. Scripts em lote (.bat ou .cmd)
-    if matches!(ext, "bat" | "cmd") {
+    if matches!(effective_ext.as_str(), "bat" | "cmd")
+        || path.to_lowercase().ends_with(".bat")
+        || path.to_lowercase().ends_with(".cmd")
+    {
         let mut c = std::process::Command::new("cmd.exe");
         c.current_dir("/mnt/c");
         c.stdin(std::process::Stdio::null());
-        c.args(["/c", path]);
+        c.args(["/c", &win_path]);
 
         if let Some(args) = raw_args {
             let trimmed = args.trim();
@@ -384,26 +401,30 @@ pub fn run_windows_command_in_wsl(
             }
         }
 
-        c.spawn()
-            .map_err(|e| format!("Falha ao executar script Batch Windows \"{}\" via WSL: {}", path, e))?;
-
-        return Ok(RunResult {
-            ok: true,
-            message: Some(format!("Script Batch Windows iniciado via WSL: {}", path)),
-        });
+        return Ok(c);
     }
 
     // 4. Executaveis em PATH (ex: wt, calc, notepad), consoles (.msc, .cpl) ou caminhos de rede UNC (\\server\share\app.exe)
-    let win_target = if path.ends_with(".exe")
-        || (path.len() >= 3 && path.as_bytes()[1] == b':')
-        || path.starts_with(r"\\")
-        || path.starts_with("//")
-        || matches!(ext, "msc" | "cpl")
+    let win_target = if win_path.to_lowercase().ends_with(".exe")
+        || (win_path.len() >= 3 && win_path.as_bytes()[1] == b':')
+        || win_path.starts_with(r"\\")
+        || win_path.starts_with("//")
+        || matches!(effective_ext.as_str(), "msc" | "cpl")
+        || win_path.to_lowercase().ends_with(".msc")
+        || win_path.to_lowercase().ends_with(".cpl")
     {
-        path.to_string()
+        win_path
     } else {
-        format!("{}.exe", path)
+        format!("{}.exe", win_path)
     };
+
+    // Regra de Ouro: Jamais repassar strings iniciadas com /mnt/ como argumento para o start do cmd.exe
+    if win_target.starts_with("/mnt/") {
+        return Err(format!(
+            "Caminho WSL montado inválido para inicialização via cmd.exe: \"{}\"",
+            win_target
+        ));
+    }
 
     let mut c = std::process::Command::new("cmd.exe");
     c.current_dir("/mnt/c");
@@ -420,12 +441,22 @@ pub fn run_windows_command_in_wsl(
         }
     }
 
+    Ok(c)
+}
+
+pub fn run_windows_command_in_wsl(
+    path: &str,
+    ext: &str,
+    raw_args: Option<&str>,
+) -> Result<RunResult, String> {
+    let mut c = build_windows_command_in_wsl(path, ext, raw_args)?;
+
     c.spawn()
-        .map_err(|e| format!("Falha ao invocar comando Windows \"{}\" via WSL Interop: {}", path, e))?;
+        .map_err(|e| format!("Falha ao iniciar executavel Windows \"{}\" via WSL: {}", path, e))?;
 
     Ok(RunResult {
         ok: true,
-        message: Some(format!("Comando Windows disparado via WSL: {}", path)),
+        message: Some(format!("Aplicativo Windows iniciado via WSL: {}", path)),
     })
 }
 
@@ -984,6 +1015,90 @@ mod tests {
 
         assert!(pythonpath_entry.is_some());
         assert_eq!(pythonpath_entry.unwrap().1, None);
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_wsl_mount_exe() {
+        let target = if std::path::Path::new("/mnt/c/Windows/System32/cmd.exe").exists() {
+            "/mnt/c/Windows/System32/cmd.exe"
+        } else if std::path::Path::new("/mnt/c/Windows/notepad.exe").exists() {
+            "/mnt/c/Windows/notepad.exe"
+        } else {
+            ""
+        };
+
+        if !target.is_empty() {
+            let cmd = build_windows_command_in_wsl(target, "exe", Some("--test")).unwrap();
+            assert_eq!(cmd.get_program(), target);
+            let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+            assert_eq!(args, vec!["--test"]);
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_windows_path_existing_exe() {
+        if std::path::Path::new("/mnt/c/Windows/System32/cmd.exe").exists() {
+            let cmd = build_windows_command_in_wsl(r"C:\Windows\System32\cmd.exe", "exe", None).unwrap();
+            assert_eq!(cmd.get_program(), "/mnt/c/Windows/System32/cmd.exe");
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_batch_script_normalization() {
+        let cmd = build_windows_command_in_wsl("/mnt/c/tools/script.bat", "bat", Some("arg1 arg2")).unwrap();
+        assert_eq!(cmd.get_program(), "cmd.exe");
+        assert_eq!(cmd.get_current_dir(), Some(std::path::Path::new("/mnt/c")));
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(args, vec!["/c", r"C:\tools\script.bat", "arg1", "arg2"]);
+        for arg in &args {
+            assert!(!arg.to_string_lossy().starts_with("/mnt/"));
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_powershell_script_normalization() {
+        let cmd = build_windows_command_in_wsl("/mnt/c/scripts/deploy.ps1", "ps1", Some("-Verbose")).unwrap();
+        assert_eq!(cmd.get_program(), "powershell.exe");
+        assert_eq!(cmd.get_current_dir(), Some(std::path::Path::new("/mnt/c")));
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(
+            args,
+            vec!["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", r"C:\scripts\deploy.ps1", "-Verbose"]
+        );
+        for arg in &args {
+            assert!(!arg.to_string_lossy().starts_with("/mnt/"));
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_msc_console_normalization() {
+        let cmd = build_windows_command_in_wsl("/mnt/c/Windows/System32/devmgmt.msc", "msc", None).unwrap();
+        assert_eq!(cmd.get_program(), "cmd.exe");
+        assert_eq!(cmd.get_current_dir(), Some(std::path::Path::new("/mnt/c")));
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(args, vec!["/c", "start", "", r"C:\Windows\System32\devmgmt.msc"]);
+        for arg in &args {
+            assert!(!arg.to_string_lossy().starts_with("/mnt/"));
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_path_utility() {
+        let cmd = build_windows_command_in_wsl("wt", "", Some("-d .")).unwrap();
+        assert_eq!(cmd.get_program(), "cmd.exe");
+        let args: Vec<&std::ffi::OsStr> = cmd.get_args().collect();
+        assert_eq!(args, vec!["/c", "start", "", "wt.exe", "-d", "."]);
+        for arg in &args {
+            assert!(!arg.to_string_lossy().starts_with("/mnt/"));
+        }
+    }
+
+    #[test]
+    fn test_build_windows_command_in_wsl_rejects_unmapped_mnt_path() {
+        let res = build_windows_command_in_wsl("/mnt/invalid/path.msc", "msc", None);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert!(err.contains("Caminho WSL montado inválido para inicialização via cmd.exe"));
     }
 }
 
