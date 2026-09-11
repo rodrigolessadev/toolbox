@@ -295,8 +295,21 @@ async fn check_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, String
 }
 
 
+/// Configura flags e variaveis de ambiente de renderizacao para Linux
+pub fn configure_linux_rendering_environment() {
+    #[cfg(target_os = "linux")]
+    {
+        // Desativa o renderizador DMABUF do WebKitGTK para evitar artefatos visuais (linhas em X)
+        if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    configure_linux_rendering_environment();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -509,5 +522,15 @@ mod tests {
         let res = validate_debian_package_header(short_data);
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("menos de 8 bytes"));
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn test_configure_linux_rendering_environment() {
+        configure_linux_rendering_environment();
+        assert_eq!(
+            std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").unwrap(),
+            "1"
+        );
     }
 }

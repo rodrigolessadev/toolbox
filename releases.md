@@ -1,3 +1,27 @@
+## v1.35.1 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/toolbox_1.35.1_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.1/Toolbox_1.35.1_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.1
+
+Esta versão traz correção crítica na renderização de interface no Linux e WSLg, eliminando artefatos visuais e linhas cruzadas em formato de "X" sobre inputs e campos suspensos.
+
+---
+
+### 🐛 Correções de Bugs e Estabilidade
+
+- **Desativação do Renderizador DMABUF do WebKitGTK no Linux ([#148](https://github.com/rodrigolessadev/toolbox/issues/148)):**
+  - Configuração automática da variável de ambiente `WEBKIT_DISABLE_DMABUF_RENDERER=1` durante a inicialização no Linux (`#[cfg(target_os = "linux")]`).
+  - Corrige incompatibilidade conhecida do WebKitGTK 2.40+ com drivers gráficos virtuais (Mesa / WSLg / d3d12) e compositores Wayland que provocava linhas diagonais em formato de "X" sobre inputs de texto e selects.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #149](https://github.com/rodrigolessadev/toolbox/pull/149):** `fix(ui): desativar renderizador dmabuf do webkitgtk no linux para eliminar linhas em X` (Closes [#148](https://github.com/rodrigolessadev/toolbox/issues/148))
+
+</details>
+
 ## v1.35.0 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/toolbox_1.35.0_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.0/Toolbox_1.35.0_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
