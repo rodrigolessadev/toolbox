@@ -1,3 +1,34 @@
+## v1.35.6 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.6/Toolbox_1.35.6_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.6/toolbox_1.35.6_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.6/Toolbox_1.35.6_amd64.AppImage)
+<details>
+<summary>Ver detalhes da versao</summary>
+
+# Toolbox v1.35.6
+
+Esta versão aprimora a integração do atalho global `Ctrl + Space` no ambiente WSL2, inicializando automaticamente o cliente Windows do Focus Bridge em segundo plano e garantindo a conectividade através de redes WSL2 em modo NAT.
+
+---
+
+### 🚀 Novas Funcionalidades & Melhorias sob WSL2
+
+- **Auto-inicialização do Focus Bridge no Host Windows ([#161](https://github.com/rodrigolessadev/toolbox/issues/161)):**
+  - O Toolbox agora inicializa automaticamente o script auxiliar do PowerShell em segundo plano silencioso (`-WindowStyle Hidden`) ao ser aberto no WSL2, eliminando a necessidade de iniciar o script manualmente no terminal do Windows.
+  - Implantação automática do script no diretório público do Windows (`C:\Users\Public\Toolbox\wsl-bridge\focus-bridge.ps1`).
+- **Resolução de Rede em Modo NAT e Fallback Dinâmico ([#161](https://github.com/rodrigolessadev/toolbox/issues/161)):**
+  - Socket TCP do daemon alterado para escutar em `0.0.0.0:49152`, aceitando conexões originadas na interface virtual vEthernet.
+  - O script cliente tenta conexão prioritária via loopback `127.0.0.1` e realiza fallback dinâmico automático para o IP da interface WSL (`hostname -I`) em ambientes sem encaminhamento automático de portas.
+- **Controle de Instância Única via Mutex ([#161](https://github.com/rodrigolessadev/toolbox/issues/161)):**
+  - Adicionado Mutex nomeado global (`Global\ToolboxWslFocusBridgeMutex`) para garantir que apenas uma instância do Focus Bridge execute no Windows, evitando concorrência de hotkeys.
+- **Encerramento Gracioso por Heartbeat ([#161](https://github.com/rodrigolessadev/toolbox/issues/161)):**
+  - Timer periódico que verifica a conectividade com o Toolbox e encerra automaticamente o processo auxiliar caso o aplicativo permaneça fechado por 3 minutos contínuos.
+
+---
+
+### 🔗 Pull Requests Relacionados
+
+- **[PR #163](https://github.com/rodrigolessadev/toolbox/pull/163):** `feat(shortcut): inicializar focus-bridge automaticamente no host windows e ajustar rede para atalho ctrl+space sob wsl2` (Closes [#161](https://github.com/rodrigolessadev/toolbox/issues/161))
+
+</details>
+
 ## v1.35.5 - 2026-09-11 [Windows Setup](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/Toolbox_1.35.5_x64-setup.exe) | [Linux DEB](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/toolbox_1.35.5_amd64.deb) | [Linux AppImage](https://github.com/rodrigolessadev/toolbox/releases/download/v1.35.5/Toolbox_1.35.5_amd64.AppImage)
 <details>
 <summary>Ver detalhes da versao</summary>
