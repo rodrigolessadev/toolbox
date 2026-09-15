@@ -1,3 +1,8 @@
+## v1.35.6 - 2026-09-15
+
+- # Toolbox v1.35.6
+- Esta versão aprimora a integração do atalho global `Ctrl + Space` no ambiente WSL2, inicializando automaticamente o cliente Windows do Focus Bridge em segundo plano e garantindo a conectividade através de redes WSL2 em modo NAT.
+
 ## v1.35.1 - 2026-09-11
 
 # Toolbox v1.35.1
